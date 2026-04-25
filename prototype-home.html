@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scoring - Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-bg: #fbfbfd;
+  --header-bg: #ededf0;
+  --surface: rgba(255, 255, 255, 0.94);
+  --text: #22202f;
+  --muted: #6f6b80;
+  --line: rgba(48, 40, 76, 0.12);
+  --line-strong: rgba(48, 40, 76, 0.18);
+  --brand: #6b3dff;
+  --brand-soft: rgba(107, 61, 255, 0.08);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 18px;
+  --shadow: 0 18px 50px rgba(46, 37, 76, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba(107, 61, 255, 0.05), transparent 240px),
+    linear-gradient(90deg, rgba(107, 61, 255, 0.04), transparent 45%),
+    linear-gradient(90deg, rgba(255, 189, 102, 0.06), transparent 75%),
+    var(--page-bg);
+  color: var(--text);
+  font-family: "Geologica", "Segoe UI", sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(rgba(46, 37, 76, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 37, 76, 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.24));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input {
+  font: inherit;
+}
+
+.shell {
+  width: min(calc(100% - 48px), 1280px);
+  margin: 0 auto;
+  padding: 18px 0 72px;
+}
+
+.search-panel,
+.section,
+.month-card,
+.latest-card,
+.result-card {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(48, 40, 76, 0.1);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--brand), #4f2fd1);
+  box-shadow: 0 16px 32px rgba(107, 61, 255, 0.18);
+}
+
+.brand-box svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-copy b {
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.brand-copy span,
+.latest-meta,
+.month-meta,
+.section-note,
+.row-meta,
+.month-subtext {
+  color: var(--muted);
+}
+
+.brand-copy span {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+.header-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-button,
+.header-link,
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.icon-button {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #fff;
+  color: var(--brand);
+  font-size: 20px;
+}
+
+.icon-button.active {
+  background: rgba(107, 61, 255, 0.08);
+  border-color: rgba(107, 61, 255, 0.18);
+}
+
+.icon-button svg,
+.search-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.header-link {
+  padding: 0 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand), #4f2fd1);
+  color: #fff;
+  box-shadow: 0 16px 32px rgba(107, 61, 255, 0.18);
+}
+
+.icon-button:hover,
+.header-link:hover,
+.section-link:hover {
+  transform: translateY(-2px);
+}
+
+.search-panel {
+  max-height: 0;
+  margin-top: 0;
+  padding: 0 20px;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-14px);
+  box-shadow: none;
+  transition:
+    max-height 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 220ms ease,
+    transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    margin-top 300ms ease,
+    padding 300ms ease,
+    border-color 300ms ease;
+  border-color: transparent;
+}
+
+.search-panel.open {
+  max-height: 120px;
+  margin-top: 14px;
+  padding: 18px 20px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.search-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.search-icon {
+  color: var(--brand);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.search-field input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.main {
+  display: grid;
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 26px;
+  padding: 18px 4px 0;
+  border-top: 1px solid rgba(48, 40, 76, 0.08);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer-note {
+  letter-spacing: -0.01em;
+}
+
+.footer-copy {
+  font-weight: 600;
+}
+
+.section {
+  padding: 24px;
+  border-radius: var(--radius-xl);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  width: max-content;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-head h2,
+.year-head h2 {
+  margin: 0;
+  letter-spacing: -0.08em;
+  line-height: 0.94;
+}
+
+.section-note,
+.month-subtext {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.section-head h2,
+.year-head h2 {
+  font-size: 40px;
+}
+
+.section-head-copy {
+  display: grid;
+  gap: 16px;
+}
+
+.year-head {
+  display: grid;
+  gap: 8px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.filter-chip:hover {
+  transform: translateY(-1px);
+  border-color: rgba(107, 61, 255, 0.2);
+  color: var(--text);
+}
+
+.filter-chip.active {
+  border-color: rgba(107, 61, 255, 0.18);
+  background: rgba(107, 61, 255, 0.08);
+  color: var(--brand);
+  box-shadow: 0 10px 24px rgba(107, 61, 255, 0.08);
+}
+
+.section-link {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0 16px;
+  background: #fff;
+}
+
+.latest-list,
+.results-list,
+.archive {
+  display: grid;
+  gap: 14px;
+}
+
+.latest-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.latest-card,
+.result-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.latest-card {
+  min-height: 210px;
+  align-content: start;
+}
+
+.latest-card.placeholder {
+  border-style: dashed;
+  background: rgba(248, 247, 252, 0.92);
+  box-shadow: none;
+}
+
+.latest-card.placeholder:hover {
+  transform: none;
+  border-color: var(--line);
+  box-shadow: none;
+}
+
+.latest-card:hover,
+.result-card:hover,
+.month-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(107, 61, 255, 0.22);
+  box-shadow: 0 20px 42px rgba(46, 37, 76, 0.1);
+}
+
+.row-top,
+.row-meta,
+.month-top,
+.month-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.month-top {
+  justify-content: flex-end;
+}
+
+.status-chip,
+.month-chip,
+.count-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-chip {
+  color: var(--brand);
+}
+
+.status-chip.status-scoring {
+  background: rgba(107, 61, 255, 0.1);
+  border-color: rgba(107, 61, 255, 0.18);
+  color: #5e34e2;
+}
+
+.status-chip.status-precheck {
+  background: rgba(71, 121, 255, 0.1);
+  border-color: rgba(71, 121, 255, 0.2);
+  color: #335bd4;
+}
+
+.status-chip.status-estimate {
+  background: rgba(255, 176, 87, 0.16);
+  border-color: rgba(255, 176, 87, 0.28);
+  color: #996025;
+}
+
+.status-chip.status-submitted {
+  background: rgba(27, 176, 126, 0.12);
+  border-color: rgba(27, 176, 126, 0.24);
+  color: #147457;
+}
+
+.status-chip.status-response {
+  background: rgba(112, 120, 145, 0.14);
+  border-color: rgba(112, 120, 145, 0.24);
+  color: #545b74;
+}
+
+.status-chip.status-placeholder {
+  background: rgba(48, 40, 76, 0.06);
+  border-color: rgba(48, 40, 76, 0.12);
+  color: #6a6780;
+}
+
+.count-chip {
+  color: var(--brand);
+}
+
+.latest-card h3,
+.result-card h3,
+.month-copy strong {
+  margin: 0;
+  letter-spacing: -0.05em;
+}
+
+.latest-card h3,
+.result-card h3 {
+  font-size: 28px;
+}
+
+.row-meta {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.results {
+  display: none;
+}
+
+.results.show {
+  display: block;
+}
+
+.results-empty {
+  color: var(--muted);
+}
+
+.latest-empty {
+  padding: 18px;
+  border: 1px dashed rgba(48, 40, 76, 0.14);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.year {
+  display: grid;
+  gap: 16px;
+}
+
+.months-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.month-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.month-card.current {
+  border-color: rgba(107, 61, 255, 0.32);
+  box-shadow: 0 18px 38px rgba(107, 61, 255, 0.12);
+}
+
+.month-card.empty {
+  background: rgba(246, 244, 250, 0.9);
+}
+
+.month-copy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.month-copy strong {
+  font-size: 24px;
+}
+
+.month-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.month-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid rgba(48, 40, 76, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.month-stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.month-stat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: none;
+}
+
+.month-stat strong {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.month-stat.status-scoring {
+  color: #5e34e2;
+}
+
+.month-stat.status-precheck {
+  color: #335bd4;
+}
+
+.month-stat.status-estimate {
+  color: #996025;
+}
+
+.month-stat.status-submitted {
+  color: #147457;
+}
+
+.month-stat.status-response {
+  color: #545b74;
+}
+
+.month-subtext {
+  font-size: 14px;
+}
+
+.month-bottom {
+  font-size: 14px;
+  justify-content: flex-end;
+}
+
+.month-bottom span:last-child {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.reveal.visible {
+  animation: fade-up 520ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes fade-up {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .shell {
+    width: min(calc(100% - 24px), 1280px);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-side {
+    justify-content: flex-end;
+  }
+
+  .section-head h2,
+  .year-head h2 {
+    font-size: clamp(34px, 11vw, 58px);
+  }
+
+  .latest-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .months-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .header,
+  .search-panel,
+  .section {
+    padding: 18px;
+  }
+
+  .brand {
+    width: 100%;
+  }
+
+  .header-side {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .icon-button {
+    flex: 0 0 48px;
+  }
+
+  .header-link,
+  .section-link {
+    min-height: 42px;
+  }
+
+  .header-link {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .latest-list,
+  .months-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 16px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header reveal visible">
+    <div class="brand">
+      <span class="brand-box" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 22.5V9.5L12.1 18.2L16 12.6L19.9 18.2L26 9.5V22.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24.7" cy="7.3" r="2.2" fill="white"/>
+        </svg>
+      </span>
+      <div class="brand-copy">
+        <b>Scoring</b>
+        <span id="brandSub"></span>
+      </div>
+    </div>
+    <div class="header-side">
+      <button class="icon-button" id="searchToggle" type="button" aria-label="Открыть поиск">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="5.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M15 15L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <a class="header-link" id="ctaButton" href="#month-current"></a>
+    </div>
+  </header>
+
+  <section class="search-panel" id="searchPanel">
+    <label class="search-field">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="5.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M15 15L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <input id="q" type="search">
+    </label>
+  </section>
+
+  <main class="main">
+    <section class="section reveal visible" id="latest">
+      <div class="section-head">
+        <div class="section-head-copy">
+          <h2 id="latestTitle"></h2>
+          <div class="filter-row" id="latestFilters"></div>
+        </div>
+        <a class="section-link" id="latestLink" href="#month-current"></a>
+      </div>
+      <div class="latest-list" id="latestList"></div>
+    </section>
+
+    <section class="section results reveal visible" id="results">
+      <div class="section-head">
+        <div class="section-head-copy">
+          <span class="eyebrow">Результаты поиска</span>
+          <h2 id="found"></h2>
+        </div>
+      </div>
+      <div class="results-list" id="grid"></div>
+    </section>
+
+    <section class="archive" id="archive"></section>
+  </main>
+
+  <footer class="footer reveal visible">
+    <span class="footer-note">Внутренний дизайн-стенд архива скоринга</span>
+    <span class="footer-copy">Scoring prototype</span>
+  </footer>
+</div>
+<script>
+const TEXT = {
+  brandSub: "Утром — деньги, вечером — стулья",
+  searchPlaceholder: "Поиск по проектам, заказчикам и статусам",
+  headerButton: "+ Добавить проект",
+  latestTitle: "Последние проекты",
+  latestLink: "Все проекты",
+  latestFilterAll: "Все стадии",
+  latestPlaceholderTitle: "Свободный слот",
+  latestPlaceholderDescription: "Здесь появится следующий проект.",
+  latestPlaceholderCustomer: "Данные ожидаются",
+  latestPlaceholderStatus: "Скоро",
+  found: "Найдено",
+  noResults: "По этому запросу пока ничего не найдено.",
+  year: "Год",
+  monthOpen: "Открыть месяц",
+  monthProjects: "проектов",
+  noProjects: "Нет проектов",
+  withoutCustomer: "Заказчик не указан",
+  withoutDate: "без даты"
+};
+
+const STATUS_MODEL = [
+  "Скоринг",
+  "Предоценка",
+  "Оценка",
+  "Подано",
+  "Получен ответ"
+];
+
+const MONTHS = [
+  "январь",
+  "февраль",
+  "март",
+  "апрель",
+  "май",
+  "июнь",
+  "июль",
+  "август",
+  "сентябрь",
+  "октябрь",
+  "ноябрь",
+  "декабрь"
+];
+
+const DATA = {
+  current: {
+    year: 2025,
+    month: 5,
+    monthLabel: "май",
+    projectCount: 12
+  },
+  latest: [
+    {
+      id: "l1",
+      title: "Интернет-магазин B2B для федеральной сети",
+      shortTitle: "B2B eCommerce",
+      customer: "АО «Северный Альянс»",
+      stage: STATUS_MODEL[0],
+      status: STATUS_MODEL[0],
+      publishedAt: "2025-05-18"
+    },
+    {
+      id: "l2",
+      title: "Промо-сайт продуктовой линейки и лендинги запуска",
+      shortTitle: "Promo Launch",
+      customer: "ООО «Новая Формула»",
+      stage: STATUS_MODEL[1],
+      status: STATUS_MODEL[1],
+      publishedAt: "2025-05-12"
+    },
+    {
+      id: "l3",
+      title: "Внутренний портал для отдела маркетинга",
+      shortTitle: "Marketing Portal",
+      customer: "ООО «Практика»",
+      stage: STATUS_MODEL[2],
+      status: STATUS_MODEL[2],
+      publishedAt: "2025-05-08"
+    },
+    {
+      id: "l4",
+      title: "Редизайн корпоративного сайта и бренд-хаба",
+      shortTitle: "Brand Hub",
+      customer: "ООО «Лаборатория»",
+      stage: STATUS_MODEL[3],
+      status: STATUS_MODEL[3],
+      publishedAt: "2025-05-04"
+    },
+    {
+      id: "l5",
+      title: "Портал закупок и документов для холдинга",
+      shortTitle: "Procurement Portal",
+      customer: "АО «Контур»",
+      stage: STATUS_MODEL[4],
+      status: STATUS_MODEL[4],
+      publishedAt: "2025-04-28"
+    },
+    {
+      id: "l6",
+      title: "Личный кабинет поставщика для сетевой группы",
+      shortTitle: "Supplier Cabinet",
+      customer: "ООО «Вектор»",
+      stage: STATUS_MODEL[0],
+      status: STATUS_MODEL[0],
+      publishedAt: "2025-04-21"
+    },
+    {
+      id: "l7",
+      title: "Дашборд франшизы для региональных команд",
+      shortTitle: "Franchise Dashboard",
+      customer: "ГК «Ритейл Плюс»",
+      stage: STATUS_MODEL[1],
+      status: STATUS_MODEL[1],
+      publishedAt: "2025-04-16"
+    },
+    {
+      id: "l8",
+      title: "Рабочее пространство тендерного отдела",
+      shortTitle: "Tender Workspace",
+      customer: "ООО «Орбита»",
+      stage: STATUS_MODEL[2],
+      status: STATUS_MODEL[2],
+      publishedAt: "2025-03-29"
+    },
+    {
+      id: "l9",
+      title: "Краткий кабинет логистики и отгрузок",
+      shortTitle: "Logistics Brief",
+      customer: "АО «Логистик Сервис»",
+      stage: STATUS_MODEL[3],
+      status: STATUS_MODEL[3],
+      publishedAt: "2025-03-14"
+    }
+  ],
+  years: [
+    {
+      year: 2025,
+      stageStats: {
+        "скоринг": 5,
+        "предоценка": 6,
+        "оценка": 4,
+        "подано": 5,
+        "получен ответ": 3
+      },
+      months: [
+        {
+          month: 5,
+          total: 12,
+          stageStats: {
+            "скоринг": 3,
+            "предоценка": 3,
+            "оценка": 2,
+            "подано": 3,
+            "получен ответ": 1
+          },
+          records: [
+            { id: "m1", publishedAt: "2025-05-18" },
+            { id: "m2", publishedAt: "2025-05-12" }
+          ]
+        },
+        {
+          month: 4,
+          total: 7,
+          stageStats: {
+            "скоринг": 1,
+            "предоценка": 2,
+            "оценка": 1,
+            "подано": 1,
+            "получен ответ": 2
+          },
+          records: [
+            { id: "m3", publishedAt: "2025-04-11" }
+          ]
+        },
+        {
+          month: 3,
+          total: 4,
+          stageStats: {
+            "скоринг": 1,
+            "предоценка": 1,
+            "оценка": 1,
+            "подано": 1,
+            "получен ответ": 0
+          },
+          records: [
+            { id: "m4", publishedAt: "2025-03-14" }
+          ]
+        }
+      ]
+    },
+    {
+      year: 2024,
+      stageStats: {
+        "скоринг": 2,
+        "предоценка": 3,
+        "оценка": 4,
+        "подано": 5,
+        "получен ответ": 3
+      },
+      months: [
+        {
+          month: 11,
+          total: 9,
+          stageStats: {
+            "скоринг": 1,
+            "предоценка": 2,
+            "оценка": 2,
+            "подано": 3,
+            "получен ответ": 1
+          },
+          records: [
+            { id: "m5", publishedAt: "2024-11-22" }
+          ]
+        },
+        {
+          month: 9,
+          total: 8,
+          stageStats: {
+            "скоринг": 1,
+            "предоценка": 1,
+            "оценка": 2,
+            "подано": 2,
+            "получен ответ": 2
+          },
+          records: [
+            { id: "m6", publishedAt: "2024-09-17" }
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+const searchable = [
+  ...DATA.latest,
+  {
+    id: "s1",
+    title: "Редизайн корпоративного сайта и бренд-хаба",
+    shortTitle: "Brand Hub",
+    customer: "ООО «Лаборатория»",
+    stage: STATUS_MODEL[3],
+    status: STATUS_MODEL[3],
+    publishedAt: "2025-04-11"
+  },
+  {
+    id: "s2",
+    title: "Портал закупок и документов для холдинга",
+    shortTitle: "Procurement Portal",
+    customer: "АО «Контур»",
+    stage: STATUS_MODEL[4],
+    status: STATUS_MODEL[4],
+    publishedAt: "2024-09-17"
+  }
+];
+
+const STATUS_CLASS_MAP = {
+  "скоринг": "status-scoring",
+  "предоценка": "status-precheck",
+  "оценка": "status-estimate",
+  "подано": "status-submitted",
+  "получен ответ": "status-response",
+  "скоро": "status-placeholder"
+};
+
+const q = (selector) => document.querySelector(selector);
+let latestStageFilter = "all";
+let latestRenderToken = 0;
+const LATEST_GRID_SIZE = 9;
+
+function capitalize(value) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : "";
+}
+
+function monthLabel(month) {
+  return capitalize(MONTHS[Math.max(0, Number(month) - 1)] || "");
+}
+
+function formatDate(value) {
+  if (!value) {
+    return TEXT.withoutDate;
+  }
+
+  const date = new Date(String(value).replace(" ", "T"));
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "short"
+  });
+}
+
+function latestRecord(records) {
+  return [...records].sort((left, right) => {
+    return String(right.publishedAt || "").localeCompare(String(left.publishedAt || ""));
+  })[0];
+}
+
+function statusClass(value) {
+  return STATUS_CLASS_MAP[String(value || "").trim().toLowerCase()] || "status-scoring";
+}
+
+function displayStatus(value) {
+  return capitalize(String(value || "").trim());
+}
+
+function stageValue(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function stageLabel(value) {
+  if (value === "all") {
+    return TEXT.latestFilterAll;
+  }
+
+  return displayStatus(value);
+}
+
+function buildPlaceholderRecord(index, stage) {
+  const activeStage = stage === "all" ? TEXT.latestPlaceholderStatus : stageLabel(stage);
+
+  return {
+    id: `placeholder-${stage}-${index}`,
+    placeholder: true,
+    title: stage === "all"
+      ? TEXT.latestPlaceholderDescription
+      : `Здесь появится проект на стадии «${activeStage}».`,
+    shortTitle: TEXT.latestPlaceholderTitle,
+    customer: TEXT.latestPlaceholderCustomer,
+    stage: activeStage,
+    status: activeStage,
+    publishedAt: ""
+  };
+}
+
+function fillLatestSlots(records, stage) {
+  const normalized = [...records];
+
+  while (normalized.length < LATEST_GRID_SIZE) {
+    normalized.push(buildPlaceholderRecord(normalized.length + 1, stage));
+  }
+
+  return normalized.slice(0, LATEST_GRID_SIZE);
+}
+
+// Prototype backend contract for latest-project filters.
+async function fetchLatestFromBackend(stage) {
+  const filtered = DATA.latest.filter((record) => {
+    const recordStage = stageValue(record.stage || record.status);
+    return stage === "all" || recordStage === stage;
+  });
+
+  filtered.sort((left, right) => {
+    return String(right.publishedAt || "").localeCompare(String(left.publishedAt || ""));
+  });
+
+  return fillLatestSlots(filtered, stage);
+}
+
+function emptyStageStats() {
+  return Object.fromEntries(
+    STATUS_MODEL.map((stage) => [stageValue(stage), 0])
+  );
+}
+
+function renderMonthStats(monthBlock) {
+  const stats = {
+    ...emptyStageStats(),
+    ...(monthBlock.stageStats || {})
+  };
+
+  return STATUS_MODEL.map((stage) => {
+    const normalizedStage = stageValue(stage);
+    const count = Number(stats[normalizedStage] || 0);
+
+    return `
+      <span class="month-stat ${statusClass(stage)}">
+        <span class="month-stat-label">
+          <span class="month-stat-dot"></span>
+          <span>${stage}</span>
+        </span>
+        <strong>${count}</strong>
+      </span>
+    `;
+  }).join("");
+}
+
+function monthRangeForYear(year) {
+  const lastMonth = year === DATA.current.year ? DATA.current.month : 12;
+  return Array.from({ length: lastMonth }, (_, index) => lastMonth - index);
+}
+
+function expandMonths(yearBlock) {
+  const monthMap = new Map(yearBlock.months.map((month) => [month.month, month]));
+
+  return monthRangeForYear(yearBlock.year).map((month) => {
+    const monthData = monthMap.get(month);
+
+    return monthData ? {
+      ...monthData,
+      stageStats: {
+        ...emptyStageStats(),
+        ...(monthData.stageStats || {})
+      }
+    } : {
+      month,
+      total: 0,
+      records: [],
+      stageStats: emptyStageStats()
+    };
+  });
+}
+
+function renderHeader() {
+  q("#brandSub").textContent = TEXT.brandSub;
+  q("#ctaButton").textContent = TEXT.headerButton;
+  q("#q").placeholder = TEXT.searchPlaceholder;
+}
+
+async function renderLatest() {
+  const renderToken = ++latestRenderToken;
+  q("#latestTitle").textContent = TEXT.latestTitle;
+  q("#latestLink").textContent = TEXT.latestLink;
+  const filterOptions = [
+    { value: "all", label: TEXT.latestFilterAll },
+    ...STATUS_MODEL.map((stage) => ({ value: stageValue(stage), label: stage }))
+  ];
+
+  q("#latestFilters").innerHTML = filterOptions.map((option) => {
+    const activeClass = option.value === latestStageFilter ? " active" : "";
+    return `<button class="filter-chip${activeClass}" type="button" data-stage="${option.value}">${option.label}</button>`;
+  }).join("");
+
+  const filteredLatest = await fetchLatestFromBackend(latestStageFilter);
+  if (renderToken !== latestRenderToken) {
+    return;
+  }
+
+  q("#latestList").innerHTML = filteredLatest.map((record) => {
+    const status = displayStatus(record.stage || record.status);
+    const placeholderClass = record.placeholder ? " placeholder" : "";
+
+    return `
+      <article class="latest-card${placeholderClass}">
+        <div class="row-top">
+          <span class="status-chip ${statusClass(status)}">${status}</span>
+          <span class="latest-meta">${record.placeholder ? "" : formatDate(record.publishedAt)}</span>
+        </div>
+        <h3>${record.shortTitle || record.title}</h3>
+        <p>${record.title}</p>
+        <div class="row-meta">
+          <span>${record.customer || TEXT.withoutCustomer}</span>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function renderArchive() {
+  q("#archive").innerHTML = DATA.years.map((yearBlock) => {
+    const months = expandMonths(yearBlock);
+
+    return `
+      <section class="section year reveal visible">
+        <div class="year-head">
+          <h2>${yearBlock.year}</h2>
+        </div>
+        <div class="months-grid">
+          ${months.map((monthBlock) => {
+            const isCurrent = yearBlock.year === DATA.current.year && monthBlock.month === DATA.current.month;
+            const monthRecord = latestRecord(monthBlock.records) || {};
+            const cardId = isCurrent ? "month-current" : `month-${yearBlock.year}-${monthBlock.month}`;
+
+            return `
+              <a class="month-card ${isCurrent ? "current" : ""} ${monthBlock.total ? "" : "empty"}" id="${cardId}" href="#${cardId}">
+                <div class="month-copy">
+                  <strong>${monthLabel(monthBlock.month)}</strong>
+                  <span class="count-chip">${monthBlock.total} ${TEXT.monthProjects}</span>
+                </div>
+                <div class="month-stats">
+                  ${renderMonthStats(monthBlock)}
+                </div>
+              </a>
+            `;
+          }).join("")}
+        </div>
+      </section>
+    `;
+  }).join("");
+
+  q("#latestLink").setAttribute("href", "#month-current");
+  q("#ctaButton").setAttribute("href", "#month-current");
+}
+
+function renderSearch(term) {
+  const queryValue = term.trim().toLowerCase();
+  const box = q("#results");
+  const grid = q("#grid");
+
+  if (!queryValue) {
+    box.classList.remove("show");
+    q("#found").textContent = `${TEXT.found} 0`;
+    grid.innerHTML = "";
+    return;
+  }
+
+  const filtered = searchable.filter((record) => {
+    const haystack = [
+      record.title,
+      record.shortTitle,
+      record.customer,
+      record.stage,
+      record.status
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    return haystack.includes(queryValue);
+  }).slice(0, 8);
+
+  box.classList.add("show");
+  q("#found").textContent = `${TEXT.found} ${filtered.length}`;
+
+  grid.innerHTML = filtered.length ? filtered.map((record) => {
+    const status = displayStatus(record.stage || record.status);
+
+    return `
+      <article class="result-card">
+        <div class="row-top">
+          <span class="status-chip ${statusClass(status)}">${status}</span>
+          <span class="latest-meta">${formatDate(record.publishedAt)}</span>
+        </div>
+        <h3>${record.shortTitle || record.title}</h3>
+        <p>${record.title}</p>
+        <div class="row-meta">
+          <span>${record.customer || TEXT.withoutCustomer}</span>
+        </div>
+      </article>
+    `;
+  }).join("") : `<div class="results-empty">${TEXT.noResults}</div>`;
+}
+
+function bindSearchToggle() {
+  const button = q("#searchToggle");
+  const panel = q("#searchPanel");
+  const input = q("#q");
+
+  button.addEventListener("click", () => {
+    panel.classList.toggle("open");
+
+    if (panel.classList.contains("open")) {
+      input.focus();
+    } else {
+      input.blur();
+    }
+  });
+}
+
+function bindLatestFilters() {
+  q("#latestFilters").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-stage]");
+    if (!button) {
+      return;
+    }
+
+    latestStageFilter = button.getAttribute("data-stage") || "all";
+    renderLatest();
+  });
+}
+
+renderHeader();
+renderLatest();
+renderArchive();
+renderSearch("");
+bindSearchToggle();
+bindLatestFilters();
+
+q("#q").addEventListener("input", (event) => {
+  renderSearch(event.target.value || "");
+});
+</script>
+</body>
+</html>

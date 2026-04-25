@@ -1,0 +1,1134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scoring - Prototype Year</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-bg: #fbfbfd;
+  --surface: rgba(255, 255, 255, 0.94);
+  --text: #22202f;
+  --muted: #6f6b80;
+  --line: rgba(48, 40, 76, 0.12);
+  --brand: #6b3dff;
+  --brand-strong: #4f2fd1;
+  --brand-soft: rgba(107, 61, 255, 0.08);
+  --accent: #ffb057;
+  --accent-soft: rgba(255, 176, 87, 0.16);
+  --success: #1b9e78;
+  --success-soft: rgba(27, 158, 120, 0.12);
+  --response: #707891;
+  --response-soft: rgba(112, 120, 145, 0.14);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 18px;
+  --shadow: 0 18px 50px rgba(46, 37, 76, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba(107, 61, 255, 0.05), transparent 240px),
+    linear-gradient(90deg, rgba(107, 61, 255, 0.04), transparent 45%),
+    linear-gradient(90deg, rgba(255, 189, 102, 0.06), transparent 75%),
+    var(--page-bg);
+  color: var(--text);
+  font-family: "Geologica", "Segoe UI", sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(rgba(46, 37, 76, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 37, 76, 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.24));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.shell {
+  width: min(calc(100% - 48px), 1280px);
+  margin: 0 auto;
+  padding: 18px 0 72px;
+}
+
+.search-panel,
+.section,
+.project-card {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(48, 40, 76, 0.1);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  box-shadow: 0 16px 32px rgba(107, 61, 255, 0.18);
+}
+
+.brand-box svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-copy b {
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.brand-copy span,
+.project-meta,
+.footer,
+.year-note,
+.empty-copy,
+.controls-label {
+  color: var(--muted);
+}
+
+.brand-copy span {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+.header-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-button,
+.header-link,
+.month-anchor-chip,
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease,
+    opacity 180ms ease;
+}
+
+.icon-button {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #fff;
+  color: var(--brand);
+}
+
+.icon-button.active {
+  background: rgba(107, 61, 255, 0.08);
+  border-color: rgba(107, 61, 255, 0.18);
+}
+
+.icon-button svg,
+.search-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.header-link {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 16px 32px rgba(107, 61, 255, 0.18);
+  white-space: nowrap;
+}
+
+.icon-button:hover,
+.header-link:hover,
+.month-anchor-chip:hover,
+.filter-chip:hover,
+.project-card:hover {
+  transform: translateY(-2px);
+}
+
+.search-panel {
+  max-height: 0;
+  margin-top: 0;
+  padding: 0 20px;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-14px);
+  box-shadow: none;
+  transition:
+    max-height 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 220ms ease,
+    transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    margin-top 300ms ease,
+    padding 300ms ease,
+    border-color 300ms ease;
+  border-color: transparent;
+}
+
+.search-panel.open {
+  max-height: 120px;
+  margin-top: 14px;
+  padding: 18px 20px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.search-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.search-icon {
+  color: var(--brand);
+  display: inline-flex;
+}
+
+.search-field input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.main {
+  display: grid;
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.section {
+  padding: 24px;
+  border-radius: var(--radius-xl);
+}
+
+.year-section {
+  display: grid;
+  gap: 18px;
+}
+
+.year-head {
+  display: grid;
+  gap: 10px;
+}
+
+.year-head h1,
+.month-head h2 {
+  margin: 0;
+  letter-spacing: -0.08em;
+  line-height: 0.94;
+}
+
+.year-head h1 {
+  font-size: clamp(42px, 7vw, 64px);
+}
+
+.year-note {
+  margin: 0;
+  font-size: 15px;
+}
+
+.year-controls {
+  display: grid;
+  gap: 14px;
+}
+
+.controls-group {
+  display: grid;
+  gap: 10px;
+}
+
+.controls-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.month-anchor-nav,
+.filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.month-anchor-chip {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(107, 61, 255, 0.12);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(107, 61, 255, 0.08), rgba(107, 61, 255, 0.03));
+  color: #5e34e2;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.month-anchor-chip.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(107, 61, 255, 0.18);
+}
+
+.filter-chip {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.filter-chip.active {
+  border-color: rgba(48, 40, 76, 0.18);
+  background: rgba(48, 40, 76, 0.05);
+  color: var(--text);
+  box-shadow: 0 10px 24px rgba(46, 37, 76, 0.06);
+}
+
+.sticky-year-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-12px);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.sticky-year-toolbar.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.sticky-year-toolbar-inner {
+  width: 100%;
+  padding: 14px 24px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 0 0 24px 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.56)),
+    linear-gradient(90deg, rgba(107, 61, 255, 0.08), rgba(255, 189, 102, 0.06));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 18px 36px rgba(46, 37, 76, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.sticky-year-toolbar-content {
+  display: grid;
+  gap: 12px;
+  width: min(calc(100% - 48px), 1280px);
+  margin: 0 auto;
+}
+
+.month-stack {
+  display: grid;
+  gap: 18px;
+}
+
+.month-section {
+  display: grid;
+  gap: 18px;
+  scroll-margin-top: 116px;
+}
+
+.month-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.month-head h2 {
+  font-size: clamp(36px, 6vw, 54px);
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.project-card {
+  display: grid;
+  gap: 12px;
+  min-height: 198px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.project-card-top,
+.project-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.project-card h3 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.05em;
+  line-height: 1.02;
+}
+
+.project-description {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.58;
+  color: var(--text);
+}
+
+.project-meta {
+  font-size: 14px;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-scoring {
+  background: rgba(107, 61, 255, 0.1);
+  border-color: rgba(107, 61, 255, 0.18);
+  color: #5e34e2;
+}
+
+.status-precheck {
+  background: rgba(71, 121, 255, 0.1);
+  border-color: rgba(71, 121, 255, 0.2);
+  color: #335bd4;
+}
+
+.status-estimate {
+  background: var(--accent-soft);
+  border-color: rgba(255, 176, 87, 0.28);
+  color: #996025;
+}
+
+.status-submitted {
+  background: var(--success-soft);
+  border-color: rgba(27, 158, 120, 0.24);
+  color: #147457;
+}
+
+.status-response {
+  background: var(--response-soft);
+  border-color: rgba(112, 120, 145, 0.24);
+  color: #545b74;
+}
+
+.project-card.empty {
+  border-style: dashed;
+  background: rgba(248, 247, 252, 0.92);
+  box-shadow: none;
+  align-content: center;
+}
+
+.empty-copy {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: 26px;
+  padding: 18px 4px 0;
+  border-top: 1px solid rgba(48, 40, 76, 0.08);
+  font-size: 13px;
+}
+
+.footer-copy {
+  font-weight: 600;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.reveal.visible {
+  animation: fade-up 520ms cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes fade-up {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .shell {
+    width: min(calc(100% - 24px), 1280px);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-side {
+    justify-content: flex-end;
+  }
+
+  .projects-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .header,
+  .search-panel,
+  .section {
+    padding: 18px;
+  }
+
+  .brand {
+    width: 100%;
+  }
+
+  .header-side {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .icon-button {
+    flex: 0 0 48px;
+  }
+
+  .header-link {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .sticky-year-toolbar {
+    top: 0;
+  }
+
+  .sticky-year-toolbar-inner {
+    padding: 12px 18px 14px;
+    border-radius: 0 0 20px 20px;
+  }
+
+  .sticky-year-toolbar-content {
+    width: 100%;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 16px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header reveal visible">
+    <div class="brand">
+      <span class="brand-box" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 22.5V9.5L12.1 18.2L16 12.6L19.9 18.2L26 9.5V22.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24.7" cy="7.3" r="2.2" fill="white"/>
+        </svg>
+      </span>
+      <div class="brand-copy">
+        <b>Scoring</b>
+        <span>Утром — деньги, вечером — стулья</span>
+      </div>
+    </div>
+    <div class="header-side">
+      <button class="icon-button" id="searchToggle" type="button" aria-label="Открыть поиск">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="5.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M15 15L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <a class="header-link" href="#month-april">+ Добавить проект</a>
+    </div>
+  </header>
+
+  <section class="search-panel" id="searchPanel">
+    <label class="search-field">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="5.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M15 15L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <input id="q" type="search" placeholder="Поиск по проекту">
+    </label>
+  </section>
+
+  <div class="sticky-year-toolbar" id="stickyYearToolbar">
+    <div class="sticky-year-toolbar-inner">
+      <div class="sticky-year-toolbar-content">
+        <div class="controls-group">
+          <span class="controls-label">Месяцы</span>
+          <nav class="month-anchor-nav" id="stickyMonthNav" aria-label="Подвешенная навигация по месяцам"></nav>
+        </div>
+        <div class="controls-group">
+          <span class="controls-label">Фильтр по стадии</span>
+          <div class="filter-row" id="stickyYearFilters"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="main">
+    <section class="section year-section reveal visible" id="year-intro">
+      <div class="year-head">
+        <h1>2025</h1>
+        <p class="year-note">Страница года: месяцы идут единым скроллом вниз, а нужный месяц можно открыть по якорю сверху.</p>
+      </div>
+      <div class="year-controls">
+        <div class="controls-group">
+          <span class="controls-label">Месяцы</span>
+          <nav class="month-anchor-nav" id="monthNav" aria-label="Навигация по месяцам"></nav>
+        </div>
+        <div class="controls-group">
+          <span class="controls-label">Фильтр по стадии</span>
+          <div class="filter-row" id="yearFilters"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="month-stack" id="monthSections"></div>
+  </main>
+
+  <footer class="footer reveal visible">
+    <span>Scoring year prototype</span>
+    <span class="footer-copy">Standalone design template</span>
+  </footer>
+</div>
+
+<script>
+const FILTERS = [
+  "Все стадии",
+  "Скоринг",
+  "Предоценка",
+  "Оценка",
+  "Подано",
+  "Получен ответ"
+];
+
+const YEAR_PAGE = {
+  year: 2025,
+  months: [
+    {
+      id: "april",
+      label: "Апрель",
+      records: [
+        {
+          title: "B2B eCommerce",
+          description: "Интернет-магазин B2B для федеральной сети",
+          customer: "АО «Северный Альянс»",
+          stage: "Скоринг",
+          date: "18 мая"
+        },
+        {
+          title: "Promo Launch",
+          description: "Промо-сайт продуктовой линейки и лендинги запуска",
+          customer: "ООО «Новая Формула»",
+          stage: "Предоценка",
+          date: "12 мая"
+        },
+        {
+          title: "Marketing Portal",
+          description: "Внутренний портал для отдела маркетинга",
+          customer: "ООО «Практика»",
+          stage: "Оценка",
+          date: "08 мая"
+        },
+        {
+          title: "Brand Hub",
+          description: "Редизайн корпоративного сайта и бренд-хаба",
+          customer: "ООО «Лаборатория»",
+          stage: "Подано",
+          date: "04 мая"
+        },
+        {
+          title: "Supplier Cabinet",
+          description: "Личный кабинет поставщика для сетевой группы",
+          customer: "ООО «Вектор»",
+          stage: "Получен ответ",
+          date: "21 апр."
+        },
+        {
+          title: "Franchise Dashboard",
+          description: "Дашборд франшизы для региональных команд",
+          customer: "ГК «Ритейл Плюс»",
+          stage: "Предоценка",
+          date: "16 апр."
+        },
+        {
+          title: "Tender Workspace",
+          description: "Рабочее пространство тендерного отдела",
+          customer: "ООО «Орбита»",
+          stage: "Оценка",
+          date: "29 мар."
+        },
+        {
+          title: "Logistics Brief",
+          description: "Краткий кабинет логистики и отгрузок",
+          customer: "АО «Логистик Сервис»",
+          stage: "Подано",
+          date: "14 мар."
+        }
+      ]
+    },
+    {
+      id: "march",
+      label: "Март",
+      records: [
+        {
+          title: "Media Room",
+          description: "Контентная зона для PR-материалов и публикаций",
+          customer: "ООО «Медиум»",
+          stage: "Скоринг",
+          date: "28 мар."
+        },
+        {
+          title: "Dealer Platform",
+          description: "Сервисный портал для дилерской сети",
+          customer: "АО «Механика»",
+          stage: "Предоценка",
+          date: "24 мар."
+        },
+        {
+          title: "Procurement Hub",
+          description: "Портал закупок и документов для холдинга",
+          customer: "АО «Контур»",
+          stage: "Оценка",
+          date: "19 мар."
+        },
+        {
+          title: "Career Site",
+          description: "Рекрутинговый сайт и карьерный кабинет",
+          customer: "АО «Техно»",
+          stage: "Подано",
+          date: "15 мар."
+        },
+        {
+          title: "Regional Brief",
+          description: "Сводка тендеров для филиальной команды",
+          customer: "ООО «Сигма»",
+          stage: "Получен ответ",
+          date: "11 мар."
+        },
+        {
+          title: "Partner Area",
+          description: "Закрытая зона для партнерских материалов",
+          customer: "ООО «Партнер»",
+          stage: "Скоринг",
+          date: "09 мар."
+        },
+        {
+          title: "Docs Registry",
+          description: "Реестр архивов и комплектов документов",
+          customer: "АО «ДокСистемы»",
+          stage: "Предоценка",
+          date: "05 мар."
+        },
+        {
+          title: "Launch Board",
+          description: "Операционный лончборд для запуска тендера",
+          customer: "ООО «Восход»",
+          stage: "Оценка",
+          date: "02 мар."
+        }
+      ]
+    },
+    {
+      id: "february",
+      label: "Февраль",
+      records: [
+        {
+          title: "Vendor Desk",
+          description: "Рабочая зона для подготовки тендерных ответов",
+          customer: "ООО «Баланс»",
+          stage: "Скоринг",
+          date: "25 фев."
+        },
+        {
+          title: "Legal Packet",
+          description: "Комплектование юридических документов закупки",
+          customer: "АО «Право Групп»",
+          stage: "Получен ответ",
+          date: "21 фев."
+        },
+        {
+          title: "Docs Cabinet",
+          description: "Кабинет для внутренних комплектов и архивов",
+          customer: "ООО «Архивум»",
+          stage: "Подано",
+          date: "16 фев."
+        },
+        {
+          title: "Supplier Brief",
+          description: "Сводка требований для нового поставщика",
+          customer: "ООО «Опора»",
+          stage: "Оценка",
+          date: "12 фев."
+        },
+        {
+          title: "Internal Review",
+          description: "Внутренний обзор материалов перед подачей",
+          customer: "АО «Сфера»",
+          stage: "Предоценка",
+          date: "08 фев."
+        }
+      ]
+    },
+    {
+      id: "january",
+      label: "Январь",
+      records: [
+        {
+          title: "Kickoff Board",
+          description: "Стартовый борт для годового пула тендеров",
+          customer: "ООО «Темп»",
+          stage: "Скоринг",
+          date: "24 янв."
+        },
+        {
+          title: "Archive Audit",
+          description: "Проверка прошлых архивов и входящих комплектов",
+          customer: "АО «Фокус»",
+          stage: "Предоценка",
+          date: "19 янв."
+        },
+        {
+          title: "Pricing Pack",
+          description: "Подготовка ценового пакета для лота",
+          customer: "ООО «Ракурс»",
+          stage: "Оценка",
+          date: "14 янв."
+        },
+        {
+          title: "Submission Note",
+          description: "Пакет на подачу и внутренняя финальная проверка",
+          customer: "ООО «Платформа»",
+          stage: "Подано",
+          date: "10 янв."
+        }
+      ]
+    }
+  ]
+};
+
+const STAGE_CLASS = {
+  "Скоринг": "status-scoring",
+  "Предоценка": "status-precheck",
+  "Оценка": "status-estimate",
+  "Подано": "status-submitted",
+  "Получен ответ": "status-response"
+};
+
+const monthSectionsRoot = document.getElementById("monthSections");
+const monthNavRoot = document.getElementById("monthNav");
+const stickyMonthNavRoot = document.getElementById("stickyMonthNav");
+const yearFiltersRoot = document.getElementById("yearFilters");
+const stickyYearFiltersRoot = document.getElementById("stickyYearFilters");
+const stickyYearToolbar = document.getElementById("stickyYearToolbar");
+const yearIntro = document.getElementById("year-intro");
+const searchToggle = document.getElementById("searchToggle");
+const searchPanel = document.getElementById("searchPanel");
+
+let activeMonthId = window.location.hash.replace("#month-", "") || YEAR_PAGE.months[0].id;
+let activeYearFilter = "Все стадии";
+let monthObserver = null;
+let introObserver = null;
+
+function buildMonthNavMarkup() {
+  return YEAR_PAGE.months.map((month) => {
+    const activeClass = month.id === activeMonthId ? " active" : "";
+
+    return `
+      <a class="month-anchor-chip${activeClass}" href="#month-${month.id}" data-anchor-month="${month.id}">
+        ${month.label}
+      </a>
+    `;
+  }).join("");
+}
+
+function buildYearFiltersMarkup() {
+  return FILTERS.map((filter) => {
+    const activeClass = filter === activeYearFilter ? " active" : "";
+
+    return `
+      <button class="filter-chip${activeClass}" type="button" data-year-filter="${filter}">
+        ${filter}
+      </button>
+    `;
+  }).join("");
+}
+
+function renderMonthNav() {
+  const markup = buildMonthNavMarkup();
+  monthNavRoot.innerHTML = markup;
+  stickyMonthNavRoot.innerHTML = markup;
+}
+
+function renderYearFilters() {
+  const markup = buildYearFiltersMarkup();
+  yearFiltersRoot.innerHTML = markup;
+  stickyYearFiltersRoot.innerHTML = markup;
+}
+
+function getFilteredRecords(month) {
+  if (activeYearFilter === "Все стадии") {
+    return month.records;
+  }
+
+  return month.records.filter((record) => record.stage === activeYearFilter);
+}
+
+function renderProjectCard(record) {
+  const stageClass = STAGE_CLASS[record.stage] || "status-scoring";
+
+  return `
+    <article class="project-card">
+      <div class="project-card-top">
+        <span class="status-chip ${stageClass}">${record.stage}</span>
+        <span class="project-meta">${record.date}</span>
+      </div>
+      <h3>${record.title}</h3>
+      <p class="project-description">${record.description}</p>
+      <div class="project-meta">
+        <span>${record.customer}</span>
+      </div>
+    </article>
+  `;
+}
+
+function renderEmptyCard() {
+  return `
+    <article class="project-card empty">
+      <p class="empty-copy">По выбранной стадии в этом месяце проектов пока нет.</p>
+    </article>
+  `;
+}
+
+function renderMonthSection(month) {
+  const filteredRecords = getFilteredRecords(month);
+  const cardsMarkup = filteredRecords.length
+    ? filteredRecords.map(renderProjectCard).join("")
+    : renderEmptyCard();
+
+  return `
+    <section class="section month-section reveal visible" id="month-${month.id}" data-month-section="${month.id}">
+      <div class="month-head">
+        <h2>${month.label}</h2>
+      </div>
+      <div class="projects-grid">
+        ${cardsMarkup}
+      </div>
+    </section>
+  `;
+}
+
+function bindMonthObserver() {
+  if (monthObserver) {
+    monthObserver.disconnect();
+  }
+
+  monthObserver = new IntersectionObserver(
+    (entries) => {
+      const visibleEntries = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((left, right) => right.intersectionRatio - left.intersectionRatio);
+
+      if (!visibleEntries.length) {
+        return;
+      }
+
+      activeMonthId = visibleEntries[0].target.dataset.monthSection;
+      renderMonthNav();
+    },
+    {
+      threshold: 0.32,
+      rootMargin: "-10% 0px -48% 0px"
+    }
+  );
+
+  document.querySelectorAll("[data-month-section]").forEach((section) => {
+    monthObserver.observe(section);
+  });
+}
+
+function bindIntroObserver() {
+  if (introObserver) {
+    introObserver.disconnect();
+  }
+
+  introObserver = new IntersectionObserver(
+    ([entry]) => {
+      const showSticky = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+      stickyYearToolbar.classList.toggle("visible", showSticky);
+    },
+    {
+      threshold: 0.08
+    }
+  );
+
+  introObserver.observe(yearIntro);
+}
+
+function renderMonths() {
+  monthSectionsRoot.innerHTML = YEAR_PAGE.months.map(renderMonthSection).join("");
+  bindMonthObserver();
+}
+
+document.addEventListener("click", (event) => {
+  const filterButton = event.target.closest("[data-year-filter]");
+
+  if (filterButton) {
+    activeYearFilter = filterButton.dataset.yearFilter;
+    renderYearFilters();
+    renderMonths();
+    renderMonthNav();
+    return;
+  }
+
+  const monthLink = event.target.closest("[data-anchor-month]");
+
+  if (monthLink) {
+    activeMonthId = monthLink.dataset.anchorMonth;
+    renderMonthNav();
+  }
+});
+
+window.addEventListener("hashchange", () => {
+  const nextActive = window.location.hash.replace("#month-", "");
+
+  if (!nextActive) {
+    return;
+  }
+
+  activeMonthId = nextActive;
+  renderMonthNav();
+});
+
+searchToggle.addEventListener("click", () => {
+  const isOpen = searchPanel.classList.toggle("open");
+  searchToggle.classList.toggle("active", isOpen);
+});
+
+renderMonthNav();
+renderYearFilters();
+renderMonths();
+bindIntroObserver();
+</script>
+</body>
+</html>

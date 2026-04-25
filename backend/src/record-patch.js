@@ -1,0 +1,76 @@
+import { normalizeCriteriaRows } from "./record-schema.js";
+
+export function applyRecordPatch(existingRecord, patch) {
+  const hasOwn = (key) => Object.prototype.hasOwnProperty.call(patch, key);
+  const criteriaSource =
+    patch.criteriaRows !== undefined || patch.criteria !== undefined
+      ? patch.criteriaRows ?? patch.criteria
+      : undefined;
+  const criteriaRows = criteriaSource !== undefined ? normalizeCriteriaRows(criteriaSource) : undefined;
+  const nextRecord = {
+    ...existingRecord,
+    customer: patch.customer ?? existingRecord.customer,
+    title: patch.title ?? existingRecord.title,
+    shortTitle: patch.shortTitle ?? existingRecord.shortTitle,
+    sourceUrl: patch.sourceUrl ?? existingRecord.sourceUrl,
+    etpUrl: patch.etpUrl ?? existingRecord.etpUrl,
+    documentsFolderHref: patch.documentsFolderHref ?? existingRecord.documentsFolderHref,
+    googleDocumentsFolderHref: patch.googleDocumentsFolderHref ?? existingRecord.googleDocumentsFolderHref,
+    deadlineAt: patch.deadlineAt ?? existingRecord.deadlineAt,
+    nmc: patch.nmc ?? existingRecord.nmc ?? existingRecord.priceStatus,
+    stage: patch.stage ?? existingRecord.stage,
+    purchaseBy: patch.purchaseBy ?? existingRecord.purchaseBy ?? patch.platform ?? existingRecord.platform,
+    platform: patch.platform ?? existingRecord.platform ?? patch.purchaseBy,
+    platformPayment: patch.platformPayment ?? existingRecord.platformPayment,
+    applicationSecurity: patch.applicationSecurity ?? existingRecord.applicationSecurity,
+    contractSecurity: patch.contractSecurity ?? existingRecord.contractSecurity,
+    overallExecutionTerm: patch.overallExecutionTerm ?? existingRecord.overallExecutionTerm,
+    contractTerm: patch.contractTerm ?? existingRecord.contractTerm,
+    retrade: patch.retrade ?? existingRecord.retrade,
+    antiDumpingMeasures: patch.antiDumpingMeasures ?? existingRecord.antiDumpingMeasures,
+    notes: patch.notes ?? existingRecord.notes ?? patch.summary ?? existingRecord.summary,
+    summary: patch.summary ?? existingRecord.summary ?? patch.notes ?? existingRecord.notes,
+    creative: hasOwn("creative") ? patch.creative : existingRecord.creative,
+    creativeLinkUrl: patch.creativeLinkUrl ?? existingRecord.creativeLinkUrl,
+    requirementsDocumentUrl: patch.requirementsDocumentUrl ?? existingRecord.requirementsDocumentUrl,
+    criteriaDocumentUrl: patch.criteriaDocumentUrl ?? existingRecord.criteriaDocumentUrl,
+    technicalSpecificationUrl: patch.technicalSpecificationUrl ?? existingRecord.technicalSpecificationUrl,
+    criteriaRows: criteriaRows ?? existingRecord.criteriaRows,
+    documents: Array.isArray(patch.documents) ? patch.documents : existingRecord.documents
+  };
+
+  if (patch.workflow && typeof patch.workflow === "object") {
+    nextRecord.workflow = {
+      ...existingRecord.workflow,
+      ...patch.workflow,
+      codexRun: {
+        ...existingRecord.workflow?.codexRun,
+        ...patch.workflow.codexRun
+      }
+    };
+  }
+
+  if (!nextRecord.documentsFolderHref && nextRecord.documents?.length) {
+    const archiveDocument =
+      nextRecord.documents.find((document) => document.kind === "archive") || nextRecord.documents[0];
+    nextRecord.documentsFolderHref = archiveDocument?.href || "";
+  }
+
+  if (!nextRecord.googleDocumentsFolderHref) {
+    nextRecord.googleDocumentsFolderHref = nextRecord.documentsFolderHref || "";
+  }
+
+  if (!nextRecord.requirementsDocumentUrl) {
+    nextRecord.requirementsDocumentUrl = nextRecord.documentsFolderHref || "";
+  }
+
+  if (!nextRecord.criteriaDocumentUrl) {
+    nextRecord.criteriaDocumentUrl = nextRecord.documentsFolderHref || "";
+  }
+
+  if (!nextRecord.technicalSpecificationUrl) {
+    nextRecord.technicalSpecificationUrl = nextRecord.documentsFolderHref || "";
+  }
+
+  return nextRecord;
+}

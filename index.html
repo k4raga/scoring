@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тендер ЦЕМРОС БЛОК</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --bg-accent: #d9ebe6;
+      --panel: rgba(255, 251, 245, 0.88);
+      --panel-strong: rgba(31, 47, 44, 0.9);
+      --text: #1f2523;
+      --muted: #5f6c67;
+      --line: rgba(31, 37, 35, 0.12);
+      --line-strong: rgba(31, 37, 35, 0.2);
+      --brand: #0f7b6c;
+      --brand-soft: #d8f0eb;
+      --warning: #b76e1d;
+      --shadow: 0 24px 60px rgba(31, 37, 35, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 18px;
+      --radius-sm: 12px;
+      --content-width: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 123, 108, 0.18), transparent 34%),
+        radial-gradient(circle at 85% 20%, rgba(183, 110, 29, 0.14), transparent 24%),
+        linear-gradient(180deg, #fbf7f0 0%, var(--bg) 100%);
+      font-family: "Trebuchet MS", "Gill Sans", "Segoe UI", sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(31, 37, 35, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(31, 37, 35, 0.035) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .page {
+      position: relative;
+      width: min(calc(100% - 32px), var(--content-width));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(239, 248, 245, 0.82)),
+        var(--panel);
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      right: -90px;
+      top: -110px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(15, 123, 108, 0.22) 0%, rgba(15, 123, 108, 0.02) 66%, transparent 70%);
+      z-index: -1;
+    }
+
+    .hero-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 34px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 0 18px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      color: #f5fffc;
+      background: linear-gradient(135deg, #136c60, #0b5d52);
+      box-shadow: 0 14px 28px rgba(15, 123, 108, 0.22);
+    }
+
+    .button-secondary {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.72);
+      border-color: var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(40px, 6vw, 74px);
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+    }
+
+    .hero-copy {
+      max-width: 740px;
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 0.95fr;
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      box-shadow: 0 16px 34px rgba(31, 37, 35, 0.08);
+      backdrop-filter: blur(16px);
+    }
+
+    .card-dark {
+      background:
+        linear-gradient(180deg, rgba(18, 39, 36, 0.94), rgba(21, 42, 39, 0.9)),
+        var(--panel-strong);
+      color: #effaf7;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .card-inner {
+      padding: 22px;
+    }
+
+    .section {
+      margin-top: 18px;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .span-7 { grid-column: span 7; }
+    .span-5 { grid-column: span 5; }
+    .span-4 { grid-column: span 4; }
+    .span-6 { grid-column: span 6; }
+    .span-12 { grid-column: span 12; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .kpi {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid var(--line);
+    }
+
+    .card-dark .kpi {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .kpi-label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .card-dark .kpi-label {
+      color: rgba(239, 250, 247, 0.62);
+    }
+
+    .kpi-value {
+      margin-top: 10px;
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 800;
+    }
+
+    .meta-list,
+    .criterion-list,
+    .requirement-list,
+    .doc-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .meta-item,
+    .criterion-item,
+    .requirement-item,
+    .doc-item {
+      padding: 15px 16px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--line);
+    }
+
+    .meta-key,
+    .criterion-tag,
+    .doc-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .criterion-item {
+      display: grid;
+      gap: 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(246, 252, 250, 0.8));
+    }
+
+    .criterion-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .criterion-title {
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .pill-price {
+      color: #0d5d50;
+      background: #d9f3ed;
+    }
+
+    .pill-neutral {
+      color: #6a410e;
+      background: #f5e5cd;
+    }
+
+    .pill-required {
+      color: #5c1e12;
+      background: #f3d8d0;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(28px, 3vw, 38px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .section-copy {
+      margin: 0 0 18px;
+      max-width: 760px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .accent-bar {
+      width: 92px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--brand), rgba(15, 123, 108, 0.22));
+      margin-bottom: 18px;
+    }
+
+    .doc-item a {
+      color: var(--brand);
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .doc-item a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px dashed var(--line-strong);
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .summary-copy {
+      margin-top: 14px;
+      color: rgba(239, 250, 247, 0.74);
+      line-height: 1.7;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 128px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-item:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .timeline-date {
+      color: rgba(239, 250, 247, 0.58);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .timeline-text {
+      line-height: 1.6;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .span-7,
+      .span-5,
+      .span-4,
+      .span-6,
+      .span-12 {
+        grid-column: auto;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(calc(100% - 20px), var(--content-width));
+        padding-top: 12px;
+      }
+
+      .hero {
+        padding: 18px;
+      }
+
+      .hero-top {
+        margin-bottom: 24px;
+      }
+
+      .card-inner {
+        padding: 18px;
+      }
+
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="hero-top">
+        <span class="eyebrow">scoring / статическая страница / тендерный срез</span>
+        <div class="hero-actions">
+          <a class="button button-primary" href="./docs/coding-cemros-block-ru-v2.xlsx">Открыть кодинг</a>
+          <a class="button button-secondary" href="#criteria">К критериям выбора</a>
+        </div>
+      </div>
+
+      <h1>Тендер на разработку сайта ЦЕМРОС БЛОК</h1>
+      <p class="hero-copy">
+        Статическая страница собирает в одном месте ключевые параметры закупки, критерии выбора победителя,
+        обязательные требования участия и быстрый доступ к подготовленному файлу кодинга.
+      </p>
+
+      <div class="hero-grid">
+        <article class="card">
+          <div class="card-inner">
+            <div class="accent-bar"></div>
+            <h2 class="section-title">Быстрый контекст</h2>
+            <div class="kpi-grid">
+              <div class="kpi">
+                <span class="kpi-label">Заказчик</span>
+                <div class="kpi-value">ЦЕМРОС БЛОК</div>
+              </div>
+              <div class="kpi">
+                <span class="kpi-label">Номер закупки</span>
+                <div class="kpi-value">320-493</div>
+              </div>
+              <div class="kpi">
+                <span class="kpi-label">Подача до</span>
+                <div class="kpi-value">27.04<br>12:00</div>
+              </div>
+              <div class="kpi">
+                <span class="kpi-label">Формат</span>
+                <div class="kpi-value">Тендер</div>
+              </div>
+            </div>
+
+            <div class="status-row">
+              <span class="status-chip">Коммерческая закупка</span>
+              <span class="status-chip">Постоплата</span>
+              <span class="status-chip">Апрель-июль 2026</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card card-dark">
+          <div class="card-inner">
+            <h2 class="section-title">О чем закупка</h2>
+            <p class="summary-copy">
+              В документах описан многостраничный сайт бренда ЦЕМРОС БЛОК с региональными поддоменами,
+              интернет-магазином, личным кабинетом, корзиной, онлайн-оплатой, формами обратной связи
+              и административной частью для дальнейшего наполнения со стороны заказчика.
+            </p>
+
+            <div class="timeline">
+              <div class="timeline-item">
+                <div class="timeline-date">Формат</div>
+                <div class="timeline-text">Корпоративный сайт с коммерческим контуром и расширенной структурой.</div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-date">Технологии</div>
+                <div class="timeline-text">В ТЗ допускаются 1С-Битрикс или WordPress.</div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-date">Цель</div>
+                <div class="timeline-text">Трафик, лидогенерация, навигация по продуктам и удобный вход в продажи.</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="criteria" class="section">
+      <div class="section-grid">
+        <article class="card span-7">
+          <div class="card-inner">
+            <div class="accent-bar"></div>
+            <h2 class="section-title">Критерии выбора подрядчика</h2>
+            <p class="section-copy">
+              В этом блоке собраны не требования к самому продукту, а именно метрики, по которым заказчик
+              будет сравнивать заявки и определять победителя.
+            </p>
+
+            <ul class="criterion-list">
+              <li class="criterion-item">
+                <div class="criterion-head">
+                  <div>
+                    <span class="criterion-tag">Ценовой критерий</span>
+                    <div class="criterion-title">Цена договора / стоимость работ</div>
+                  </div>
+                  <span class="pill pill-price">Основной</span>
+                </div>
+                <div>В извещении прямо указан критерий «минимальная цена».</div>
+              </li>
+
+              <li class="criterion-item">
+                <div class="criterion-head">
+                  <div>
+                    <span class="criterion-tag">Неценовой критерий</span>
+                    <div class="criterion-title">Условия оплаты</div>
+                  </div>
+                  <span class="pill pill-neutral">Критерий</span>
+                </div>
+                <div>В извещении отдельно указано условие «постоплата».</div>
+              </li>
+
+              <li class="criterion-item">
+                <div class="criterion-head">
+                  <div>
+                    <span class="criterion-tag">Неценовой критерий</span>
+                    <div class="criterion-title">Срок выполнения</div>
+                  </div>
+                  <span class="pill pill-neutral">Критерий</span>
+                </div>
+                <div>Заказчик оценивает срок исполнения; в документах фигурирует период апрель-июль 2026 и ориентир до 3 месяцев.</div>
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card span-5">
+          <div class="card-inner">
+            <h2 class="section-title">Требования без веса</h2>
+            <p class="section-copy">
+              Это не сравнительные преимущества, а условия, без которых участие теряет смысл или не проходит
+              базовую проверку со стороны заказчика.
+            </p>
+
+            <ul class="requirement-list">
+              <li class="requirement-item">
+                <span class="criterion-tag">Блок-фактор</span>
+                <strong>Соответствие ТЗ</strong><br>
+                Нужно подтвердить готовность выполнить работы в объеме ТЗ и структуры сайта.
+              </li>
+              <li class="requirement-item">
+                <span class="criterion-tag">Блок-фактор</span>
+                <strong>Постоплата</strong><br>
+                Условие оплаты задано в извещении как обязательное для участия.
+              </li>
+              <li class="requirement-item">
+                <span class="criterion-tag">Блок-фактор</span>
+                <strong>Срок реализации</strong><br>
+                Нужно уложиться в ожидание заказчика по срокам выполнения работ.
+              </li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-grid">
+        <article class="card span-6">
+          <div class="card-inner">
+            <div class="accent-bar"></div>
+            <h2 class="section-title">Паспорт закупки</h2>
+            <ul class="meta-list">
+              <li class="meta-item">
+                <span class="meta-key">Предмет закупки</span>
+                Разработка многостраничного сайта бренда ЦЕМРОС БЛОК.
+              </li>
+              <li class="meta-item">
+                <span class="meta-key">Регион</span>
+                Россия, Краснодарский край, город Усть-Лабинск.
+              </li>
+              <li class="meta-item">
+                <span class="meta-key">Срок подачи заявки</span>
+                27 апреля 2026 года, 12:00.
+              </li>
+              <li class="meta-item">
+                <span class="meta-key">Срок исполнения</span>
+                Апрель-июль 2026 года.
+              </li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="card span-6">
+          <div class="card-inner">
+            <div class="accent-bar"></div>
+            <h2 class="section-title">Документы</h2>
+            <ul class="doc-list">
+              <li class="doc-item">
+                <span class="doc-label">Кодинг</span>
+                <a href="./docs/coding-cemros-block-ru-v2.xlsx">coding-cemros-block-ru-v2.xlsx</a>
+              </li>
+              <li class="doc-item">
+                <span class="doc-label">Техническое задание</span>
+                <a href="./tmp/site-archive/%D0%A2%D0%97%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0.doc">ТЗ сайта.doc</a>
+              </li>
+              <li class="doc-item">
+                <span class="doc-label">Извещение</span>
+                <a href="./tmp/site-archive/%D0%98%D0%B7%D0%B2%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D0%B5.%20%D0%A2%D0%BE%D1%80%D0%B3%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%BF%D0%BB%D0%BE%D1%89%D0%B0%D0%B4%D0%BA%D0%B0%20Bidzaar.doc">Извещение. Торговая площадка Bidzaar.doc</a>
+              </li>
+              <li class="doc-item">
+                <span class="doc-label">Структура сайта</span>
+                <a href="./tmp/site-archive/%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%B8%20%D1%80%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%D1%8B%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0.xlsx">Структура и разделы сайта.xlsx</a>
+              </li>
+              <li class="doc-item">
+                <span class="doc-label">Контур агентов</span>
+                <a href="./AGENT-LOOP.md">AGENT-LOOP.md</a>
+              </li>
+              <li class="doc-item">
+                <span class="doc-label">Права команды</span>
+                <a href="./.codex-workflow/team-policy.md">team-policy.md</a>
+              </li>
+            </ul>
+
+            <div class="footer-note">
+              Страница собрана как полностью статический артефакт: один HTML-файл, встроенные стили, без сборки
+              и без внешних зависимостей. Это удобно для быстрых внутренних просмотров, handoff внутри `scoring/`
+              и как простая smoke-поверхность для проверки обновлений development contour.
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

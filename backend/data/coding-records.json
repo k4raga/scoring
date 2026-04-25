@@ -1,0 +1,1277 @@
+[
+  {
+    "id": "cemros-block-2026-04-16",
+    "title": "Разработка многостраничного сайта бренда ЦЕМРОС БЛОК",
+    "shortTitle": "ЦЕМРОС БЛОК",
+    "publishedAt": "2026-04-16",
+    "deadlineAt": "2026-04-27 12:00",
+    "customer": "АО «ЦЕМРОС»",
+    "region": "Краснодарский край, г. Усть-Лабинск",
+    "platform": "Bidzaar / РосТендер",
+    "sourceUrl": "https://rostender.info/region/krasnodarskij-kraj/91648071-tender-razrabotka-mnogostranichnogo-sajta",
+    "status": "Кодинг подготовлен",
+    "stage": "Готов к handoff",
+    "priceStatus": "Начальная цена не указана",
+    "executionWindow": "Апрель — июль 2026",
+    "summary": "Многостраничный сайт с региональными поддоменами, интернет-магазином, корзиной, онлайн-оплатой, личным кабинетом, формами и административной частью.",
+    "documents": [
+      {
+        "label": "Кодинг",
+        "href": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
+        "fileName": ""
+      },
+      {
+        "label": "Техническое задание",
+        "href": "/assets/tmp/site-archive/%D0%A2%D0%97%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0.doc",
+        "fileName": ""
+      },
+      {
+        "label": "Извещение Bidzaar",
+        "href": "/assets/tmp/site-archive/%D0%98%D0%B7%D0%B2%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D0%B5.%20%D0%A2%D0%BE%D1%80%D0%B3%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%BF%D0%BB%D0%BE%D1%89%D0%B0%D0%B4%D0%BA%D0%B0%20Bidzaar.doc",
+        "fileName": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "coding-cemros-block-ru-v2.xlsx",
+      "bitrixTaskStatus": "Черновик процесса",
+      "pageStatus": "Статическая страница собрана",
+      "projectFolder": "",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      }
+    },
+    "purchaseBy": "Bidzaar / РосТендер",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
+    "googleDocumentsFolderHref": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
+    "nmc": "Начальная цена не указана",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Апрель — июль 2026",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "??????????????? ???? ? ????????????? ???????????, ????????-?????????, ????????, ??????-???????, ?????? ?????????, ??????? ? ???????????????? ??????.",
+    "creative": false,
+    "requirementsDocumentUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
+    "criteriaDocumentUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
+    "technicalSpecificationUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
+    "criteriaRows": [
+      {
+        "group": "price",
+        "title": "??????????? ???? ???????????",
+        "description": "",
+        "kind": "основной",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "??????????",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "???? ?????????? ?? 3 ???????",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "hardRequirements",
+        "title": "???????????? ???????????? ???????",
+        "description": "",
+        "kind": "блок-фактор",
+        "note": ""
+      },
+      {
+        "group": "hardRequirements",
+        "title": "?????????? ???????? ? ?????? ?????????",
+        "description": "",
+        "kind": "блок-фактор",
+        "note": ""
+      }
+    ],
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "demo-brand-portal-2026-04-18",
+    "title": "Демо: Корпоративный портал бренда для дилерской сети",
+    "shortTitle": "Портал дилеров",
+    "publishedAt": "2026-04-18",
+    "deadlineAt": "2026-04-30 18:00",
+    "customer": "ООО «Пром Диджитал»",
+    "region": "Москва",
+    "platform": "Демо-данные",
+    "sourceUrl": "",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Ожидается бюджетный диапазон",
+    "executionWindow": "Май — июнь 2026",
+    "summary": "Внутренний B2B-портал для партнеров с каталогом материалов, заявками и разделом маркетинговой поддержки.",
+    "documents": [],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Данные заведены в приложение",
+      "projectFolder": "",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      }
+    },
+    "etpUrl": "",
+    "documentsFolderHref": "",
+    "googleDocumentsFolderHref": "",
+    "nmc": "Ожидается бюджетный диапазон",
+    "purchaseBy": "Демо-данные",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Май — июнь 2026",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Внутренний B2B-портал для партнеров с каталогом материалов, заявками и разделом маркетинговой поддержки.",
+    "creative": true,
+    "requirementsDocumentUrl": "",
+    "criteriaDocumentUrl": "",
+    "technicalSpecificationUrl": "",
+    "criteriaRows": [
+      {
+        "group": "price",
+        "title": "Стоимость этапа discovery",
+        "description": "",
+        "kind": "основной",
+        "note": ""
+      },
+      {
+        "group": "price",
+        "title": "Стоимость реализации MVP",
+        "description": "",
+        "kind": "основной",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "Релевантный опыт в B2B",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "Наличие команды с PM и QA",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Готовность к еженедельной отчетности",
+        "description": "",
+        "kind": "блок-фактор",
+        "note": ""
+      }
+    ],
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "demo-retail-catalog-2026-05-03",
+    "title": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+    "shortTitle": "Оптовый каталог",
+    "publishedAt": "2026-05-03",
+    "deadlineAt": "2026-05-17T15:00:00+03:00",
+    "customer": "ООО «Ритейл Системы»",
+    "region": "Санкт-Петербург",
+    "platform": "Демо-данные",
+    "sourceUrl": "",
+    "status": "Черновой анализ",
+    "stage": "Нужна детализация",
+    "priceStatus": "Бюджет уточняется",
+    "executionWindow": "Июнь — август 2026",
+    "summary": "Оптовый каталог с многоуровневыми ценами, историей заказов и витриной акций по сегментам клиентов.",
+    "documents": [],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Данные заведены в приложение",
+      "projectFolder": "",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      }
+    },
+    "purchaseBy": "Демо-данные",
+    "etpUrl": "",
+    "documentsFolderHref": "",
+    "googleDocumentsFolderHref": "",
+    "nmc": "Бюджет уточняется",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Июнь — август 2026",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Оптовый каталог с многоуровневыми ценами, историей заказов и витриной акций по сегментам клиентов.",
+    "creative": null,
+    "requirementsDocumentUrl": "",
+    "criteriaDocumentUrl": "",
+    "technicalSpecificationUrl": "",
+    "criteriaRows": [
+      {
+        "group": "price",
+        "title": "Общая стоимость проекта",
+        "description": "",
+        "kind": "основной",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "Скорость запуска первой очереди",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "Наличие поддержки после релиза",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Интеграция с текущей ERP",
+        "description": "",
+        "kind": "блок-фактор",
+        "note": ""
+      }
+    ],
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "demo-landing-2025-12-11",
+    "title": "Демо: Промо-лендинг для новой линейки продукта",
+    "shortTitle": "Промо-лендинг",
+    "publishedAt": "2025-12-11",
+    "deadlineAt": "2025-12-22T11:00:00+03:00",
+    "customer": "ООО «Маркет Лаб»",
+    "region": "Екатеринбург",
+    "platform": "Демо-данные",
+    "sourceUrl": "",
+    "status": "Архив",
+    "stage": "Завершено",
+    "priceStatus": "Фиксированная ставка",
+    "executionWindow": "Январь 2026",
+    "summary": "Одностраничный запуск продукта с формами лидогенерации, квизом и интеграцией с CRM.",
+    "documents": [],
+    "workflow": {
+      "codingFile": "Архивный пример",
+      "bitrixTaskStatus": "Закрыта",
+      "pageStatus": "Архивная запись",
+      "projectFolder": "",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      }
+    },
+    "purchaseBy": "Демо-данные",
+    "etpUrl": "",
+    "documentsFolderHref": "",
+    "googleDocumentsFolderHref": "",
+    "nmc": "Фиксированная ставка",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Январь 2026",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Одностраничный запуск продукта с формами лидогенерации, квизом и интеграцией с CRM.",
+    "creative": null,
+    "requirementsDocumentUrl": "",
+    "criteriaDocumentUrl": "",
+    "technicalSpecificationUrl": "",
+    "criteriaRows": [
+      {
+        "group": "price",
+        "title": "Фиксированная стоимость",
+        "description": "",
+        "kind": "основной",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "Портфолио в FMCG",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "nonPrice",
+        "title": "Готовность к быстрому старту",
+        "description": "",
+        "kind": "критерий",
+        "note": ""
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Адаптивность и аналитика",
+        "description": "",
+        "kind": "блок-фактор",
+        "note": ""
+      }
+    ],
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-16-razrabotka-mnogostranichnogo-sajta",
+    "title": "Razrabotka mnogostranichnogo sajta",
+    "shortTitle": "Razrabotka mnogostranichnogo sajta",
+    "publishedAt": "2026-04-16",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "sourceUrl": "",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "summary": "Архив 91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip загружен. Запущен локальный Codex-run.",
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+        "kind": "archive",
+        "fileName": "91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260416-221337-2026-04-16-razrabotka-mnogostranichnogo-sajta",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "purchaseBy": "Загрузка архива",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+    "nmc": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив 91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+    "criteriaRows": [],
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-17-ð-ð3-4ð3ð3-4ð2ð3-4n-ð-n-ð3-4ðμðon-117-docx-2",
+    "title": "Договор Проект 117.docx (2)",
+    "shortTitle": "Договор Проект 117.docx (2)",
+    "publishedAt": "2026-04-17",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Договор_Проект-117.docx-(2).zip загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
+    "summary": "Архив Договор_Проект-117.docx-(2).zip загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
+        "kind": "archive",
+        "fileName": "Договор_Проект-117.docx-(2).zip"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-17-ð-ð3-4ð3ð3-4ð2ð3-4n-ð-n-ð3-4ðμðon-117-docx-2",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260417-111708-2026-04-17-3-4-3-3-4-2-3-4n-n-3-4-on-117-docx-2",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-17-1123",
+    "title": "1123",
+    "shortTitle": "1123",
+    "publishedAt": "2026-04-17",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Корп_университет_Сбербанка_02_12_разработка.rar загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "summary": "Архив Корп_университет_Сбербанка_02_12_разработка.rar загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+        "kind": "archive",
+        "fileName": "Корп_университет_Сбербанка_02_12_разработка.rar"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-17-1123",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260417-115303-2026-04-17-1123",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-20-123",
+    "title": "123",
+    "shortTitle": "123",
+    "publishedAt": "2026-04-20",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Договор_Проект-117.docx-(2).zip загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
+    "summary": "Архив Договор_Проект-117.docx-(2).zip загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
+        "kind": "archive",
+        "fileName": "Договор_Проект-117.docx-(2).zip"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-20-123",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260420-122549-2026-04-20-123",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "analysis": {
+      "analysisId": "35d90b1a-78eb-4d6b-b4c3-c2bc69edf65a",
+      "status": "completed",
+      "provider": {
+        "id": "codex-local",
+        "label": "Codex Local",
+        "status": "active",
+        "transport": "local",
+        "supportsPageEvidence": false,
+        "supportsDocumentExtraction": false
+      },
+      "archive": {
+        "name": "Договор_Проект-117.docx (2).zip",
+        "sizeBytes": 98832
+      },
+      "documents": [
+        {
+          "id": "archive",
+          "name": "Договор_Проект-117.docx (2).zip",
+          "kind": "zip",
+          "pageCount": null
+        }
+      ],
+      "fields": {
+        "title": {
+          "value": "123",
+          "status": "filled",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "123",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "shortTitle": {
+          "value": "123",
+          "status": "filled",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "123",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "publishedAt": {
+          "value": "2026-04-20",
+          "status": "filled",
+          "confidence": 0.35,
+          "evidence": [
+            {
+              "sourceType": "archive_filename",
+              "field": null,
+              "documentId": "archive",
+              "documentName": "Договор_Проект-117.docx (2).zip",
+              "page": null,
+              "quote": "Договор_Проект-117.docx (2).zip",
+              "note": "Дата взята из времени загрузки, потому что в имени архива дата не найдена."
+            }
+          ]
+        },
+        "sourceUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        },
+        "etpUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        }
+      },
+      "recordPatch": {
+        "title": "123",
+        "shortTitle": "123",
+        "publishedAt": "2026-04-20",
+        "sourceUrl": "",
+        "etpUrl": ""
+      },
+      "warnings": [
+        "content_extraction_not_enabled",
+        "page_level_provenance_not_available_for_codex_local_yet"
+      ]
+    },
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-20-554",
+    "title": "554",
+    "shortTitle": "554",
+    "publishedAt": "2026-04-20",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Корп_университет_Сбербанка_02_12_разработка.rar загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+    "summary": "Архив Корп_университет_Сбербанка_02_12_разработка.rar загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
+        "kind": "archive",
+        "fileName": "Корп_университет_Сбербанка_02_12_разработка.rar"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-20-554",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260420-132610-2026-04-20-554",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "analysis": {
+      "analysisId": "be8c1b8f-46aa-47d6-ae3a-5e2f83f1c2e0",
+      "status": "completed",
+      "provider": {
+        "id": "codex-local",
+        "label": "Codex Local",
+        "status": "active",
+        "transport": "local",
+        "supportsPageEvidence": false,
+        "supportsDocumentExtraction": false
+      },
+      "archive": {
+        "name": "Корп_университет_Сбербанка_02_12_разработка.rar",
+        "sizeBytes": 270238
+      },
+      "documents": [
+        {
+          "id": "archive",
+          "name": "Корп_университет_Сбербанка_02_12_разработка.rar",
+          "kind": "rar",
+          "pageCount": null
+        }
+      ],
+      "fields": {
+        "title": {
+          "value": "554",
+          "status": "filled",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "554",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "shortTitle": {
+          "value": "554",
+          "status": "filled",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "554",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "publishedAt": {
+          "value": "2026-04-20",
+          "status": "filled",
+          "confidence": 0.35,
+          "evidence": [
+            {
+              "sourceType": "archive_filename",
+              "field": null,
+              "documentId": "archive",
+              "documentName": "Корп_университет_Сбербанка_02_12_разработка.rar",
+              "page": null,
+              "quote": "Корп_университет_Сбербанка_02_12_разработка.rar",
+              "note": "Дата взята из времени загрузки, потому что в имени архива дата не найдена."
+            }
+          ]
+        },
+        "sourceUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        },
+        "etpUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        }
+      },
+      "recordPatch": {
+        "title": "554",
+        "shortTitle": "554",
+        "publishedAt": "2026-04-20",
+        "sourceUrl": "",
+        "etpUrl": ""
+      },
+      "warnings": [
+        "content_extraction_not_enabled",
+        "page_level_provenance_not_available_for_codex_local_yet"
+      ]
+    },
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-20-5454",
+    "title": "5454",
+    "shortTitle": "5454",
+    "publishedAt": "2026-04-20",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив zapret-winws.rar загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
+    "summary": "Архив zapret-winws.rar загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
+        "kind": "archive",
+        "fileName": "zapret-winws.rar"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-20-5454",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260420-132911-2026-04-20-5454",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "analysis": {
+      "analysisId": "e952a826-d05c-4745-86d0-c205988d57db",
+      "status": "completed",
+      "provider": {
+        "id": "codex-local",
+        "label": "Codex Local",
+        "status": "active",
+        "transport": "local",
+        "supportsPageEvidence": false,
+        "supportsDocumentExtraction": false
+      },
+      "archive": {
+        "name": "zapret-winws.rar",
+        "sizeBytes": 1170321
+      },
+      "documents": [
+        {
+          "id": "archive",
+          "name": "zapret-winws.rar",
+          "kind": "rar",
+          "pageCount": null
+        }
+      ],
+      "fields": {
+        "title": {
+          "value": "5454",
+          "status": "filled",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "5454",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "shortTitle": {
+          "value": "5454",
+          "status": "filled",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "5454",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "publishedAt": {
+          "value": "2026-04-20",
+          "status": "filled",
+          "confidence": 0.35,
+          "evidence": [
+            {
+              "sourceType": "archive_filename",
+              "field": null,
+              "documentId": "archive",
+              "documentName": "zapret-winws.rar",
+              "page": null,
+              "quote": "zapret-winws.rar",
+              "note": "Дата взята из времени загрузки, потому что в имени архива дата не найдена."
+            }
+          ]
+        },
+        "sourceUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        },
+        "etpUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        }
+      },
+      "recordPatch": {
+        "title": "5454",
+        "shortTitle": "5454",
+        "publishedAt": "2026-04-20",
+        "sourceUrl": "",
+        "etpUrl": ""
+      },
+      "warnings": [
+        "content_extraction_not_enabled",
+        "page_level_provenance_not_available_for_codex_local_yet"
+      ]
+    },
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-22-демо-b2b-каталог-и-личныи-кабинет-для-оптовых-клиентов",
+    "title": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+    "shortTitle": "Демо: B2B-каталог и личный кабинет",
+    "publishedAt": "2026-04-22",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Договор_Проект-117.docx-(2)-(1).zip загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
+    "summary": "Архив Договор_Проект-117.docx-(2)-(1).zip загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
+        "kind": "archive",
+        "fileName": "Договор_Проект-117.docx-(2)-(1).zip"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-22-демо-b2b-каталог-и-личныи-кабинет-для-оптовых-клиентов",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260422-110521-2026-04-22-b2b",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "analysis": {
+      "analysisId": "e9f0f14c-5b00-4420-898e-03cacc67de51",
+      "status": "completed",
+      "provider": {
+        "id": "codex-local",
+        "label": "Codex Local",
+        "status": "active",
+        "transport": "local",
+        "supportsPageEvidence": false,
+        "supportsDocumentExtraction": false
+      },
+      "archive": {
+        "name": "Договор_Проект-117.docx-(2) (1).zip",
+        "sizeBytes": 98832
+      },
+      "documents": [
+        {
+          "id": "archive",
+          "name": "Договор_Проект-117.docx-(2) (1).zip",
+          "kind": "zip",
+          "pageCount": null
+        }
+      ],
+      "fields": {
+        "title": {
+          "value": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+          "status": "filled",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "shortTitle": {
+          "value": "Демо: B2B-каталог и личный кабинет",
+          "status": "filled",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "publishedAt": {
+          "value": "2026-04-22",
+          "status": "filled",
+          "confidence": 0.35,
+          "evidence": [
+            {
+              "sourceType": "archive_filename",
+              "field": null,
+              "documentId": "archive",
+              "documentName": "Договор_Проект-117.docx-(2) (1).zip",
+              "page": null,
+              "quote": "Договор_Проект-117.docx-(2) (1).zip",
+              "note": "Дата взята из времени загрузки, потому что в имени архива дата не найдена."
+            }
+          ]
+        },
+        "sourceUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        },
+        "etpUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        }
+      },
+      "recordPatch": {
+        "title": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+        "shortTitle": "Демо: B2B-каталог и личный кабинет",
+        "publishedAt": "2026-04-22",
+        "sourceUrl": "",
+        "etpUrl": ""
+      },
+      "warnings": [
+        "content_extraction_not_enabled",
+        "page_level_provenance_not_available_for_codex_local_yet"
+      ]
+    },
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-22-тест",
+    "title": "тест",
+    "shortTitle": "тест",
+    "publishedAt": "2026-04-22",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Загрузка архива",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Ожидает кодинг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Договор_Проект-117.docx-(2)-(2).zip загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
+    "summary": "Архив Договор_Проект-117.docx-(2)-(2).zip загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
+        "kind": "archive",
+        "fileName": "Договор_Проект-117.docx-(2)-(2).zip"
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-22-тест",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260422-164359-2026-04-22-project-0ebb8840",
+        "scriptPath": "mvp/scripts/init_run.py"
+      }
+    },
+    "analysis": {
+      "analysisId": "46e6278d-5448-479b-b479-19ef09cf6bf6",
+      "status": "completed",
+      "provider": {
+        "id": "codex-local",
+        "label": "Codex Local",
+        "status": "active",
+        "transport": "local",
+        "supportsPageEvidence": false,
+        "supportsDocumentExtraction": false
+      },
+      "archive": {
+        "name": "Договор_Проект-117.docx-(2) (2).zip",
+        "sizeBytes": 98832
+      },
+      "documents": [
+        {
+          "id": "archive",
+          "name": "Договор_Проект-117.docx-(2) (2).zip",
+          "kind": "zip",
+          "pageCount": null
+        }
+      ],
+      "fields": {
+        "title": {
+          "value": "тест",
+          "status": "filled",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "тест",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "shortTitle": {
+          "value": "тест",
+          "status": "filled",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "тест",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "publishedAt": {
+          "value": "2026-04-22",
+          "status": "filled",
+          "confidence": 0.35,
+          "evidence": [
+            {
+              "sourceType": "archive_filename",
+              "field": null,
+              "documentId": "archive",
+              "documentName": "Договор_Проект-117.docx-(2) (2).zip",
+              "page": null,
+              "quote": "Договор_Проект-117.docx-(2) (2).zip",
+              "note": "Дата взята из времени загрузки, потому что в имени архива дата не найдена."
+            }
+          ]
+        },
+        "sourceUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        },
+        "etpUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        }
+      },
+      "recordPatch": {
+        "title": "тест",
+        "shortTitle": "тест",
+        "publishedAt": "2026-04-22",
+        "sourceUrl": "",
+        "etpUrl": ""
+      },
+      "warnings": [
+        "content_extraction_not_enabled",
+        "page_level_provenance_not_available_for_codex_local_yet"
+      ]
+    },
+    "description": "",
+    "contractor": ""
+  }
+]

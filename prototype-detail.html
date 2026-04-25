@@ -1,0 +1,2010 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scoring - Prototype Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --page-bg: #fbfbfd;
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-strong: #ffffff;
+  --surface-soft: rgba(247, 246, 252, 0.92);
+  --text: #22202f;
+  --muted: #6f6b80;
+  --line: rgba(48, 40, 76, 0.12);
+  --line-strong: rgba(48, 40, 76, 0.18);
+  --brand: #6b3dff;
+  --brand-strong: #4f2fd1;
+  --brand-soft: rgba(107, 61, 255, 0.08);
+  --accent: #ffb057;
+  --accent-soft: rgba(255, 176, 87, 0.16);
+  --success: #1b9e78;
+  --success-soft: rgba(27, 158, 120, 0.12);
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 18px;
+  --shadow: 0 18px 50px rgba(46, 37, 76, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background:
+    linear-gradient(180deg, rgba(107, 61, 255, 0.05), transparent 240px),
+    linear-gradient(90deg, rgba(107, 61, 255, 0.04), transparent 45%),
+    linear-gradient(90deg, rgba(255, 189, 102, 0.06), transparent 75%),
+    var(--page-bg);
+  color: var(--text);
+  font-family: "Geologica", "Segoe UI", sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(rgba(46, 37, 76, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 37, 76, 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.24));
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+select,
+textarea {
+  outline: none;
+}
+
+.shell {
+  width: min(calc(100% - 48px), 1360px);
+  margin: 0 auto;
+  padding: 18px 0 72px;
+}
+
+.header,
+.search-panel,
+.hero,
+.detail-section,
+.side-card,
+.field-card,
+.footer {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 16px 20px;
+  border-radius: var(--radius-xl);
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brand-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  box-shadow: 0 16px 32px rgba(107, 61, 255, 0.18);
+}
+
+.brand-box svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-copy b {
+  font-size: 18px;
+  letter-spacing: -0.04em;
+}
+
+.brand-copy span,
+.section-note,
+.field-label,
+.footer,
+.ghost-note {
+  color: var(--muted);
+}
+
+.brand-copy span {
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+.header-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-button,
+.header-link,
+.hero-chip,
+.toggle-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.icon-button {
+  width: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: #fff;
+  color: var(--brand);
+}
+
+.icon-button.active {
+  background: rgba(107, 61, 255, 0.08);
+  border-color: rgba(107, 61, 255, 0.18);
+}
+
+.icon-button svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.header-link {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 16px 32px rgba(107, 61, 255, 0.18);
+  white-space: nowrap;
+}
+
+.icon-button:hover,
+.header-link:hover,
+.toggle-option:hover {
+  transform: translateY(-2px);
+}
+
+.search-panel {
+  max-height: 0;
+  margin-top: 0;
+  padding: 0 20px;
+  border-radius: var(--radius-lg);
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(-14px);
+  box-shadow: none;
+  border-color: transparent;
+  transition:
+    max-height 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 220ms ease,
+    transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    margin-top 300ms ease,
+    padding 300ms ease,
+    border-color 300ms ease;
+}
+
+.search-panel.open {
+  max-height: 120px;
+  margin-top: 14px;
+  padding: 18px 20px;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.search-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.search-field svg {
+  width: 20px;
+  height: 20px;
+  color: var(--brand);
+}
+
+.search-field input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.main {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.hero {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px;
+  border-radius: var(--radius-xl);
+}
+
+.hero-top {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-rail {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  transition: color 180ms ease;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+.back-link-icon {
+  color: var(--brand-strong);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.hero-created {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: right;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.hero-created-label {
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hero-date-value {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.title-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  max-width: 980px;
+}
+
+.title-block h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 46px);
+  letter-spacing: -0.06em;
+  line-height: 0.96;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-chip {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-chip.status {
+  color: #5e34e2;
+  background: rgba(107, 61, 255, 0.1);
+  border-color: rgba(107, 61, 255, 0.18);
+}
+
+.hero-chip.meta {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 24px;
+  align-items: start;
+}
+
+.detail-main {
+  display: grid;
+  gap: 24px;
+}
+
+.detail-section {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border-radius: var(--radius-xl);
+}
+
+.section-head {
+  display: grid;
+  gap: 6px;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: -0.05em;
+}
+
+.field-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.overview-grid,
+.tender-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.overview-grid .span-2,
+.tender-grid .span-2 {
+  grid-column: auto;
+}
+
+.overview-grid .deadline-card {
+  grid-column: auto;
+}
+
+.overview-grid > :nth-child(-n+3) {
+  grid-column: 1 / -1;
+}
+
+.tender-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.tender-grid > .field-card {
+  grid-column: span 2;
+}
+
+.tender-grid > .field-card:nth-child(-n+2) {
+  grid-column: span 3;
+}
+
+.tender-grid .notes-card {
+  min-height: 100%;
+}
+
+.tender-grid .full-row {
+  grid-column: 1 / -1;
+}
+
+.field-card {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  min-height: 0;
+  min-width: 0;
+  box-shadow: none;
+}
+
+.field-card:focus-within {
+  box-shadow: none;
+}
+
+.field-label {
+  font-size: 10px;
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(111, 107, 128, 0.62);
+}
+
+.span-2 {
+  grid-column: 1 / -1;
+}
+
+.money-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.control,
+.control-textarea,
+.control-date {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid rgba(48, 40, 76, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 247, 252, 0.9);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.control:focus,
+.control-textarea:focus,
+.control-date:focus {
+  border-color: rgba(107, 61, 255, 0.2);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(107, 61, 255, 0.07);
+}
+
+.control::placeholder,
+.control-textarea::placeholder {
+  color: #aaa6b9;
+  font-weight: 400;
+}
+
+.control-textarea {
+  min-height: 74px;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.control-date {
+  font-size: 14px;
+  font-weight: 450;
+  color: var(--text);
+}
+
+.input-row {
+  display: grid;
+  gap: 12px;
+}
+
+.input-row.dual {
+  grid-template-columns: minmax(0, 1fr) 210px;
+  align-items: end;
+}
+
+.deadline-card {
+  grid-column: 1 / -1;
+}
+
+.number-field {
+  position: relative;
+  display: block;
+}
+
+.number-suffix {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toggle-group input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-option {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.toggle-group input:checked + .toggle-option {
+  border-color: rgba(48, 40, 76, 0.18);
+  background: rgba(48, 40, 76, 0.05);
+  color: var(--text);
+  box-shadow: 0 10px 24px rgba(46, 37, 76, 0.06);
+}
+
+.custom-select {
+  position: relative;
+  min-width: 0;
+}
+
+.select-hidden {
+  display: none;
+}
+
+.select-trigger {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid rgba(48, 40, 76, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 247, 252, 0.9);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 430;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.select-trigger:hover,
+.custom-select.open .select-trigger,
+.select-trigger:focus-visible {
+  border-color: rgba(107, 61, 255, 0.2);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(107, 61, 255, 0.07);
+  outline: none;
+}
+
+.select-value {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-select.is-placeholder .select-value {
+  color: #aaa6b9;
+}
+
+.select-caret {
+  width: 10px;
+  height: 10px;
+  margin-left: 12px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 180ms ease;
+  flex: 0 0 auto;
+}
+
+.custom-select.open .select-caret {
+  transform: rotate(-135deg) translateY(-1px);
+}
+
+.select-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: -14px;
+  right: -14px;
+  z-index: 24;
+  display: none;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid rgba(48, 40, 76, 0.08);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 20px 40px rgba(46, 37, 76, 0.12);
+}
+
+.custom-select.open .select-menu {
+  display: grid;
+}
+
+.select-option {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.select-option:hover {
+  background: rgba(48, 40, 76, 0.05);
+}
+
+.select-option.is-active {
+  background: rgba(107, 61, 255, 0.08);
+  color: var(--brand-strong);
+}
+
+.ghost-note {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.detail-side {
+  display: grid;
+  gap: 18px;
+  position: sticky;
+  top: 24px;
+}
+
+.side-card {
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border-radius: var(--radius-xl);
+}
+
+.side-card h3 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.04em;
+}
+
+.doc-list {
+  display: grid;
+  gap: 12px;
+}
+
+.doc-field {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  position: relative;
+  min-height: 44px;
+}
+
+.doc-chip-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  grid-area: 1 / 1;
+  transition:
+    opacity 160ms ease,
+    visibility 160ms ease;
+}
+
+.doc-chip-button {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(48, 40, 76, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 247, 252, 0.9);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.doc-chip-button:hover,
+.doc-chip-button:focus-visible {
+  border-color: rgba(107, 61, 255, 0.2);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(107, 61, 255, 0.07);
+  outline: none;
+}
+
+.doc-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-chip-icon {
+  color: var(--brand-strong);
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.control-link {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid rgba(48, 40, 76, 0.08);
+  border-radius: 16px;
+  background: rgba(248, 247, 252, 0.9);
+  color: var(--brand-strong);
+  font-size: 15px;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  line-height: 1.45;
+  text-decoration: none;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.doc-edit-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 160ms ease,
+    visibility 160ms ease;
+}
+
+.doc-field.editing .doc-chip-row {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.doc-field.editing .doc-edit-row {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.doc-link {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-prefix {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(107, 61, 255, 0.08);
+  color: var(--brand-strong);
+  font-size: 14px;
+  font-weight: 700;
+  flex: 0 0 auto;
+  text-decoration: none;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.doc-link:hover,
+.doc-link:focus-visible,
+.control-link:focus,
+.doc-prefix:hover,
+.doc-prefix:focus-visible {
+  border-color: rgba(107, 61, 255, 0.2);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(107, 61, 255, 0.07);
+  outline: none;
+}
+
+.stage-card {
+  padding: 18px;
+  gap: 10px;
+}
+
+.control-date {
+  cursor: pointer;
+}
+
+.picker-field {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.picker-field .control-date {
+  grid-column: 1;
+  grid-row: 2;
+  padding-right: 46px;
+}
+
+.picker-icon {
+  grid-column: 1;
+  grid-row: 2;
+  justify-self: end;
+  align-self: center;
+  margin-right: 14px;
+  color: var(--text);
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.picker-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.picker-popover {
+  position: fixed;
+  z-index: 100;
+  width: 320px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 60px rgba(46, 37, 76, 0.16);
+  backdrop-filter: blur(16px);
+}
+
+.picker-popover[hidden] {
+  display: none;
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.picker-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.picker-nav {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(248, 247, 252, 0.9);
+  color: var(--text);
+}
+
+.picker-weekdays,
+.picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.picker-weekdays {
+  margin-bottom: 8px;
+}
+
+.picker-weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 550;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.picker-day {
+  min-height: 36px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.picker-day:hover,
+.picker-day:focus-visible {
+  background: rgba(48, 40, 76, 0.06);
+  outline: none;
+}
+
+.picker-day.is-outside {
+  color: rgba(111, 107, 128, 0.45);
+}
+
+.picker-day.is-selected {
+  background: rgba(107, 61, 255, 0.12);
+  color: var(--brand-strong);
+}
+
+.picker-time {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.picker-time-label {
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(111, 107, 128, 0.62);
+}
+
+.picker-time-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(48, 40, 76, 0.08);
+  border-radius: 14px;
+  background: rgba(248, 247, 252, 0.9);
+  color: var(--text);
+  font: inherit;
+}
+
+.picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.picker-action {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.picker-action.primary {
+  border-color: rgba(107, 61, 255, 0.18);
+  background: rgba(107, 61, 255, 0.1);
+  color: var(--brand-strong);
+}
+
+.number-field .control {
+  padding-right: 38px;
+}
+
+.field-sub-label {
+  margin-top: 2px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-top: 24px;
+  padding: 18px 22px;
+  border-radius: 22px;
+  font-size: 14px;
+}
+
+.is-hidden {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-side {
+    position: static;
+  }
+
+  .money-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .shell {
+    width: min(calc(100% - 28px), 1360px);
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-side {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .hero-created {
+    width: 100%;
+    justify-items: start;
+    text-align: left;
+    margin-left: 0;
+  }
+
+  .field-grid,
+  .money-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .header-side {
+    grid-template-columns: 1fr;
+    flex-wrap: wrap;
+  }
+
+  .input-row.dual {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-rail {
+    align-items: stretch;
+  }
+
+  .back-link {
+    width: auto;
+    justify-content: flex-start;
+  }
+
+  .hero-created {
+    width: auto;
+    justify-items: start;
+    gap: 8px;
+  }
+
+  .doc-edit-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .select-menu {
+    left: 0;
+    right: 0;
+  }
+
+  .title-block h1 {
+    font-size: clamp(24px, 8vw, 34px);
+  }
+}
+
+@media (max-width: 560px) {
+  .shell {
+    width: min(calc(100% - 20px), 1360px);
+    padding-top: 10px;
+  }
+
+  .header,
+  .hero,
+  .detail-section,
+  .side-card {
+    border-radius: 22px;
+  }
+
+  .header {
+    padding: 16px;
+  }
+
+  .control,
+  .control-textarea,
+  .control-select,
+  .control-link {
+    font-size: 14px;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="header">
+    <div class="brand">
+      <span class="brand-box" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 22.5V9.5L12.1 18.2L16 12.6L19.9 18.2L26 9.5V22.5" stroke="white" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24.7" cy="7.3" r="2.2" fill="white"/>
+        </svg>
+      </span>
+      <div class="brand-copy">
+        <b>Scoring</b>
+        <span>Утром — деньги, вечером — стулья</span>
+      </div>
+    </div>
+    <div class="header-side">
+      <button class="icon-button" id="searchToggle" type="button" aria-label="Открыть поиск">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="5.5" stroke="currentColor" stroke-width="2"/>
+          <path d="M15 15L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <a class="header-link" href="#project-docs">+ Добавить проект</a>
+    </div>
+  </header>
+
+  <section class="search-panel" id="searchPanel">
+    <label class="search-field" aria-label="Поиск по проекту">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="11" cy="11" r="5.5" stroke="currentColor" stroke-width="2"/>
+        <path d="M15 15L20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <input type="search" placeholder="Поиск по проекту">
+    </label>
+  </section>
+
+  <main class="main">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="hero-rail">
+          <a class="back-link" href="prototype-month.html#month-april"><span class="back-link-icon" aria-hidden="true">&larr;</span><span>Назад в Апрель</span></a>
+          <div class="hero-created">
+            <span class="hero-created-label">Создано</span>
+            <span class="hero-date-value">18.05.2026</span>
+          </div>
+        </div>
+
+        <div class="title-block">
+          <h1>B2B eCommerce для федеральной сети</h1>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail-layout">
+      <div class="detail-main">
+        <section class="detail-section">
+          <div class="section-head">
+            <h2>Общая информация</h2>
+          </div>
+          <div class="field-grid overview-grid">
+            <article class="field-card span-2">
+              <div class="field-label">Заказчик</div>
+              <input class="control" type="text" value="АО «Северный Альянс»" placeholder="Например: АО «Северный Альянс»">
+            </article>
+
+            <article class="field-card span-2">
+              <div class="field-label">Предмет закупки</div>
+              <textarea class="control-textarea" rows="2" placeholder="Опишите предмет закупки: что делаем, для кого и в каком контуре"></textarea>
+            </article>
+
+            <article class="field-card span-2">
+              <div class="field-label">Предмет кратко</div>
+              <input class="control" type="text" value="Редизайн и разработка eCommerce-платформы для B2B-продаж" placeholder="Коротко сформулируйте предмет проекта">
+            </article>
+
+            <article class="field-card deadline-card picker-field">
+              <div class="field-label">Срок подачи</div>
+              <input class="control-date js-picker-input" id="deadlineAt" type="text" value="24.05.2026 18:00" data-picker-mode="datetime" data-picker-value="2026-05-24T18:00" readonly>
+              <span class="picker-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 4V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M16 4V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M4 10H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">НМЦ</div>
+              <div class="number-field">
+                <input class="control" type="text" inputmode="numeric" value="18400000" placeholder="Например: 18400000">
+                <span class="number-suffix">₽</span>
+              </div>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">Закупка по</div>
+              <div class="custom-select" data-custom-select data-placeholder="Выберите тип закупки">
+                <button class="select-trigger" type="button" aria-expanded="false">
+                  <span class="select-value">44-ФЗ, конкурс в электронной форме</span>
+                  <span class="select-caret" aria-hidden="true"></span>
+                </button>
+                <div class="select-menu" role="listbox" aria-label="Тип закупки">
+                  <button class="select-option is-active" type="button" data-value="44-ФЗ, конкурс в электронной форме">44-ФЗ, конкурс в электронной форме</button>
+                  <button class="select-option" type="button" data-value="44-ФЗ, аукцион">44-ФЗ, аукцион</button>
+                  <button class="select-option" type="button" data-value="223-ФЗ, запрос предложений">223-ФЗ, запрос предложений</button>
+                  <button class="select-option" type="button" data-value="223-ФЗ, конкурс">223-ФЗ, конкурс</button>
+                </div>
+                <input class="select-hidden" type="hidden" value="44-ФЗ, конкурс в электронной форме">
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <div class="section-head">
+            <h2>Информация по суммам</h2>
+          </div>
+          <div class="field-grid money-grid">
+            <article class="field-card">
+              <div class="field-label">Оплата площадки</div>
+              <div class="number-field">
+                <input class="control" type="text" inputmode="numeric" value="39000" placeholder="Например: 39000">
+                <span class="number-suffix">₽</span>
+              </div>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">Обеспечение заявки</div>
+              <div class="number-field">
+                <input class="control" type="text" inputmode="numeric" value="920000" placeholder="Например: 920000">
+                <span class="number-suffix">₽</span>
+              </div>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">Обеспечение контракта</div>
+              <div class="number-field">
+                <input class="control" type="text" inputmode="numeric" value="1840000" placeholder="Например: 1840000">
+                <span class="number-suffix">₽</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="detail-section">
+          <div class="section-head">
+            <h2>Информация по тендеру</h2>
+          </div>
+          <div class="field-grid tender-grid">
+            <article class="field-card">
+              <div class="field-label">Общий срок выполнения</div>
+              <input class="control" type="text" value="6 месяцев после подписания контракта" placeholder="Например: 6 месяцев после подписания контракта">
+            </article>
+
+            <article class="field-card picker-field">
+              <div class="field-label">Срок договора</div>
+              <input class="control-date js-picker-input" id="contractTill" type="text" value="31.12.2026" data-picker-mode="date" data-picker-value="2026-12-31" readonly>
+              <span class="picker-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M8 4V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M16 4V8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M4 10H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+            </article>
+
+            <article class="field-card notes-card full-row">
+              <div class="field-label">Примечания</div>
+              <textarea class="control-textarea" rows="3" placeholder="Например: нужен усиленный блок по интеграциям, безопасности и SLA-поддержке">Нужен усиленный блок по интеграциям, безопасности и SLA-поддержке</textarea>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">Переторжка</div>
+              <div class="toggle-group">
+                <label>
+                  <input checked name="rebid" type="radio" value="yes">
+                  <span class="toggle-option">Да</span>
+                </label>
+                <label>
+                  <input name="rebid" type="radio" value="no">
+                  <span class="toggle-option">Нет</span>
+                </label>
+              </div>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">Антидемпинг</div>
+              <div class="toggle-group">
+                <label>
+                  <input checked name="antidumping" type="radio" value="yes">
+                  <span class="toggle-option">Да</span>
+                </label>
+                <label>
+                  <input name="antidumping" type="radio" value="no">
+                  <span class="toggle-option">Нет</span>
+                </label>
+              </div>
+            </article>
+
+            <article class="field-card">
+              <div class="field-label">Творческое</div>
+              <div class="toggle-group">
+                <label>
+                  <input name="creativeMode" type="radio" value="Нет">
+                  <span class="toggle-option">Нет</span>
+                </label>
+                <label>
+                  <input checked name="creativeMode" type="radio" value="Да">
+                  <span class="toggle-option">Да</span>
+                </label>
+              </div>
+            </article>
+
+            <article class="field-card full-row" id="creativeLinkWrap">
+              <div class="field-label">Ссылка на творческое</div>
+              <div class="doc-field">
+                <div class="doc-chip-row">
+                  <button class="doc-chip-button" data-doc-target="creativeLink" type="button">
+                    <span class="doc-chip-text">Ссылка на творческое</span>
+                    <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                  </button>
+                  <a class="doc-prefix" href="https://example.com/concept" target="_blank" rel="noreferrer" aria-label="Открыть ссылку на творческое">↗</a>
+                </div>
+                <div class="doc-edit-row">
+                  <input class="control-link doc-link" id="creativeLink" type="url" value="https://example.com/concept" placeholder="Вставьте ссылку на творческую концепцию">
+                  <a class="doc-prefix" href="https://example.com/concept" target="_blank" rel="noreferrer" aria-label="Открыть ссылку на творческое">↗</a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="detail-side" id="project-docs">
+        <section class="side-card stage-card">
+          <div class="field-label">Этап</div>
+          <div class="custom-select" data-custom-select data-placeholder="Выберите этап">
+            <button class="select-trigger" type="button" aria-expanded="false">
+              <span class="select-value">Оценка</span>
+              <span class="select-caret" aria-hidden="true"></span>
+            </button>
+            <div class="select-menu" role="listbox" aria-label="Этап проекта">
+              <button class="select-option" type="button" data-value="Скоринг">Скоринг</button>
+              <button class="select-option" type="button" data-value="Предоценка">Предоценка</button>
+              <button class="select-option is-active" type="button" data-value="Оценка">Оценка</button>
+              <button class="select-option" type="button" data-value="Подано">Подано</button>
+              <button class="select-option" type="button" data-value="Получен ответ">Получен ответ</button>
+            </div>
+            <input class="select-hidden" type="hidden" value="Оценка">
+          </div>
+        </section>
+
+        <section class="side-card">
+          <div class="doc-list">
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docEtp" type="button">
+                  <span class="doc-chip-text">Ссылка на ЭТП</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://etp.example.com/tender/2451" target="_blank" rel="noreferrer" aria-label="Открыть ссылку на ЭТП">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docEtp" type="url" value="https://etp.example.com/tender/2451">
+                <a class="doc-prefix" href="https://etp.example.com/tender/2451" target="_blank" rel="noreferrer" aria-label="Открыть ссылку на ЭТП">↗</a>
+              </div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docFiles" type="button">
+                  <span class="doc-chip-text">Документы</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://drive.example.com/project-docs" target="_blank" rel="noreferrer" aria-label="Открыть документы">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docFiles" type="url" value="https://drive.example.com/project-docs">
+                <a class="doc-prefix" href="https://drive.example.com/project-docs" target="_blank" rel="noreferrer" aria-label="Открыть документы">↗</a>
+              </div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docNotice" type="button">
+                  <span class="doc-chip-text">Ссылка на извещение</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://zakupki.example.com/notice/9912" target="_blank" rel="noreferrer" aria-label="Открыть извещение">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docNotice" type="url" value="https://zakupki.example.com/notice/9912">
+                <a class="doc-prefix" href="https://zakupki.example.com/notice/9912" target="_blank" rel="noreferrer" aria-label="Открыть извещение">↗</a>
+              </div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docReview" type="button">
+                  <span class="doc-chip-text">Папка на рассмотрение</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://drive.example.com/review-folder" target="_blank" rel="noreferrer" aria-label="Открыть папку на рассмотрение">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docReview" type="url" value="https://drive.example.com/review-folder">
+                <a class="doc-prefix" href="https://drive.example.com/review-folder" target="_blank" rel="noreferrer" aria-label="Открыть папку на рассмотрение">↗</a>
+              </div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docReq" type="button">
+                  <span class="doc-chip-text">Требования</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://docs.example.com/requirements" target="_blank" rel="noreferrer" aria-label="Открыть требования">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docReq" type="url" value="https://docs.example.com/requirements">
+                <a class="doc-prefix" href="https://docs.example.com/requirements" target="_blank" rel="noreferrer" aria-label="Открыть требования">↗</a>
+              </div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docCriteria" type="button">
+                  <span class="doc-chip-text">Критерии выбора</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://docs.example.com/criteria" target="_blank" rel="noreferrer" aria-label="Открыть критерии выбора">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docCriteria" type="url" value="https://docs.example.com/criteria">
+                <a class="doc-prefix" href="https://docs.example.com/criteria" target="_blank" rel="noreferrer" aria-label="Открыть критерии выбора">↗</a>
+              </div>
+            </div>
+            <div class="doc-field">
+              <div class="doc-chip-row">
+                <button class="doc-chip-button" data-doc-target="docTz" type="button">
+                  <span class="doc-chip-text">ТЗ</span>
+                  <span class="doc-chip-icon" aria-hidden="true">✎</span>
+                </button>
+                <a class="doc-prefix" href="https://docs.example.com/spec" target="_blank" rel="noreferrer" aria-label="Открыть ТЗ">↗</a>
+              </div>
+              <div class="doc-edit-row">
+                <input class="control-link doc-link" id="docTz" type="url" value="https://docs.example.com/spec">
+                <a class="doc-prefix" href="https://docs.example.com/spec" target="_blank" rel="noreferrer" aria-label="Открыть ТЗ">↗</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div class="picker-popover" id="datePicker" hidden>
+    <div class="picker-head">
+      <button class="picker-nav" id="pickerPrev" type="button" aria-label="Предыдущий месяц">←</button>
+      <div class="picker-title" id="pickerTitle"></div>
+      <button class="picker-nav" id="pickerNext" type="button" aria-label="Следующий месяц">→</button>
+    </div>
+    <div class="picker-weekdays">
+      <span class="picker-weekday">Пн</span>
+      <span class="picker-weekday">Вт</span>
+      <span class="picker-weekday">Ср</span>
+      <span class="picker-weekday">Чт</span>
+      <span class="picker-weekday">Пт</span>
+      <span class="picker-weekday">Сб</span>
+      <span class="picker-weekday">Вс</span>
+    </div>
+    <div class="picker-grid" id="pickerGrid"></div>
+    <div class="picker-time" id="pickerTimeWrap">
+      <div class="picker-time-label">Время</div>
+      <input class="picker-time-input" id="pickerTimeInput" type="time" value="18:00">
+    </div>
+    <div class="picker-actions">
+      <button class="picker-action" id="pickerToday" type="button">Сегодня</button>
+      <button class="picker-action primary" id="pickerApply" type="button">Применить</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Scoring prototype / Детальная карточка проекта</span>
+    <span>Шапка, карточки и ритм страницы наследуются от зафиксированного дизайн-референса</span>
+  </footer>
+</div>
+
+<script>
+const searchToggle = document.getElementById("searchToggle");
+const searchPanel = document.getElementById("searchPanel");
+const creativeLinkWrap = document.getElementById("creativeLinkWrap");
+const creativeModes = document.querySelectorAll('input[name="creativeMode"]');
+const customSelects = document.querySelectorAll("[data-custom-select]");
+const editableFields = document.querySelectorAll('.control, .control-textarea, .control-link');
+const dateFields = document.querySelectorAll('.js-picker-input');
+const docButtons = document.querySelectorAll("[data-doc-target]");
+const pickerPopover = document.getElementById("datePicker");
+const pickerTitle = document.getElementById("pickerTitle");
+const pickerGrid = document.getElementById("pickerGrid");
+const pickerTimeWrap = document.getElementById("pickerTimeWrap");
+const pickerTimeInput = document.getElementById("pickerTimeInput");
+const pickerPrev = document.getElementById("pickerPrev");
+const pickerNext = document.getElementById("pickerNext");
+const pickerToday = document.getElementById("pickerToday");
+const pickerApply = document.getElementById("pickerApply");
+
+const pickerState = {
+  input: null,
+  mode: "date",
+  value: null,
+  year: 0,
+  month: 0,
+};
+
+function syncCustomSelectValue(select) {
+  const valueNode = select.querySelector(".select-value");
+  const hiddenInput = select.querySelector(".select-hidden");
+  const placeholder = select.dataset.placeholder || "";
+  const currentValue = hiddenInput?.value?.trim() || "";
+
+  if (valueNode) {
+    valueNode.textContent = currentValue || placeholder;
+  }
+
+  select.classList.toggle("is-placeholder", !currentValue);
+}
+
+function syncCreativeField() {
+  const activeMode = Array.from(creativeModes).find((input) => input.checked)?.value;
+  const visible = activeMode === "Да";
+  creativeLinkWrap.classList.toggle("is-hidden", !visible);
+}
+
+function closeCustomSelects(except = null) {
+  customSelects.forEach((select) => {
+    if (select === except) return;
+    select.classList.remove("open");
+    const trigger = select.querySelector(".select-trigger");
+    if (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+function selectWholeField(field) {
+  if (!field || field.disabled) return;
+  if (field.type === "date" || field.type === "datetime-local") return;
+  requestAnimationFrame(() => {
+    if (typeof field.select === "function") {
+      field.select();
+    }
+  });
+}
+
+function syncDocLink(input) {
+  const row = input.closest(".doc-edit-row");
+  const link = row?.querySelector(".doc-prefix");
+
+  if (link) {
+    link.href = input.value || "#";
+  }
+}
+
+function closeDocEditors(except = null) {
+  document.querySelectorAll(".doc-field.editing").forEach((field) => {
+    if (field !== except) {
+      field.classList.remove("editing");
+    }
+  });
+}
+
+function parsePickerValue(value, mode) {
+  if (!value) return new Date();
+
+  if (mode === "datetime") {
+    const [datePart, timePart = "00:00"] = value.split("T");
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+    return new Date(year, month - 1, day, hours || 0, minutes || 0, 0, 0);
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day, 0, 0, 0, 0);
+}
+
+function formatPickerStorage(date, mode) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  if (mode === "datetime") {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  return `${year}-${month}-${day}`;
+}
+
+function formatPickerDisplay(date, mode) {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+
+  if (mode === "datetime") {
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  }
+
+  return `${day}.${month}.${year}`;
+}
+
+function setPickerValue(input, date) {
+  const mode = input.dataset.pickerMode || "date";
+  input.dataset.pickerValue = formatPickerStorage(date, mode);
+  input.value = formatPickerDisplay(date, mode);
+}
+
+function positionPicker() {
+  if (!pickerState.input || pickerPopover.hidden) return;
+
+  const rect = pickerState.input.getBoundingClientRect();
+  const popoverWidth = 320;
+  const margin = 16;
+  let left = rect.left;
+  let top = rect.bottom + 10;
+
+  if (left + popoverWidth > window.innerWidth - margin) {
+    left = window.innerWidth - popoverWidth - margin;
+  }
+
+  if (left < margin) {
+    left = margin;
+  }
+
+  const estimatedHeight = pickerState.mode === "datetime" ? 420 : 370;
+  if (top + estimatedHeight > window.innerHeight - margin) {
+    top = rect.top - estimatedHeight - 10;
+  }
+
+  if (top < margin) {
+    top = margin;
+  }
+
+  pickerPopover.style.left = `${left}px`;
+  pickerPopover.style.top = `${top}px`;
+}
+
+function renderPicker() {
+  if (!pickerState.input || !pickerState.value) return;
+
+  const monthLabel = new Intl.DateTimeFormat("ru-RU", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(pickerState.year, pickerState.month, 1));
+
+  pickerTitle.textContent = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+  pickerGrid.innerHTML = "";
+
+  const firstDayIndex = (new Date(pickerState.year, pickerState.month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(pickerState.year, pickerState.month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(pickerState.year, pickerState.month, 0).getDate();
+
+  for (let index = 0; index < 42; index += 1) {
+    const dayButton = document.createElement("button");
+    dayButton.type = "button";
+    dayButton.className = "picker-day";
+
+    let cellYear = pickerState.year;
+    let cellMonth = pickerState.month;
+    let cellDay = index - firstDayIndex + 1;
+
+    if (index < firstDayIndex) {
+      cellMonth -= 1;
+      if (cellMonth < 0) {
+        cellMonth = 11;
+        cellYear -= 1;
+      }
+      cellDay = daysInPrevMonth - firstDayIndex + index + 1;
+      dayButton.classList.add("is-outside");
+    } else if (cellDay > daysInMonth) {
+      cellMonth += 1;
+      if (cellMonth > 11) {
+        cellMonth = 0;
+        cellYear += 1;
+      }
+      cellDay -= daysInMonth;
+      dayButton.classList.add("is-outside");
+    }
+
+    dayButton.textContent = String(cellDay);
+
+    if (
+      pickerState.value.getFullYear() === cellYear &&
+      pickerState.value.getMonth() === cellMonth &&
+      pickerState.value.getDate() === cellDay
+    ) {
+      dayButton.classList.add("is-selected");
+    }
+
+    dayButton.addEventListener("click", () => {
+      pickerState.value = new Date(
+        cellYear,
+        cellMonth,
+        cellDay,
+        pickerState.value.getHours(),
+        pickerState.value.getMinutes(),
+        0,
+        0,
+      );
+      pickerState.year = pickerState.value.getFullYear();
+      pickerState.month = pickerState.value.getMonth();
+      renderPicker();
+    });
+
+    pickerGrid.appendChild(dayButton);
+  }
+
+  pickerTimeWrap.hidden = pickerState.mode !== "datetime";
+  if (pickerState.mode === "datetime") {
+    const hours = String(pickerState.value.getHours()).padStart(2, "0");
+    const minutes = String(pickerState.value.getMinutes()).padStart(2, "0");
+    pickerTimeInput.value = `${hours}:${minutes}`;
+  }
+
+  positionPicker();
+}
+
+function closePicker() {
+  pickerPopover.hidden = true;
+  pickerState.input = null;
+}
+
+function openPicker(input) {
+  pickerState.input = input;
+  pickerState.mode = input.dataset.pickerMode || "date";
+  pickerState.value = parsePickerValue(input.dataset.pickerValue, pickerState.mode);
+  pickerState.year = pickerState.value.getFullYear();
+  pickerState.month = pickerState.value.getMonth();
+  pickerPopover.hidden = false;
+  renderPicker();
+}
+
+searchToggle.addEventListener("click", () => {
+  const open = searchPanel.classList.toggle("open");
+  searchToggle.classList.toggle("active", open);
+});
+
+creativeModes.forEach((input) => {
+  input.addEventListener("change", syncCreativeField);
+});
+
+editableFields.forEach((field) => {
+  field.addEventListener("focus", () => {
+    selectWholeField(field);
+  });
+
+  field.addEventListener("click", () => {
+    selectWholeField(field);
+  });
+});
+
+dateFields.forEach((field) => {
+  const pickerField = field.closest(".picker-field");
+
+  pickerField?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openPicker(field);
+  });
+
+  field.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
+      event.preventDefault();
+      openPicker(field);
+    }
+  });
+});
+
+docButtons.forEach((button) => {
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const targetId = button.dataset.docTarget;
+    const field = button.closest(".doc-field");
+    const input = targetId ? document.getElementById(targetId) : null;
+
+    if (!field || !input) return;
+
+    closeDocEditors(field);
+    field.classList.add("editing");
+    input.focus();
+    selectWholeField(input);
+  });
+});
+
+customSelects.forEach((select) => {
+  const trigger = select.querySelector(".select-trigger");
+  const hiddenInput = select.querySelector(".select-hidden");
+  const options = select.querySelectorAll(".select-option");
+
+  syncCustomSelectValue(select);
+
+  trigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const willOpen = !select.classList.contains("open");
+    closeCustomSelects(select);
+    select.classList.toggle("open", willOpen);
+    trigger.setAttribute("aria-expanded", String(willOpen));
+  });
+
+  options.forEach((option) => {
+    option.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const nextValue = option.dataset.value;
+      hiddenInput.value = nextValue;
+      syncCustomSelectValue(select);
+      options.forEach((item) => item.classList.remove("is-active"));
+      option.classList.add("is-active");
+      closeCustomSelects();
+    });
+  });
+});
+
+document.querySelectorAll(".doc-edit-row .control-link").forEach((input) => {
+  input.addEventListener("input", () => {
+    syncDocLink(input);
+  });
+});
+
+pickerPrev.addEventListener("click", () => {
+  pickerState.month -= 1;
+  if (pickerState.month < 0) {
+    pickerState.month = 11;
+    pickerState.year -= 1;
+  }
+  renderPicker();
+});
+
+pickerNext.addEventListener("click", () => {
+  pickerState.month += 1;
+  if (pickerState.month > 11) {
+    pickerState.month = 0;
+    pickerState.year += 1;
+  }
+  renderPicker();
+});
+
+pickerTimeInput.addEventListener("input", () => {
+  if (!pickerState.value) return;
+  const [hours, minutes] = pickerTimeInput.value.split(":").map(Number);
+  pickerState.value.setHours(hours || 0, minutes || 0, 0, 0);
+});
+
+pickerToday.addEventListener("click", () => {
+  const now = new Date();
+  pickerState.value = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    pickerState.mode === "datetime" ? now.getHours() : 0,
+    pickerState.mode === "datetime" ? now.getMinutes() : 0,
+    0,
+    0,
+  );
+  pickerState.year = pickerState.value.getFullYear();
+  pickerState.month = pickerState.value.getMonth();
+  renderPicker();
+});
+
+pickerApply.addEventListener("click", () => {
+  if (!pickerState.input || !pickerState.value) return;
+  setPickerValue(pickerState.input, pickerState.value);
+  closePicker();
+});
+
+document.addEventListener("click", (event) => {
+  closeCustomSelects();
+  if (!event.target.closest(".doc-field")) {
+    closeDocEditors();
+  }
+  if (!event.target.closest(".picker-popover") && !event.target.closest(".picker-field")) {
+    closePicker();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeCustomSelects();
+    closeDocEditors();
+    closePicker();
+  }
+});
+
+window.addEventListener("resize", positionPicker);
+window.addEventListener("scroll", closePicker, true);
+
+syncCreativeField();
+</script>
+</body>
+</html>
