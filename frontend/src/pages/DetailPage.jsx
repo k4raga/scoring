@@ -27,11 +27,15 @@ const HEADER_SUBTITLE = "Утром - деньги, вечером - стуль�
 const SEARCH_PLACEHOLDER = "Поиск по полям и документам";
 const STAGE_OPTIONS = getCanonicalStageOptions();
 const STAGE_SELECT_OPTIONS = STAGE_OPTIONS.map((option) => ({ value: option.label, label: option.label }));
+const PURCHASE_BY_UNKNOWN = "Нет информации";
 const PURCHASE_BY_OPTIONS = [
-  "44-ФЗ, конкурс в электронной форме",
-  "44-ФЗ, аукцион",
-  "223-ФЗ, запрос предложений"
+  PURCHASE_BY_UNKNOWN,
+  "44-ФЗ",
+  "223-ФЗ / Положение о закупке",
+  "Коммерческая закупка",
+  "Иное"
 ];
+const LEGACY_INVALID_PURCHASE_BY = new Set(["", "Техническое задание", "Загрузка архива", "Демо-данные"]);
 
 export default function DetailPage() {
   const { recordId = "" } = useParams();
@@ -219,7 +223,7 @@ export default function DetailPage() {
   }
 
   function openProjectModal() {
-    setProjectModalTitle(form.title || record?.title || "");
+    setProjectModalTitle(form.projectTitle || record?.projectTitle || form.title || record?.title || "");
     setProjectModalArchive(null);
     setProjectModalStatus("idle");
     setProjectModalMessage("");
@@ -354,7 +358,7 @@ export default function DetailPage() {
 
           <ProjectCreateButton
             className="header-link detail-header-link"
-            defaultTitle={form.title || record?.title || ""}
+            defaultTitle={form.projectTitle || record?.projectTitle || form.title || record?.title || ""}
           >
             Добавить проект
           </ProjectCreateButton>
@@ -416,7 +420,7 @@ export default function DetailPage() {
             </div>
 
             <div className="detail-title-block">
-              <h1>{form.title || record?.title || `Запись ${recordId}`}</h1>
+              <h1>{form.projectTitle || record?.projectTitle || form.title || record?.title || `Запись ${recordId}`}</h1>
             </div>
           </div>
         </section>
@@ -479,7 +483,7 @@ export default function DetailPage() {
                   <CustomSelect
                     onChange={(value) => updateField("purchaseBy", value)}
                     options={getPurchaseByOptions(form.purchaseBy).map((option) => ({ value: option, label: option }))}
-                    value={getSelectValue(form.purchaseBy, PURCHASE_BY_OPTIONS)}
+                    value={normalizePurchaseByValue(form.purchaseBy)}
                   />
                 </FieldCard>
 
@@ -585,8 +589,8 @@ export default function DetailPage() {
                 <FieldCard fieldId="antiDumpingMeasures" label="Антидемпинг">
                   <div className="detail-toggle-group">
                     {[
-                      { value: "Да", label: "Да" },
-                      { value: "Нет", label: "Нет" }
+                      { value: "Нет", label: "Нет" },
+                      { value: "Да", label: "Да" }
                     ].map((item) => (
                       <label key={item.value}>
                         <input
@@ -647,6 +651,8 @@ export default function DetailPage() {
                 value={form.stage}
               />
             </section>
+
+            <AnalysisStageCard analysis={record?.workflow?.analysis} />
 
             <section className="detail-side-card" id="section-documents">
               <h3>Документы и ссылки</h3>
@@ -744,7 +750,6 @@ export default function DetailPage() {
                     ? "Есть несохраненные изменения."
                     : "Сохраняем изменения..."}
               </strong>
-              <span>Правый блок действий убран; сохранение вынесено в нижнюю панель, чтобы не ломать канонический layout.</span>
             </div>
 
             <div className="detail-save-bar-actions">
@@ -769,11 +774,6 @@ export default function DetailPage() {
           </section>
         ) : null}
       </main>
-
-      <footer className="footer detail-footer">
-        <span>{form.shortTitle || "Карточка проекта"}</span>
-        <span className="footer-copy">Scoring</span>
-      </footer>
 
       {isProjectModalOpen ? (
         <div className="detail-modal-overlay" onClick={closeProjectModal} role="presentation">
@@ -865,7 +865,7 @@ export default function DetailPage() {
                 Будет удален весь проект: карточка, загруженные документы и рабочая папка проекта.
               </p>
               <p>
-                {form.title || record?.title || `Запись ${recordId}`}
+                {form.projectTitle || record?.projectTitle || form.title || record?.title || `Запись ${recordId}`}
               </p>
             </div>
 
@@ -900,6 +900,35 @@ function RuntimeBanner({ children, tone = "neutral" }) {
   return <div className={`runtime-banner ${tone === "error" ? "runtime-banner-error" : ""}`.trim()}>{children}</div>;
 }
 
+function AnalysisStageCard({ analysis }) {
+  const stages = Array.isArray(analysis?.stages) ? analysis.stages : [];
+  const status = String(analysis?.status || "").trim();
+
+  if (!status && !stages.length) {
+    return null;
+  }
+
+  return (
+    <section className="detail-side-card detail-analysis-card" id="section-analysis">
+      <h3>Анализ документов</h3>
+      {status ? <div className="detail-analysis-status">{getAnalysisStatusLabel(status)}</div> : null}
+      {stages.length ? (
+        <ol className="detail-analysis-steps">
+          {stages.map((stage, index) => (
+            <li className={`detail-analysis-step is-${stage.status || "pending"}`.trim()} key={`${stage.name}-${index}`}>
+              <span className="detail-analysis-step-mark">{index + 1}</span>
+              <span>
+                <strong>{getAnalysisStageLabel(stage.name)}</strong>
+                <small>{getAnalysisStageSummary(stage)}</small>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </section>
+  );
+}
+
 function FieldCard({ children, fieldId, label, span = "" }) {
   return (
     <article className={`detail-field-card ${span === "full" ? "span-2" : span === "half" ? "span-half" : ""}`.trim()} id={`field-${fieldId}`}>
@@ -907,6 +936,51 @@ function FieldCard({ children, fieldId, label, span = "" }) {
       {children}
     </article>
   );
+}
+
+function getAnalysisStatusLabel(status) {
+  const labels = {
+    completed: "Завершен",
+    failed: "Ошибка",
+    pending: "Ожидает",
+    queued: "В очереди",
+    running: "В работе"
+  };
+
+  return labels[status] || status;
+}
+
+function getAnalysisStageLabel(name) {
+  const labels = {
+    classify_documents: "Классификация документов",
+    fill_amounts: "Информация по суммам",
+    fill_general: "Общая информация",
+    fill_tender: "Информация по тендеру",
+    normalize_md: "Нормализация в MD",
+    unpack: "Распаковка"
+  };
+
+  return labels[name] || name;
+}
+
+function getAnalysisStageSummary(stage) {
+  const payload = stage?.payload && typeof stage.payload === "object" ? stage.payload : {};
+
+  if (payload.files !== undefined) {
+    return `${payload.files} файл(ов)`;
+  }
+
+  if (payload.documents !== undefined) {
+    return `${payload.documents} документ(ов)`;
+  }
+
+  const filledKeys = Object.keys(payload).filter((key) => payload[key] !== "" && payload[key] !== null && payload[key] !== undefined);
+
+  if (filledKeys.length) {
+    return `${filledKeys.length} поле(й)`;
+  }
+
+  return getAnalysisStatusLabel(stage?.status || "pending");
 }
 
 function MoneyField({ fieldId, label, onChange, placeholder = "920000", value }) {
@@ -1293,6 +1367,7 @@ function DetailDateField({ fieldId, label, mode = "date", onChange, placeholder 
 function createEmptyForm() {
   return {
     customer: "",
+    projectTitle: "",
     title: "",
     shortTitle: "",
     sourceUrl: "",
@@ -1301,7 +1376,7 @@ function createEmptyForm() {
     googleDocumentsFolderHref: "",
     deadlineAt: "",
     nmc: "",
-    purchaseBy: "",
+    purchaseBy: PURCHASE_BY_UNKNOWN,
     platformPayment: "",
     applicationSecurity: "",
     contractSecurity: "",
@@ -1323,6 +1398,7 @@ function createEmptyForm() {
 function buildFormState(record) {
   return {
     customer: String(record?.customer || ""),
+    projectTitle: String(record?.projectTitle || record?.title || ""),
     title: String(record?.title || ""),
     shortTitle: String(record?.shortTitle || ""),
     sourceUrl: String(record?.sourceUrl || ""),
@@ -1331,7 +1407,7 @@ function buildFormState(record) {
     googleDocumentsFolderHref: String(record?.googleDocumentsFolderHref || ""),
     deadlineAt: String(record?.deadlineAt || ""),
     nmc: String(record?.nmc || ""),
-    purchaseBy: String(record?.purchaseBy || ""),
+    purchaseBy: normalizePurchaseByValue(record?.purchaseBy),
     platformPayment: String(record?.platformPayment || ""),
     applicationSecurity: String(record?.applicationSecurity || ""),
     contractSecurity: String(record?.contractSecurity || ""),
@@ -1383,6 +1459,7 @@ function serializeForm(form) {
 function buildSavePayload(form) {
   return {
     customer: form.customer,
+    projectTitle: form.projectTitle,
     title: form.title,
     shortTitle: form.shortTitle,
     sourceUrl: form.sourceUrl,
@@ -1464,25 +1541,32 @@ function buildDocItems(form) {
 }
 
 function getPurchaseByOptions(currentValue) {
+  const normalizedValue = normalizePurchaseByValue(currentValue);
   const options = [...PURCHASE_BY_OPTIONS];
 
-  if (currentValue && !options.includes(currentValue)) {
-    options.unshift(currentValue);
-  }
-
-  if (!options.length) {
-    return [currentValue || ""];
+  if (normalizedValue && !options.includes(normalizedValue)) {
+    options.push(normalizedValue);
   }
 
   return options;
 }
 
-function getSelectValue(currentValue, options) {
-  if (currentValue && options.includes(currentValue)) {
-    return currentValue;
+function normalizePurchaseByValue(value) {
+  const normalized = String(value ?? "").trim();
+
+  if (LEGACY_INVALID_PURCHASE_BY.has(normalized)) {
+    return PURCHASE_BY_UNKNOWN;
   }
 
-  return options[0] || "";
+  if (/223\s*[-–]?\s*фз/i.test(normalized)) {
+    return "223-ФЗ / Положение о закупке";
+  }
+
+  if (/44\s*[-–]?\s*фз/i.test(normalized)) {
+    return "44-ФЗ";
+  }
+
+  return normalized || PURCHASE_BY_UNKNOWN;
 }
 
 function buildSearchTargets(record, form) {

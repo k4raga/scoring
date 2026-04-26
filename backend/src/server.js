@@ -23,6 +23,7 @@ import {
   saveRecords
 } from "./data-store.js";
 import { analyzeArchivePackage, getAiProviders } from "./ai-analysis.js";
+import { requestExternalAnalysis } from "./external-analysis-client.js";
 import { buildUploadedRecord, ingestArchiveUpload, mergeUploadedRecord } from "./record-ingest.js";
 import { getProjectRoot, getStorageProjectsRoot } from "./paths.js";
 import { applyRecordPatch } from "./record-patch.js";
@@ -301,31 +302,21 @@ app.listen(port, () => {
   console.log(`scoring-backend listening on http://localhost:${port}`);
 });
 
-function handleArchiveUpload(request, response) {
+async function handleArchiveUpload(request, response) {
   if (!request.file) {
     response.status(400).json({ error: "archive_required" });
     return;
   }
 
   const rawRecords = loadRawRecords();
-  const analysis = analyzeArchivePackage({
-    archiveFile: request.file,
-    providerId: request.body?.providerId || request.body?.provider,
-    hints: {
-      title: request.body?.title,
-      sourceUrl: request.body?.sourceUrl,
-      etpUrl: request.body?.etpUrl
-    }
-  });
   const ingest = ingestArchiveUpload({
     archiveFile: request.file,
-    title: analysis.recordPatch?.title || request.body?.title,
-    sourceUrl: analysis.recordPatch?.sourceUrl || request.body?.sourceUrl,
-    etpUrl: analysis.recordPatch?.etpUrl || request.body?.etpUrl,
-    now: analysis.recordPatch?.publishedAt ? new Date(analysis.recordPatch.publishedAt) : undefined
+    title: request.body?.title,
+    sourceUrl: request.body?.sourceUrl,
+    etpUrl: request.body?.etpUrl
   });
   const recordIndex = rawRecords.findIndex((record) => record.id === ingest.recordId);
-  const uploadedRecord = buildUploadedRecord(ingest, analysis);
+  const uploadedRecord = buildUploadedRecord(ingest, null);
 
   let created = false;
 
@@ -340,7 +331,7 @@ function handleArchiveUpload(request, response) {
 
   const records = loadRecords();
   const savedRecord = getRecordById(records, ingest.recordId);
-  const analysisJob = createAnalysisJob({
+  let analysisJob = createAnalysisJob({
     recordId: ingest.recordId,
     archive: {
       name: ingest.archiveName,
@@ -362,19 +353,75 @@ function handleArchiveUpload(request, response) {
     },
     status: "queued"
   });
+  let externalAnalysis = null;
+  let finalRecord = savedRecord;
+
+  try {
+    const externalPayload = await requestExternalAnalysis({
+      archiveHref: ingest.archiveHref,
+      archivePath: ingest.archivePath,
+      hints: {
+        title: request.body?.title || "",
+        sourceUrl: request.body?.sourceUrl || "",
+        etpUrl: request.body?.etpUrl || ""
+      },
+      jobId: analysisJob.id,
+      recordId: ingest.recordId
+    });
+
+    externalAnalysis = externalPayload;
+
+    const completed = applyAnalysisJobContractUpdate({
+      jobId: analysisJob.id,
+      body: {
+        status: "completed",
+        result: externalPayload.result,
+        warnings: Array.isArray(externalPayload.warnings) ? externalPayload.warnings : undefined
+      },
+      defaultStatus: "completed",
+      finalResult: true
+    });
+
+    analysisJob = completed.job;
+    finalRecord = completed.record || getRecordById(loadRecords(), ingest.recordId) || savedRecord;
+  } catch (error) {
+    const failed = applyAnalysisJobContractUpdate({
+      jobId: analysisJob.id,
+      body: {
+        status: "failed",
+        error: {
+          code: "external_analysis_failed",
+          message: error instanceof Error ? error.message : "external_analysis_failed"
+        },
+        result: {
+          analysisMetadata: {
+            service: "scoring-analysis",
+            state: "failed"
+          },
+          fields: {},
+          recordPatch: {}
+        }
+      },
+      defaultStatus: "failed",
+      finalResult: true
+    });
+
+    analysisJob = failed.job;
+  }
 
   response.status(created ? 201 : 200).json({
     created,
-    record: savedRecord,
-    analysis,
+    record: finalRecord,
+    analysis: null,
+    externalAnalysis,
     analysisJob,
     folder: {
       relativePath: ingest.relativeProjectFolder,
       absolutePath: ingest.projectFolder
     },
     codexRun: {
-      status: ingest.codexRun.status,
-      method: ingest.codexRun.method,
+      status: "",
+      method: "",
       runRoot: ingest.relativeRunRoot,
       scriptPath: ingest.relativeScriptPath
     }

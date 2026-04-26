@@ -1,6 +1,6 @@
 const YES_NO_OPTIONS = [
-  { value: true, label: "Да" },
-  { value: false, label: "Нет" }
+  { value: false, label: "Нет" },
+  { value: true, label: "Да" }
 ];
 
 const CRITERIA_GROUP_OPTIONS = [
@@ -14,6 +14,16 @@ const CRITERIA_KIND_OPTIONS = [
   { value: "критерий", label: "критерий" },
   { value: "блок-фактор", label: "блок-фактор" }
 ];
+
+const PURCHASE_BY_UNKNOWN = "Нет информации";
+const PURCHASE_BY_OPTIONS = [
+  { value: PURCHASE_BY_UNKNOWN, label: PURCHASE_BY_UNKNOWN },
+  { value: "44-ФЗ", label: "44-ФЗ" },
+  { value: "223-ФЗ / Положение о закупке", label: "223-ФЗ / Положение о закупке" },
+  { value: "Коммерческая закупка", label: "Коммерческая закупка" },
+  { value: "Иное", label: "Иное" }
+];
+const LEGACY_INVALID_PURCHASE_BY = new Set(["", "Техническое задание", "Загрузка архива", "Демо-данные"]);
 
 const EDITOR_SECTIONS = [
   {
@@ -36,7 +46,7 @@ const EDITOR_SECTIONS = [
     fields: [
       field("nmc", "НМЦ", "text"),
       field("stage", "Этап", "text"),
-      field("purchaseBy", "Закупка по", "text"),
+      field("purchaseBy", "Закупка по", "select", { options: PURCHASE_BY_OPTIONS }),
       field("platformPayment", "Оплата площадки", "text"),
       field("applicationSecurity", "Обеспечение заявки", "text"),
       field("contractSecurity", "Обеспечение контракта", "text"),
@@ -155,6 +165,24 @@ export function normalizeYesNo(value) {
   }
 
   return null;
+}
+
+export function normalizePurchaseBy(value) {
+  const normalized = String(value ?? "").trim();
+
+  if (LEGACY_INVALID_PURCHASE_BY.has(normalized)) {
+    return PURCHASE_BY_UNKNOWN;
+  }
+
+  if (/223\s*[-–]?\s*фз/i.test(normalized)) {
+    return "223-ФЗ / Положение о закупке";
+  }
+
+  if (/44\s*[-–]?\s*фз/i.test(normalized)) {
+    return "44-ФЗ";
+  }
+
+  return normalized || PURCHASE_BY_UNKNOWN;
 }
 
 export function stringifyCriteriaRow(row) {

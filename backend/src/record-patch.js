@@ -9,6 +9,7 @@ export function applyRecordPatch(existingRecord, patch) {
   const criteriaRows = criteriaSource !== undefined ? normalizeCriteriaRows(criteriaSource) : undefined;
   const nextRecord = {
     ...existingRecord,
+    projectTitle: patch.projectTitle ?? existingRecord.projectTitle,
     customer: patch.customer ?? existingRecord.customer,
     title: patch.title ?? existingRecord.title,
     shortTitle: patch.shortTitle ?? existingRecord.shortTitle,

@@ -1042,8 +1042,7 @@ svg {
 
 .detail-hero,
 .detail-section,
-.detail-side-card,
-.detail-footer {
+.detail-side-card {
   border: 1px solid var(--line);
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -1570,14 +1569,6 @@ svg {
   align-items: center;
 }
 
-.detail-tender-grid #field-antiDumpingMeasures label:first-child {
-  order: 2;
-}
-
-.detail-tender-grid #field-antiDumpingMeasures label:last-child {
-  order: 1;
-}
-
 .detail-tender-grid #field-creative label:first-child {
   display: none;
 }
@@ -1808,9 +1799,77 @@ svg {
   letter-spacing: -0.04em;
 }
 
+.detail-analysis-card {
+  gap: 14px;
+}
+
+.detail-analysis-status {
+  display: inline-flex;
+  width: max-content;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(99, 76, 255, 0.09);
+  color: #4f2fd1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.detail-analysis-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detail-analysis-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.detail-analysis-step-mark {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f4f1ff;
+  color: #4f2fd1;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-analysis-step.is-completed .detail-analysis-step-mark {
+  background: #ecfdf3;
+  color: #187347;
+}
+
+.detail-analysis-step.is-failed .detail-analysis-step-mark {
+  background: #fff1f2;
+  color: #b42318;
+}
+
+.detail-analysis-step strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.detail-analysis-step small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .detail-doc-list,
-.detail-action-stack,
-.detail-service-list,
 .detail-uploaded-doc-list {
   display: grid;
   gap: 12px;
@@ -1938,12 +1997,6 @@ svg {
   transform: none;
 }
 
-.detail-action-note {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
 .detail-save-bar {
   position: fixed;
   left: 50%;
@@ -2015,38 +2068,6 @@ svg {
   box-shadow: 0 0 0 4px rgba(107, 61, 255, 0.05);
 }
 
-.detail-service-item {
-  display: grid;
-  gap: 4px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(48, 40, 76, 0.08);
-}
-
-.detail-service-item:last-child {
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-
-.detail-service-item span {
-  color: var(--muted);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.detail-service-item strong {
-  font-size: 14px;
-  line-height: 1.5;
-  font-weight: 600;
-}
-
-.detail-footer {
-  margin-top: 24px;
-  padding: 18px 22px;
-  border-radius: 22px;
-  font-size: 14px;
-}
-
 .home-archive-link,
 .home-footer .footer-note,
 .home-footer .footer-copy {
@@ -2089,9 +2110,7 @@ svg {
 }
 
 .month-footer span:first-child,
-.month-footer .footer-copy,
-.detail-footer span:first-child,
-.detail-footer .footer-copy {
+.month-footer .footer-copy {
   font-size: 0;
 }
 
@@ -2102,16 +2121,6 @@ svg {
 
 .month-footer .footer-copy::after {
   content: "Standalone design template";
-  font-size: 13px;
-}
-
-.detail-footer span:first-child::after {
-  content: "Scoring prototype / Детальная карточка проекта";
-  font-size: 13px;
-}
-
-.detail-footer .footer-copy::after {
-  content: "";
   font-size: 13px;
 }
 

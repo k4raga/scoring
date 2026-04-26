@@ -5,6 +5,7 @@ import {
   buildEditorSchema,
   buildLegacyCriteriaGroups,
   normalizeCriteriaRows,
+  normalizePurchaseBy,
   normalizeYesNo
 } from "./record-schema.js";
 import { repairTextEncoding } from "./text-repair.js";
@@ -22,7 +23,7 @@ function normalizeRecord(record) {
   const archiveDocument = documents.find((document) => document.kind === "archive") || documents[0] || null;
   const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
   const uploadSummary = normalizeUploadSummary(record.summary, archiveDocument?.fileName);
-  const notes = normalizeUploadSummary(record.notes, archiveDocument?.fileName) || uploadSummary;
+  const notes = normalizeDisplayText(normalizeUploadSummary(record.notes, archiveDocument?.fileName)) || uploadSummary;
   const summary = uploadSummary || notes || "Описание пока не заполнено.";
   const sourceUrl = normalizeText(record.sourceUrl);
   const etpUrl = normalizeText(record.etpUrl);
@@ -41,30 +42,31 @@ function normalizeRecord(record) {
     ...record,
     publishedAt,
     deadlineAt: normalizeDateTime(record.deadlineAt),
-    title: normalizeText(record.title),
-    shortTitle: normalizeText(record.shortTitle) || normalizeText(record.title),
-    customer: normalizeText(record.customer),
-    region: normalizeText(record.region),
-    platform: normalizeText(record.platform),
-    purchaseBy: normalizeText(record.purchaseBy) || normalizeText(record.platform),
+    projectTitle: normalizeDisplayText(record.projectTitle) || normalizeDisplayText(record.title),
+    title: normalizeDisplayText(record.title),
+    shortTitle: normalizeDisplayText(record.shortTitle) || normalizeDisplayText(record.title),
+    customer: normalizeDisplayText(record.customer),
+    region: normalizeDisplayText(record.region),
+    platform: normalizeDisplayText(record.platform),
+    purchaseBy: normalizePurchaseBy(record.purchaseBy),
     sourceUrl,
     etpUrl,
     documentsFolderHref: documentsFolderHref || "",
     googleDocumentsFolderHref: googleDocumentsFolderHref || "",
-    nmc: normalizeText(record.nmc) || normalizeText(record.priceStatus),
-    status: normalizeText(record.status) || "Нужен анализ",
-    stage: normalizeText(record.stage) || "Скоринг",
-    priceStatus: normalizeText(record.priceStatus) || normalizeText(record.nmc) || "Не заполнено",
-    executionWindow: normalizeText(record.executionWindow) || normalizeText(record.overallExecutionTerm) || "Не заполнено",
-    description: normalizeText(record.description),
-    contractor: normalizeText(record.contractor) || normalizeText(record.executor) || normalizeText(record.supplier),
-    platformPayment: normalizeText(record.platformPayment),
-    applicationSecurity: normalizeText(record.applicationSecurity),
-    contractSecurity: normalizeText(record.contractSecurity),
-    overallExecutionTerm: normalizeText(record.overallExecutionTerm) || normalizeText(record.executionWindow),
-    contractTerm: normalizeText(record.contractTerm),
-    retrade: normalizeText(record.retrade),
-    antiDumpingMeasures: normalizeText(record.antiDumpingMeasures),
+    nmc: normalizeDisplayText(record.nmc) || normalizeDisplayText(record.priceStatus),
+    status: normalizeDisplayText(record.status) || "Нужен анализ",
+    stage: normalizeDisplayText(record.stage) || "Скоринг",
+    priceStatus: normalizeDisplayText(record.priceStatus) || normalizeDisplayText(record.nmc) || "Не заполнено",
+    executionWindow: normalizeDisplayText(record.executionWindow) || normalizeDisplayText(record.overallExecutionTerm) || "Не заполнено",
+    description: normalizeDisplayText(record.description),
+    contractor: normalizeDisplayText(record.contractor) || normalizeDisplayText(record.executor) || normalizeDisplayText(record.supplier),
+    platformPayment: normalizeDisplayText(record.platformPayment),
+    applicationSecurity: normalizeDisplayText(record.applicationSecurity),
+    contractSecurity: normalizeDisplayText(record.contractSecurity),
+    overallExecutionTerm: normalizeDisplayText(record.overallExecutionTerm) || normalizeDisplayText(record.executionWindow),
+    contractTerm: normalizeDisplayText(record.contractTerm),
+    retrade: normalizeDisplayText(record.retrade),
+    antiDumpingMeasures: normalizeDisplayText(record.antiDumpingMeasures),
     notes,
     creative: normalizeCreativeValue(record.creative),
     requirementsDocumentUrl: requirementsDocumentUrl || "",
@@ -84,7 +86,8 @@ function normalizeRecord(record) {
         method: normalizeText(record.workflow?.codexRun?.method),
         runRoot: normalizeText(record.workflow?.codexRun?.runRoot),
         scriptPath: normalizeText(record.workflow?.codexRun?.scriptPath)
-      }
+      },
+      analysis: normalizeWorkflowAnalysis(record.workflow?.analysis)
     },
     year,
     month,
@@ -127,6 +130,7 @@ function normalizeCreativeValue(value) {
 function toCardSummary(record) {
   return {
     id: record.id,
+    projectTitle: record.projectTitle,
     title: record.title,
     shortTitle: record.shortTitle,
     summary: record.summary,
@@ -493,6 +497,16 @@ function normalizeText(value) {
   return repairTextEncoding(String(value).trim());
 }
 
+function normalizeDisplayText(value) {
+  const text = normalizeText(value);
+
+  if (!text) {
+    return "";
+  }
+
+  return text.replace(/^(\s*)([\p{Ll}])/u, (_, prefix, letter) => `${prefix}${letter.toLocaleUpperCase("ru-RU")}`);
+}
+
 function normalizeDateTime(value) {
   const text = normalizeText(value);
   return text || null;
@@ -517,7 +531,32 @@ function normalizeUploadSummary(value, archiveFileName) {
     return `Архив ${normalizeText(archiveFileName)} загружен. Запущен локальный Codex-run.`;
   }
 
-  return text;
+  return normalizeDisplayText(text);
+}
+
+function normalizeWorkflowAnalysis(analysis) {
+  if (!analysis || typeof analysis !== "object" || Array.isArray(analysis)) {
+    return null;
+  }
+
+  return {
+    status: normalizeText(analysis.status),
+    service: normalizeText(analysis.service),
+    runId: normalizeText(analysis.runId),
+    runRoot: normalizeText(analysis.runRoot),
+    normalizedDir: normalizeText(analysis.normalizedDir),
+    documentIndex: normalizeText(analysis.documentIndex),
+    stages: Array.isArray(analysis.stages)
+      ? analysis.stages
+          .filter((stage) => stage && typeof stage === "object" && !Array.isArray(stage))
+          .map((stage) => ({
+            name: normalizeText(stage.name),
+            status: normalizeText(stage.status),
+            at: normalizeText(stage.at),
+            payload: stage.payload && typeof stage.payload === "object" && !Array.isArray(stage.payload) ? stage.payload : {}
+          }))
+      : []
+  };
 }
 
 function slugify(value) {

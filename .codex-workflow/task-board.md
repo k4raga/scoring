@@ -10,12 +10,14 @@
 - не копировать архитектуру `schedule-widget`, а переносить только development workflow;
 - `Primary QA` по умолчанию работает read-only;
 - основная консоль по умолчанию выполняет роль `Manager`.
+- анализ документов не вшивается внутрь `scoring`: `scoring` должен вызывать внешний API отдельной соседней тестовой подсистемы анализа, которую позже можно заменить другой реализацией без пересборки доменной логики скоринга.
 
 ## Sprint Framing
 
 - Пользовательские истории для следующего продуктового planning pass собраны в [sprint-plan.md](/C:/Users/illki/Desktop/projects/scoring/.codex-workflow/sprint-plan.md).
 - `Sprint 1`: `FS-001`, `FS-002`, `FS-003`, `FS-004`.
 - `Sprint 2`: только `FS-001 Extension`.
+- `Sprint 3`: внешний staged analysis API и соседний test analysis service.
 - Это sprint-разделение не отменяет текущий active cycle и должно использоваться как верхнеуровневая рамка для следующих implementation-циклов.
 
 ## Sprint 1 Launch
@@ -34,13 +36,26 @@
 | SP1-C1 | Home filter/search contract alignment | manager -> developer(codex) -> manager/qa | Привести `home` к Sprint 1 user-path контракту: если пользователь выбирает любой stage-фильтр, он должен получать результат-set по этому фильтру, а не только декоративную смену preview; поиск должен работать как рабочий сценарий по реестру и включать хотя бы название, описание и подрядчика без произвольного обрезания релевантной выдачи | accepted | Stage-фильтры на `home` работают как пользовательский путь, а не как косметика preview-grid; поиск ищет по title/summary/customer и возвращает полный релевантный набор без hard cap на несколько первых карточек |
 | SP1-C2 | Create/delete contract alignment | manager -> developer(codex) -> manager/qa | Довести Sprint 1 lifecycle до рабочего вида: новая запись стартует в стадии `Скоринг`; из `detail` доступен явный сценарий удаления проекта с подтверждением и понятным post-delete переходом | accepted | Create-flow дает стартовую стадию `Скоринг`; delete-flow доступен из `detail`, требует подтверждения, удаляет проект из UI/реестра и ведет в стабильный экран без broken route |
 
+## Sprint 3 Launch
+
+- Sprint owner: `Manager`
+- Implementation mode: `manager -> direct bounded implementation -> QA/smoke`
+- Integration rule: `scoring` вызывает внешний API, а не импортирует анализатор документов.
+- Test analysis service: [../scoring-analysis](/C:/Users/illki/Desktop/projects/scoring-analysis)
+
+| ID | Title | Owner | Scope | Status | Acceptance |
+| --- | --- | --- | --- | --- | --- |
+| SP3-C1 | Sibling staged analysis service | manager -> developer -> tester | Создать рядом со `scoring/` отдельный тестовый сервис анализа документов, который принимает архив по API, распаковывает его, нормализует документы в `normalized/*.md`, классифицирует документы и возвращает staged result | accepted | `scoring-analysis` живет отдельным проектом; `POST /api/analyze` проходит на `МРИЯ.zip`; возвращает этапы `unpack`, `normalize_md`, `classify_documents`, `fill_general`, `fill_amounts`, `fill_tender`; создает MD и `document-index.json` |
+| SP3-C2 | Scoring external analysis integration | manager -> developer -> tester | Подключить `scoring/backend` к внешнему analysis API через конфигурируемый base URL, применить returned record patch к карточке и показать этапы анализа на detail-странице | accepted | Upload `МРИЯ.zip` через `POST /api/records` создает/обновляет карточку `2026-04-25-мрия`, заполняет общую информацию, суммы и тендерный блок, сохраняет 6 completed stages в `workflow.analysis`; `npm run smoke:analysis` проходит |
+
 ## Active Cycle
 
 | ID | Title | Owner | Scope | Status | Acceptance |
 | --- | --- | --- | --- | --- | --- |
 | SC-007 | Editable detail-page с типами полей, ссылками на архив и динамическими критериями | manager -> developer -> tester | Сделать поля деталки редактируемыми после загрузки записи, сохранить типы полей по смыслу Excel-таблицы, дать документным полям ссылки на загруженный архив, поддержать добавление и удаление строк в блоках критериев, убрать hover-jump у карточек, затем провести self-review по UX/аналитике и отдельный дополнительный проход по типам полей на основе примера Excel | accepted | Деталка редактируется и сохраняется; UI перегруппирован под Excel-структуру `общая информация -> суммы -> тендер -> критерии`; поля про документы ведут на архив/загруженные материалы; критерии можно добавлять и удалять; `creative` можно выставлять и очищать через backend merge без залипания; тип строки критериев следует Excel-семантике `основной / критерий / блок-фактор`; hover-jump убран и больше не использует `transform` |
 
-| SC-013 | Detail comment alignment pass | manager -> developer -> tester | Пройти user-diff comments по `detail` против `prototype-detail.html`: убрать hero-meta chips, `Действия` и нижний service block, убрать секцию `Критерии выбора`, вернуть `НМЦ` в `Общую информацию`, привести `Срок подачи` и `Переторжка` к каноническому виду, перепроверить заголовки и группировку без изменения prototype-файлов | in_progress | Все 7 user comments закрыты на текущем `detail`-маршруте; layout идет за `prototype-detail.html`; save flow не сломан; `npm run build --workspace frontend` проходит |
+| SC-013 | Detail comment alignment pass | manager -> developer -> tester | Пройти user-diff comments по `detail` против `prototype-detail.html`: убрать hero-meta chips, `Действия` и нижний service block, убрать секцию `Критерии выбора`, вернуть `НМЦ` в `Общую информацию`, привести `Срок подачи` и `Переторжка` к каноническому виду, перепроверить заголовки и группировку без изменения prototype-файлов | accepted | Все 7 user comments закрыты на текущем `detail`-маршруте; layout идет за `prototype-detail.html`; save flow не сломан; `npm run build --workspace frontend` проходит |
+| SC-014 | External staged analysis API contract | manager -> developer -> tester | Спроектировать и реализовать следующий цикл как интеграцию с отдельным соседним test analysis project, а не как внутренний анализатор `scoring`: upload/create-flow в `scoring` должен создавать record и analysis job, передавать документы во внешний API и отображать статусы этапов `unpack -> normalize_md -> classify_documents -> fill_general -> fill_amounts -> fill_tender`; внешний сервис владеет распаковкой, MD-нормализацией, классификацией и извлечением фактов | accepted | В board и реализации зафиксирована граница: `scoring` не парсит документы сам, а работает через API-контракт; этапы анализа названы и независимы; MD используется как нормализованный слой документов; `МРИЯ.zip` через основной API заполняет карточку `2026-04-25-мрия`; `npm run smoke:analysis` проходит |
 
 ## Accepted
 
@@ -50,6 +65,8 @@
 - `SC-004` `Сделать текущий месяц основным workspace, вывести статистику на главной и реализовать upload архива -> создание папки -> создание/обновление записи`
 - `SC-006` `Перевести UI в upload-only сценарий, автоматически создавать project folder и local Codex-run, вывести current month workspace и Excel-like detail, отдельно принять design pass и закрыть 2 manager self-review цикла`
 - `SC-007` `Сделать деталку редактируемой после загрузки, привести типы и структуру полей к Excel-образцу, дать документным полям рабочие ссылки на архив, добавить add/remove в критериях, убрать hover-jump и закрыть self-review по UX/аналитике с дополнительным Excel-pass`
+- `SC-013` `Закрыть user-diff comments по detail против prototype-detail.html: убрать лишние meta/action/service/criteria-секции, вернуть НМЦ в общую информацию, привести срок подачи и переторжку к каноническому виду без изменения prototype-файлов`
+- `SC-014` `Подключить внешний staged analysis API через соседний test service, нормализовать документы в MD и заполнить карточку МРИЯ через основной scoring API`
 
 ## Proposed Backlog
 
@@ -65,6 +82,7 @@
 | SC-010 | Detail page milestone | manager -> developer -> tester | Реализовать веху страницы `detail` по `prototype-detail.html`, встроив уже принятую editable-detail механику в канонический layout без изменения prototype-референса | accepted | Детальная страница существует как отдельный маршрут; визуально совпадает с `prototype-detail.html`; save/update flow и типы полей продолжают работать без регрессии |
 | SC-011 | Integration milestone for all pages | manager -> developer -> tester | Финальная веха, объединяющая `home`, `month`, `detail`: довести сквозную навигацию, устойчивые URL, shared states, not-found/error/loading, responsive-поведение и обновить regression pack под целостное приложение | proposed | Переходы `home -> month -> detail -> back` работают как единый поток; страницы собраны в один runtime-контур; regression pack покрывает новый маршрутный слой; нигде не было изменений канонического дизайна под реализацию |
 | SC-012 | Golden standard recovery pass | manager -> developer -> tester | Один большой corrective-cycle по visual QA findings: вернуть каноническую taxonomy стадий `Скоринг / Предоценка / Оценка / Подано / Получен ответ`, пересобрать month-cards на `home` под точный паттерн референса, убрать из `detail` служебную/dev-лексику из пользовательского UI, выровнять `month` intro и summary-подачу под `prototype-month.html`, не меняя `docs/UI-REFERENCE.md` и `prototype-*.html` | accepted | `home`, `month`, `detail` визуально и терминологически ближе к golden standard; фильтры и status-chips используют канонический набор стадий; карточки месяцев на главной перестают быть шумными placeholder-like блоками; на `detail` не течет внутренняя dev-лексика; после фиксов manager-pass не находит явных расхождений первого порядка с prototype-страницами |
+| SC-015 | Sibling test analysis service scaffold | manager -> developer -> tester | Создать рядом со `scoring/` отдельный тестовый проект анализа документов с API для staged pipeline: принять архив/ссылку на архив, распаковать, создать `normalized/*.md`, собрать `document-index.json`, вернуть статусы и payload для последующего заполнения секций скоринга | accepted | Соседний проект имеет собственный контур, API и storage; `scoring` подключается к нему только через конфигурируемый base URL; прямых импортов, общей runtime-логики и вшитого анализа в `scoring/backend` нет |
 
 ## Risks / Notes
 
@@ -75,5 +93,6 @@
 - `SC-004` принят после developer handoff, tester read-only pass и manager runtime check; тестовые upload-артефакты были удалены вручную после верификации.
 - текущий остаточный риск: browser click-through и автоматизированный upload-smoke пока не зафиксированы в отдельном self-cleaning harness.
 - новая продуктовая постановка для `SC-006`: UI создания записи должен стать upload-only; автоматическое извлечение и инициализация идут через локальный Codex, а не через ручной ввод полей пользователем.
+- уточнение для следующего анализа документов: локальный анализ является временной тестовой подсистемой и должен жить в отдельном соседнем проекте; `scoring` остается клиентом API и владельцем карточки/статусов, но не владельцем распаковки, MD-нормализации, классификации и извлечения фактов.
 - `Sprint 1` принят manager+QA pass'ом 22 апреля 2026 года: live UI подтвердил stage-фильтры по текущему году (`Скоринг=9`, `Оценка=1`, `Подано=1`, пустые состояния для `Предоценка` и `Получен ответ`), поиск по title и summary, create-flow со стартовой стадией `Скоринг`, delete cancel/confirm и возврат на стабильный экран.
 - остаточный риск `Sprint 1`: в текущем live-датасете нет ни одной записи с непустым `contractor`, поэтому поиск по этому полю не был принят отдельным фактическим сценарием и остается unverified до появления тестового или реального seed-данного.

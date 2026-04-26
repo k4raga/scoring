@@ -3,8 +3,7 @@ import path from "node:path";
 import { extractArchiveMetadata, buildSafeSlug } from "./upload-metadata.js";
 import { buildProjectFolderParts, buildRecordId } from "./data-store.js";
 import { buildLegacyCriteriaGroups } from "./record-schema.js";
-import { initializeCodexRun } from "./runtime-runner.js";
-import { getProjectRoot, getStorageProjectsRoot } from "./paths.js";
+import { getStorageProjectsRoot } from "./paths.js";
 import { repairTextEncoding } from "./text-repair.js";
 
 export function ingestArchiveUpload({
@@ -18,7 +17,6 @@ export function ingestArchiveUpload({
     throw new Error("archive_required");
   }
 
-  const projectRoot = getProjectRoot();
   const storageProjectsRoot = getStorageProjectsRoot();
   const metadata = applyMetadataOverrides(extractArchiveMetadata(archiveFile.originalname, now), title);
   const folderParts = buildProjectFolderParts(metadata.publishedAt, metadata.title);
@@ -31,24 +29,17 @@ export function ingestArchiveUpload({
   const archivePath = path.join(projectFolder, archiveName);
   fs.writeFileSync(archivePath, archiveFile.buffer);
 
-  const codexRun = initializeCodexRun({
-    archivePath,
-    archiveName,
-    runSlug: buildSafeSlug(`${metadata.publishedAt}-${metadata.titleSlug}`, "coding-run")
-  });
-
   return {
     archiveName,
     archivePath,
     archiveHref: `/assets/storage/${toUrlPath(relativeProjectFolder)}/${encodeURIComponent(archiveName)}`,
-    codexRun,
     metadata,
     sourceUrl: normalizeOptionalText(sourceUrl),
     etpUrl: normalizeOptionalText(etpUrl),
     projectFolder,
     relativeProjectFolder,
-    relativeRunRoot: codexRun.runRoot ? path.relative(projectRoot, codexRun.runRoot).replaceAll("\\", "/") : "",
-    relativeScriptPath: codexRun.scriptPath ? path.relative(projectRoot, codexRun.scriptPath).replaceAll("\\", "/") : null,
+    relativeRunRoot: "",
+    relativeScriptPath: null,
     recordId: buildRecordId(metadata.publishedAt, metadata.title)
   };
 }
@@ -59,6 +50,7 @@ export function buildUploadedRecord(ingest, analysis = null) {
 
   return {
     id: ingest.recordId,
+    projectTitle: patch.projectTitle || ingest.metadata.title,
     title: patch.title || ingest.metadata.title,
     shortTitle: patch.shortTitle || ingest.metadata.shortTitle,
     publishedAt: patch.publishedAt || ingest.metadata.publishedAt,
@@ -88,7 +80,7 @@ export function buildUploadedRecord(ingest, analysis = null) {
     requirementsDocumentUrl: archiveHref,
     criteriaDocumentUrl: archiveHref,
     technicalSpecificationUrl: archiveHref,
-    summary: `Архив ${ingest.archiveName} загружен. Запущен локальный Codex-run.`,
+    summary: `Архив ${ingest.archiveName} загружен. Анализ выполняется внешним сервисом.`,
     criteriaRows: [],
     criteria: buildLegacyCriteriaGroups([]),
     documents: [
@@ -105,8 +97,8 @@ export function buildUploadedRecord(ingest, analysis = null) {
       pageStatus: "Запись создана автоматически",
       projectFolder: ingest.relativeProjectFolder,
       codexRun: {
-        status: ingest.codexRun.status,
-        method: ingest.codexRun.method,
+        status: "",
+        method: "",
         runRoot: ingest.relativeRunRoot,
         scriptPath: ingest.relativeScriptPath
       }
@@ -129,6 +121,7 @@ export function mergeUploadedRecord(existingRecord, uploadedRecord) {
   return {
     ...existingRecord,
     id: uploadedRecord.id,
+    projectTitle: existingRecord.projectTitle || uploadedRecord.projectTitle || uploadedRecord.title,
     title: existingRecord.title || uploadedRecord.title,
     shortTitle: existingRecord.shortTitle || uploadedRecord.shortTitle,
     publishedAt: existingRecord.publishedAt || uploadedRecord.publishedAt,
