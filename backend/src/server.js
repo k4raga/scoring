@@ -47,6 +47,11 @@ const analysisJobStatuses = new Set(getAnalysisJobStatuses());
 const localAnalysisAdapterEnabled = readBooleanEnv(process.env.SCORING_ENABLE_LOCAL_ANALYSIS_ADAPTER);
 const frontendDist = normalizeOptionalText(process.env.SCORING_FRONTEND_DIST);
 
+app.use((_request, response, next) => {
+  response.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet");
+  next();
+});
+
 app.use(express.json());
 app.use("/assets/docs", express.static(path.join(projectRoot, "docs")));
 app.use("/assets/tmp", express.static(path.join(projectRoot, "tmp")));
