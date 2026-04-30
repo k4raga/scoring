@@ -36,6 +36,7 @@ services:
       SCORING_ANALYSIS_HOST: 0.0.0.0
       SCORING_ANALYSIS_PORT: 4200
     volumes:
+      - scoring-data:/data/scoring:ro
       - scoring-analysis-runs:/app/runs
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4200/api/health', timeout=3).read()\""]
