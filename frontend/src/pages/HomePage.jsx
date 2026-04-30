@@ -272,7 +272,7 @@ function RecordCard({ record, variant }) {
         <span className={`status-chip ${toneClass}`.trim()}>{statusLabel}</span>
         <span className="latest-meta">{formatDate(record.publishedAt)}</span>
       </div>
-      <h3>{record.shortTitle || record.title}</h3>
+      <h3>{record.projectTitle || record.shortTitle || record.title}</h3>
       <p>{record.summary || record.description || record.title}</p>
       <div className="row-meta">
         <span>{record.customer || "Заказчик не указан"}</span>
@@ -417,6 +417,7 @@ function normalizeDashboardMonthView(monthView) {
 function normalizeMonthBlock(month) {
   const records = (month.records || []).map((record) => ({
     id: String(record.id || ""),
+    projectTitle: String(record.projectTitle || ""),
     title: String(record.title || ""),
     shortTitle: String(record.shortTitle || record.title || ""),
     summary: String(record.summary || record.notes || ""),
@@ -464,6 +465,7 @@ function mergeRecords(latestRecords, years) {
 function normalizeRecord(record) {
   return {
     id: String(record.id || ""),
+    projectTitle: String(record.projectTitle || ""),
     title: String(record.title || ""),
     shortTitle: String(record.shortTitle || record.title || ""),
     summary: String(record.summary || record.notes || ""),
@@ -549,6 +551,7 @@ function searchRecords(records, query) {
     .filter((record) => {
       const haystack = [
         record.title,
+        record.projectTitle,
         record.shortTitle,
         record.summary,
         record.description,

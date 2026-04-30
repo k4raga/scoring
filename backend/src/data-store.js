@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { getDataFilePath } from "./paths.js";
 import {
   buildEditableSections,
@@ -152,7 +153,14 @@ function byPublishedDesc(left, right) {
 }
 
 export function loadRawRecords() {
-  return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
+  ensureDataFile();
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_error) {
+    return [];
+  }
 }
 
 export function loadRecords() {
@@ -160,6 +168,8 @@ export function loadRecords() {
 }
 
 export function saveRecords(records) {
+  ensureDataFile();
+
   const normalized = records.map((record) => {
     const {
       year,
@@ -177,6 +187,14 @@ export function saveRecords(records) {
   });
 
   fs.writeFileSync(DATA_FILE, `${JSON.stringify(normalized, null, 2)}\n`, "utf-8");
+}
+
+function ensureDataFile() {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+
+  if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, "[]\n", "utf-8");
+  }
 }
 
 export function buildRecordId(publishedAt, title) {

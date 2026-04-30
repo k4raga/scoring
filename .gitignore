@@ -3,6 +3,7 @@ frontend/node_modules/
 backend/node_modules/
 frontend/dist/
 backend/.cache/
+backend/data/analysis-jobs.json
 __pycache__/
 *.pyc
 *.log

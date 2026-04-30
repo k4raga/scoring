@@ -272,7 +272,7 @@ export default function MonthPage() {
                     <span className="project-meta">{formatDate(project.publishedAt)}</span>
                   </div>
 
-                  <h3>{project.shortTitle || project.title}</h3>
+                  <h3>{project.projectTitle || project.shortTitle || project.title}</h3>
                   <p className="project-description">{project.title}</p>
 
                   <div className="project-meta project-card-footer">
@@ -373,6 +373,7 @@ function normalizeProjects(projects) {
   return sortProjectsDesc(
     (projects || []).map((project) => ({
       id: String(project.id || ""),
+      projectTitle: String(project.projectTitle || ""),
       title: String(project.title || ""),
       shortTitle: String(project.shortTitle || project.title || ""),
       customer: String(project.customer || ""),
@@ -435,6 +436,7 @@ function filterProjects(projects, stageFilter, query) {
 
     const haystack = [
       project.title,
+      project.projectTitle,
       project.shortTitle,
       project.customer,
       project.status,

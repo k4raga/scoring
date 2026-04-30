@@ -21,6 +21,7 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent
 RUNS_ROOT = ROOT / "runs"
 DEFAULT_PORT = int(os.environ.get("SCORING_ANALYSIS_PORT", "4200"))
+DEFAULT_HOST = os.environ.get("SCORING_ANALYSIS_HOST", "0.0.0.0")
 RUSSIAN_MONTHS = {
     "января": "01",
     "февраля": "02",
@@ -893,8 +894,8 @@ def artifact_href(path_or_run_id, relative_path: str | None = None) -> str:
 
 def main() -> None:
     RUNS_ROOT.mkdir(parents=True, exist_ok=True)
-    server = ThreadingHTTPServer(("127.0.0.1", DEFAULT_PORT), AnalysisHandler)
-    print(f"scoring-analysis listening on http://127.0.0.1:{DEFAULT_PORT}")
+    server = ThreadingHTTPServer((DEFAULT_HOST, DEFAULT_PORT), AnalysisHandler)
+    print(f"scoring-analysis listening on http://{DEFAULT_HOST}:{DEFAULT_PORT}")
     server.serve_forever()
 
 

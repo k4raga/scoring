@@ -45,6 +45,7 @@ const app = express();
 const port = Number(process.env.PORT || 4100);
 const analysisJobStatuses = new Set(getAnalysisJobStatuses());
 const localAnalysisAdapterEnabled = readBooleanEnv(process.env.SCORING_ENABLE_LOCAL_ANALYSIS_ADAPTER);
+const frontendDist = normalizeOptionalText(process.env.SCORING_FRONTEND_DIST);
 
 app.use(express.json());
 app.use("/assets/docs", express.static(path.join(projectRoot, "docs")));
@@ -297,6 +298,13 @@ app.put("/api/records/:recordId", (request, response) => {
 
 app.post("/api/records", upload.single("archive"), handleArchiveUpload);
 app.post("/api/ingest/archive", upload.single("archive"), handleArchiveUpload);
+
+if (frontendDist) {
+  app.use(express.static(frontendDist));
+  app.get("*", (_request, response) => {
+    response.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
 
 app.listen(port, () => {
   console.log(`scoring-backend listening on http://localhost:${port}`);
