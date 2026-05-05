@@ -18,6 +18,7 @@
 - `Sprint 1`: `FS-001`, `FS-002`, `FS-003`, `FS-004`.
 - `Sprint 2`: только `FS-001 Extension`.
 - `Sprint 3`: внешний staged analysis API и соседний test analysis service.
+- `Sprint 4`: Document Extraction Foundation, GitLab migration как первая задача, production-like RC/test контур, переименование `scoring-analysis` в нейтральный `scoring-extractor` и запрет бизнес-решений в extraction-контуре. См. [sprint-extractor-foundation.md](/C:/Users/illki/Desktop/projects/scoring/.codex-workflow/sprint-extractor-foundation.md).
 - Это sprint-разделение не отменяет текущий active cycle и должно использоваться как верхнеуровневая рамка для следующих implementation-циклов.
 
 ## Sprint 1 Launch
