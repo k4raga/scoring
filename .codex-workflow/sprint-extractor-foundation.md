@@ -973,3 +973,82 @@ http://localhost:8099
 - `docs/AI-API.md`.
 
 Первичный вывод: Quartz подходит как кандидат для static knowledge HTML layer, но интеграция должна оставлять `MD + JSON manifest` source of truth и не терять original files.
+
+## Sprint Execution Log
+
+### 2026-05-06 Manager Run
+
+Preflight:
+
+- sprint document прочитан целиком перед стартом;
+- manager/developer workflow применен;
+- все implementation/verification задачи выдавались отдельным worker-агентам;
+- manager acceptance выполнен после handoff, с дополнительными проверками и интеграционными правками.
+
+Task statuses:
+
+1. `Sprint Task 0: GitLab Migration and Access Runbook` — `partial / blocked`.
+   - SSH access works with local key.
+   - Local remote `gitlab` added.
+   - GitLab rejects initial push because no default branch exists and current user cannot create the first branch.
+   - Resume point: GitLab Owner/Maintainer must create default branch `main` or grant permission to create initial/default branch, then repeat push for `main` and `rc`.
+
+2. `Sprint Task 1: Production-like Test Environment` — `partial / blocked`.
+   - Production smoke passed:
+     - `https://scoring.w6p.ru/api/health`;
+     - `https://scoring.w6p.ru/api/dashboard`.
+   - RC route works with forced resolve to `155.212.175.100`.
+   - Public DNS for `scoring-rc.w6p.ru` is missing.
+   - `DOKPLOY_TOKEN` was not available in the shell, so Dokploy API branch/volume checks were not repeated.
+   - Resume point: add DNS A-record `scoring-rc.w6p.ru -> 155.212.175.100`, then repeat normal DNS smoke.
+
+3. `Sprint Task 2: Rename and Redefine scoring-analysis as scoring-extractor` — `accepted`.
+   - Runtime artifact moved from `artifacts/scoring-analysis` to `artifacts/scoring-extractor`.
+   - Primary endpoint `POST /api/extract` added.
+   - Legacy `POST /api/analyze` kept as compatibility alias.
+   - Backend prefers `SCORING_EXTRACTOR_API_BASE_URL` and falls back to legacy analysis env.
+   - Docker compose service/volume/env renamed to extractor naming with compatibility fallback.
+   - `recordPatch` remains legacy compatibility output only.
+
+4. `Sprint Task 3: Built-in Markdown Artifact Viewer and Document Links Normalization` — `accepted`.
+   - Backend endpoint added:
+     - `GET /api/records/:recordId/documents/:documentId/markdown`.
+   - Detail page groups:
+     - source archive;
+     - normalized Markdown;
+     - JSON artifacts;
+     - knowledge base;
+     - fallback documents;
+     - legacy uploaded files.
+   - Viewer route added:
+     - `/records/:recordId/documents/:documentId`.
+   - Markdown is rendered without unsafe raw HTML.
+   - Backend reads extractor runs from `SCORING_EXTRACTOR_RUNS_ROOT` when deployed in Docker.
+
+5. `Sprint Task 4: Static Knowledge HTML with Source Originals` — `accepted`.
+   - Lightweight `static_html_fallback` renderer added in extractor.
+   - Each run generates:
+     - `knowledge/index.html`;
+     - `knowledge/doc-XXX.html`.
+   - Generated HTML keeps links/status for originals, normalized Markdown and fallback state.
+   - Scoring exposes knowledge HTML through backend artifact proxy instead of browser-facing `127.0.0.1` extractor URLs.
+   - Full Quartz remains future renderer candidate; no Quartz vendor/runtime was added to git.
+
+Manager verification:
+
+- `python -m unittest discover -s artifacts\scoring-extractor\tests` — passed, 12 tests.
+- `node --check backend/src/server.js` — passed.
+- `node --check backend/src/data-store.js` — passed.
+- `node --check backend/src/external-analysis-client.js` — passed.
+- `node --check frontend/src/api.js` — passed.
+- `node --check scripts/smoke-analysis.mjs` — passed.
+- `npm run build` — passed.
+- `docker compose config --quiet` — passed.
+- `git diff --check` — no whitespace errors, only CRLF conversion warnings.
+
+Residual risks:
+
+- Full local upload smoke through temporary backend process was attempted but blocked by Windows `PermissionDenied` when starting backend as a background process from shell tooling.
+- A second isolated upload smoke attempt after manager fixes hit the same Windows `PermissionDenied`; live backend on `4100` was not used for upload smoke to avoid mutating `backend/data/coding-records.json`.
+- Worker-level isolated upload/API smoke for Task 3 passed without touching `backend/data/coding-records.json`.
+- RC deploy/smoke is still blocked by GitLab default-branch issue, RC DNS and absent `DOKPLOY_TOKEN`.

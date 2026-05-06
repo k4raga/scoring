@@ -1,4 +1,4 @@
-const DEFAULT_ANALYSIS_API_BASE_URL = "http://127.0.0.1:4200";
+const DEFAULT_EXTRACTOR_API_BASE_URL = "http://127.0.0.1:4200";
 
 export async function requestExternalAnalysis({
   archiveHref = "",
@@ -7,34 +7,63 @@ export async function requestExternalAnalysis({
   jobId = "",
   recordId = ""
 } = {}) {
-  const baseUrl = normalizeBaseUrl(process.env.SCORING_ANALYSIS_API_BASE_URL || DEFAULT_ANALYSIS_API_BASE_URL);
+  const baseUrl = normalizeBaseUrl(
+    process.env.SCORING_EXTRACTOR_API_BASE_URL ||
+      process.env.SCORING_ANALYSIS_API_BASE_URL ||
+      DEFAULT_EXTRACTOR_API_BASE_URL
+  );
 
   if (!baseUrl) {
-    throw new Error("analysis_api_base_url_missing");
+    throw new Error("extractor_api_base_url_missing");
   }
 
-  const response = await fetch(`${baseUrl}/api/analyze`, {
+  const requestBody = JSON.stringify({
+    archiveHref,
+    archivePath,
+    hints,
+    jobId,
+    recordId
+  });
+  const response = await fetch(`${baseUrl}/api/extract`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      archiveHref,
-      archivePath,
-      hints,
-      jobId,
-      recordId
-    })
+    body: requestBody
   });
 
-  const payload = await readJsonResponse(response);
+  let payload = await readJsonResponse(response);
 
+  if (shouldRetryLegacyAnalyze(response, payload)) {
+    const legacyResponse = await fetch(`${baseUrl}/api/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: requestBody
+    });
+    payload = await readJsonResponse(legacyResponse);
+    return assertSuccessfulExtractorResponse(legacyResponse, payload);
+  }
+
+  return assertSuccessfulExtractorResponse(response, payload);
+}
+
+function assertSuccessfulExtractorResponse(response, payload) {
   if (!response.ok || payload?.ok === false) {
-    const message = normalizeOptionalText(payload?.message) || normalizeOptionalText(payload?.error) || `analysis_api_${response.status}`;
+    const message = normalizeOptionalText(payload?.message) || normalizeOptionalText(payload?.error) || `extractor_api_${response.status}`;
     throw new Error(message);
   }
 
   return payload;
+}
+
+function shouldRetryLegacyAnalyze(response, payload) {
+  if (response.status === 404 || response.status === 405) {
+    return true;
+  }
+
+  return payload?.error === "not_found";
 }
 
 function normalizeBaseUrl(value) {

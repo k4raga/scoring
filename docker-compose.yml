@@ -7,17 +7,20 @@ services:
       NODE_ENV: production
       PORT: 4100
       SCORING_FRONTEND_DIST: /app/frontend/dist
-      SCORING_ANALYSIS_API_BASE_URL: http://scoring-analysis:4200
+      SCORING_EXTRACTOR_API_BASE_URL: http://scoring-extractor:4200
+      SCORING_ANALYSIS_API_BASE_URL: http://scoring-extractor:4200
       SCORING_DATA_FILE: /data/scoring/coding-records.json
       SCORING_ANALYSIS_JOBS_FILE: /data/scoring/analysis-jobs.json
       SCORING_STORAGE_ROOT: /data/scoring/storage/projects
       SCORING_MVP_ROOT: /data/scoring/mvp
       SCORING_LOCAL_ANALYSIS_WORKSPACE_ROOT: /data/scoring/tmp/analysis-jobs
+      SCORING_EXTRACTOR_RUNS_ROOT: /app/extractor-runs
       SCORING_ENABLE_LOCAL_ANALYSIS_ADAPTER: "0"
     volumes:
       - scoring-data:/data/scoring
+      - scoring-extractor-runs:/app/extractor-runs:ro
     depends_on:
-      scoring-analysis:
+      scoring-extractor:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:4100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
@@ -28,16 +31,18 @@ services:
     expose:
       - "4100"
 
-  scoring-analysis:
+  scoring-extractor:
     build:
-      context: ./artifacts/scoring-analysis
+      context: ./artifacts/scoring-extractor
       dockerfile: Dockerfile
     environment:
+      SCORING_EXTRACTOR_HOST: 0.0.0.0
+      SCORING_EXTRACTOR_PORT: 4200
       SCORING_ANALYSIS_HOST: 0.0.0.0
       SCORING_ANALYSIS_PORT: 4200
     volumes:
       - scoring-data:/data/scoring:ro
-      - scoring-analysis-runs:/app/runs
+      - scoring-extractor-runs:/app/runs
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:4200/api/health', timeout=3).read()\""]
       interval: 30s
@@ -49,4 +54,4 @@ services:
 
 volumes:
   scoring-data:
-  scoring-analysis-runs:
+  scoring-extractor-runs:

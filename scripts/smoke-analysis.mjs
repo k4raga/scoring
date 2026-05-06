@@ -3,14 +3,17 @@ import os from "node:os";
 import path from "node:path";
 
 const scoringBaseUrl = process.env.SCORING_API_BASE_URL || "http://localhost:4100";
-const analysisBaseUrl = process.env.SCORING_ANALYSIS_API_BASE_URL || "http://127.0.0.1:4200";
+const extractorBaseUrl =
+  process.env.SCORING_EXTRACTOR_API_BASE_URL ||
+  process.env.SCORING_ANALYSIS_API_BASE_URL ||
+  "http://127.0.0.1:4200";
 const archivePath =
   process.env.SCORING_TEST_ARCHIVE ||
   path.join(os.homedir(), "Downloads", "МРИЯ.zip");
 const keepRecord = ["1", "true", "yes", "on"].includes(String(process.env.SCORING_KEEP_SMOKE_RECORD || "").toLowerCase());
 
 await assertHealth(`${scoringBaseUrl}/api/health`, "scoring backend");
-await assertHealth(`${analysisBaseUrl}/api/health`, "scoring analysis");
+await assertHealth(`${extractorBaseUrl}/api/health`, "scoring extractor");
 
 if (!fs.existsSync(archivePath)) {
   throw new Error(`Test archive not found: ${archivePath}`);
@@ -32,6 +35,7 @@ if (!createResponse.ok) {
 
 const record = createPayload.record;
 const stages = record?.workflow?.analysis?.stages || [];
+const stageIds = stages.map((stage) => stage.id || stage.name);
 
 assert(record?.id, "record id is missing");
 assert(record.customer === "ООО «МРИЯ»", `unexpected customer: ${record.customer}`);
@@ -40,10 +44,11 @@ assert(String(record.title || "").includes("Внедрение"), `unexpected ti
 assert(record.overallExecutionTerm, "overallExecutionTerm is missing");
 assert(record.purchaseBy === "Нет информации", `unexpected purchaseBy: ${record.purchaseBy}`);
 assert(record.nmc === "Не указано в документах", `unexpected nmc: ${record.nmc}`);
-assert(stages.length === 6, `expected 6 analysis stages, got ${stages.length}`);
-assert(stages.every((stage) => stage.status === "completed"), "not all analysis stages completed");
-assert(String(record.technicalSpecificationUrl || "").startsWith(analysisBaseUrl), `technicalSpecificationUrl is not an analysis artifact URL: ${record.technicalSpecificationUrl}`);
-assert(String(record.workflow?.analysis?.documentIndex || "").startsWith(analysisBaseUrl), `documentIndex is not an analysis artifact URL: ${record.workflow?.analysis?.documentIndex}`);
+assert(record.workflow?.analysis?.service === "scoring-extractor", `unexpected extractor service: ${record.workflow?.analysis?.service}`);
+assert(["unpack", "inventory", "extract", "normalize"].every((id) => stageIds.includes(id)), `missing extraction stages: ${stageIds.join(", ")}`);
+assert(stages.every((stage) => stage.status === "completed"), "not all extraction stages completed");
+assert(String(record.technicalSpecificationUrl || "").startsWith(extractorBaseUrl), `technicalSpecificationUrl is not an extractor artifact URL: ${record.technicalSpecificationUrl}`);
+assert(String(record.workflow?.analysis?.documentIndex || "").startsWith(extractorBaseUrl), `documentIndex is not an extractor artifact URL: ${record.workflow?.analysis?.documentIndex}`);
 
 if (!keepRecord) {
   await fetch(`${scoringBaseUrl}/api/records/${encodeURIComponent(record.id)}`, {
@@ -58,7 +63,7 @@ console.log(
       ok: true,
       recordId: record.id,
       kept: keepRecord,
-      stages: stages.map((stage) => `${stage.name}:${stage.status}`)
+      stages: stages.map((stage) => `${stage.id || stage.name}:${stage.status}`)
     },
     null,
     2
@@ -96,7 +101,7 @@ function cleanupAnalysisRun(runRoot) {
   }
 
   const resolved = path.resolve(String(runRoot));
-  const expectedRoot = path.resolve(path.join(process.cwd(), "..", "scoring-analysis", "runs"));
+  const expectedRoot = path.resolve(path.join(process.cwd(), "artifacts", "scoring-extractor", "runs"));
   const relative = path.relative(expectedRoot, resolved);
 
   if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {

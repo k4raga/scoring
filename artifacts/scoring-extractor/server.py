@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import os
 import re
 import shutil
 import uuid
 import zipfile
 from datetime import datetime, timedelta, timezone
+from html import escape
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote, urlparse
@@ -20,8 +22,8 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent
 RUNS_ROOT = ROOT / "runs"
-DEFAULT_PORT = int(os.environ.get("SCORING_ANALYSIS_PORT", "4200"))
-DEFAULT_HOST = os.environ.get("SCORING_ANALYSIS_HOST", "0.0.0.0")
+DEFAULT_PORT = int(os.environ.get("SCORING_EXTRACTOR_PORT") or os.environ.get("SCORING_ANALYSIS_PORT", "4200"))
+DEFAULT_HOST = os.environ.get("SCORING_EXTRACTOR_HOST") or os.environ.get("SCORING_ANALYSIS_HOST", "0.0.0.0")
 RUSSIAN_MONTHS = {
     "января": "01",
     "февраля": "02",
@@ -65,6 +67,14 @@ def text_response(handler: BaseHTTPRequestHandler, status: int, content: str, co
     handler.wfile.write(body)
 
 
+def binary_response(handler: BaseHTTPRequestHandler, status: int, body: bytes, content_type: str) -> None:
+    handler.send_response(status)
+    handler.send_header("Content-Type", content_type)
+    handler.send_header("Content-Length", str(len(body)))
+    handler.end_headers()
+    handler.wfile.write(body)
+
+
 def serve_artifact(handler: BaseHTTPRequestHandler, request_path: str) -> None:
     relative = unquote(request_path.removeprefix("/artifacts/")).replace("/", os.sep)
     target = (RUNS_ROOT / relative).resolve()
@@ -80,8 +90,8 @@ def serve_artifact(handler: BaseHTTPRequestHandler, request_path: str) -> None:
         json_response(handler, 404, {"ok": False, "error": "artifact_not_found"})
         return
 
-    content_type = "application/json; charset=utf-8" if target.suffix.lower() == ".json" else "text/markdown; charset=utf-8"
-    text_response(handler, 200, target.read_text("utf-8", errors="ignore"), content_type)
+    content_type = artifact_content_type(target)
+    binary_response(handler, 200, target.read_bytes(), content_type)
 
 
 def read_json_body(handler: BaseHTTPRequestHandler) -> dict:
@@ -93,8 +103,23 @@ def read_json_body(handler: BaseHTTPRequestHandler) -> dict:
     return json.loads(raw.decode("utf-8"))
 
 
-class AnalysisHandler(BaseHTTPRequestHandler):
-    server_version = "scoring-analysis/0.1"
+def artifact_content_type(path: Path) -> str:
+    suffix = path.suffix.lower()
+    if suffix == ".html":
+        return "text/html; charset=utf-8"
+    if suffix == ".json":
+        return "application/json; charset=utf-8"
+    if suffix == ".md":
+        return "text/markdown; charset=utf-8"
+    if suffix == ".txt":
+        return "text/plain; charset=utf-8"
+
+    guessed, _encoding = mimetypes.guess_type(path.name)
+    return guessed or "application/octet-stream"
+
+
+class ExtractorHandler(BaseHTTPRequestHandler):
+    server_version = "scoring-extractor/0.2"
 
     def log_message(self, format: str, *args) -> None:
         print(f"[{now_iso()}] {self.address_string()} {format % args}")
@@ -103,7 +128,7 @@ class AnalysisHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
 
         if parsed.path == "/api/health":
-            json_response(self, 200, {"ok": True, "service": "scoring-analysis", "port": self.server.server_port})
+            json_response(self, 200, {"ok": True, "service": "scoring-extractor", "port": self.server.server_port})
             return
 
         if parsed.path.startswith("/artifacts/"):
@@ -115,13 +140,13 @@ class AnalysisHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
 
-        if parsed.path != "/api/analyze":
+        if parsed.path not in {"/api/extract", "/api/analyze"}:
             json_response(self, 404, {"ok": False, "error": "not_found"})
             return
 
         try:
             payload = read_json_body(self)
-            result = analyze_archive(payload)
+            result = extract_archive(payload, legacy_endpoint=parsed.path == "/api/analyze")
             json_response(self, 200, result)
         except Exception as error:
             json_response(
@@ -129,22 +154,22 @@ class AnalysisHandler(BaseHTTPRequestHandler):
                 500,
                 {
                     "ok": False,
-                    "error": "analysis_failed",
+                    "error": "extraction_failed",
                     "message": str(error),
                 },
             )
 
 
-def analyze_archive(payload: dict) -> dict:
+def extract_archive(payload: dict, legacy_endpoint: bool = False) -> dict:
     record_id = str(payload.get("recordId") or "").strip()
-    archive_path = Path(str(payload.get("archivePath") or "")).expanduser()
+    archive_path_raw = str(payload.get("archivePath") or "").strip()
     archive_href = str(payload.get("archiveHref") or "").strip()
     hints = payload.get("hints") if isinstance(payload.get("hints"), dict) else {}
 
-    if not archive_path:
+    if not archive_path_raw:
         raise ValueError("archivePath is required")
 
-    archive_path = archive_path.resolve()
+    archive_path = Path(archive_path_raw).expanduser().resolve()
     if not archive_path.exists():
         raise FileNotFoundError(str(archive_path))
 
@@ -153,12 +178,12 @@ def analyze_archive(payload: dict) -> dict:
     input_dir = run_root / "input"
     extracted_dir = run_root / "extracted"
     normalized_dir = run_root / "normalized"
-    tables_dir = normalized_dir / "tables"
+    text_dir = run_root / "text"
 
     input_dir.mkdir(parents=True, exist_ok=True)
     extracted_dir.mkdir(parents=True, exist_ok=True)
     normalized_dir.mkdir(parents=True, exist_ok=True)
-    tables_dir.mkdir(parents=True, exist_ok=True)
+    text_dir.mkdir(parents=True, exist_ok=True)
 
     staged_archive = input_dir / archive_path.name
     shutil.copy2(archive_path, staged_archive)
@@ -166,72 +191,147 @@ def analyze_archive(payload: dict) -> dict:
     stages = []
     inventory = unpack_archive(staged_archive, extracted_dir)
     stages.append(stage("unpack", "completed", {"files": len(inventory)}))
+    stages.append(stage("inventory", "completed", {"inventoryJson": artifact_href(run_id, "inventory.json")}))
 
-    documents = normalize_documents(inventory, normalized_dir, tables_dir)
-    stages.append(stage("normalize_md", "completed", {"documents": len(documents)}))
+    documents = normalize_documents(inventory, normalized_dir, text_dir)
+    extracted_count = sum(1 for document in documents if document.get("status") == "extracted")
+    fallback_count = sum(1 for document in documents if document.get("status") == "needs_fallback")
+    stages.append(stage("extract", "completed", {"documents": len(documents), "extracted": extracted_count, "fallback": fallback_count}))
+    stages.append(stage("normalize", "completed", {"documents": extracted_count}))
 
+    extraction_documents = [normalize_extraction_document(document) for document in documents]
     classified = classify_documents(documents)
+    artifacts = {
+        "inventoryJson": artifact_href(run_id, "inventory.json"),
+        "documentsJson": artifact_href(run_id, "documents.json"),
+        "manifestJson": artifact_href(run_id, "manifest.json"),
+        "extractionReportJson": artifact_href(run_id, "extraction-report.json"),
+        "legacyDocumentIndexJson": artifact_href(run_id, "normalized/document-index.json"),
+        "knowledgeIndexHtml": artifact_href(run_id, "knowledge/index.html"),
+    }
+    archive = {
+        "name": archive_path.name,
+        "sourcePath": str(archive_path),
+        "href": archive_href,
+    }
+    knowledge = generate_knowledge_site(run_id, run_root, extraction_documents, archive)
+    extraction_report = build_extraction_report(extraction_documents)
+    manifest = {
+        "service": "scoring-extractor",
+        "version": "0.2",
+        "runId": run_id,
+        "recordId": record_id,
+        "archive": archive,
+        "artifacts": artifacts,
+        "documents": extraction_documents,
+        "knowledge": knowledge,
+        "report": extraction_report,
+    }
+    write_json(run_root / "documents.json", extraction_documents)
+    write_json(run_root / "manifest.json", manifest)
+    write_json(run_root / "extraction-report.json", extraction_report)
+
     document_index = {
         "recordId": record_id,
-        "archive": {
-            "name": archive_path.name,
-            "sourcePath": str(archive_path),
-            "href": archive_href,
-        },
+        "archive": archive,
         "documents": classified,
+        "legacy": True,
     }
     write_json(normalized_dir / "document-index.json", document_index)
-    document_index_href = artifact_href(run_id, "normalized/document-index.json")
-    stages.append(stage("classify_documents", "completed", {"documents": len(classified)}))
+    document_index_href = artifacts["legacyDocumentIndexJson"]
 
     record_patch, fields = build_record_patch(classified, hints, document_index_href)
-    stages.append(stage("fill_general", "completed", pick_keys(record_patch, ["customer", "title", "shortTitle", "overallExecutionTerm", "requirementsDocumentUrl", "technicalSpecificationUrl"])))
-    stages.append(stage("fill_amounts", "completed", pick_keys(record_patch, ["nmc", "platformPayment", "applicationSecurity", "contractSecurity"])))
-    stages.append(stage("fill_tender", "completed", pick_keys(record_patch, ["purchaseBy", "retrade", "antiDumpingMeasures", "notes", "criteriaRows"])))
     record_patch.setdefault("workflow", {}).setdefault("analysis", {}).update(
         {
             "status": "completed",
-            "service": "scoring-analysis",
+            "service": "scoring-extractor",
+            "compatibility": "legacy_record_patch",
             "runId": run_id,
             "runRoot": str(run_root),
             "normalizedDir": str(normalized_dir),
             "documentIndex": document_index_href,
+            "manifest": artifacts["manifestJson"],
+            "extractionReport": artifacts["extractionReportJson"],
             "stages": stages,
         }
     )
 
+    extraction = {
+        "service": "scoring-extractor",
+        "version": "0.2",
+        "runId": run_id,
+        "runRoot": str(run_root),
+        "normalizedDir": str(normalized_dir),
+        "archive": archive,
+        "artifacts": artifacts,
+        "documents": extraction_documents,
+        "manifest": manifest,
+        "knowledge": knowledge,
+        "report": extraction_report,
+        "stages": stages,
+    }
     result = {
-        "analysisMetadata": {
-            "service": "scoring-analysis",
-            "version": "0.1",
+        "extraction": extraction,
+        "extractorMetadata": {
+            "service": "scoring-extractor",
+            "version": "0.2",
             "runId": run_id,
             "runRoot": str(run_root),
             "normalizedDir": str(normalized_dir),
             "documentIndex": document_index_href,
-            "archive": {
-                "name": archive_path.name,
-                "href": archive_href,
-                "sourcePath": str(archive_path),
-            },
+            "archive": archive,
+            "artifacts": artifacts,
             "stages": stages,
         },
+        "analysisMetadata": {
+            "service": "scoring-extractor",
+            "compatibility": "legacy_analysis_metadata",
+            "runId": run_id,
+            "runRoot": str(run_root),
+            "normalizedDir": str(normalized_dir),
+            "documentIndex": document_index_href,
+            "archive": archive,
+            "stages": stages,
+        },
+        "artifacts": artifacts,
+        "documents": extraction_documents,
+        "knowledge": knowledge,
         "fields": fields,
+        "legacyCompatibility": {
+            "recordPatch": True,
+            "documentIndex": document_index_href,
+        },
         "recordPatch": record_patch,
     }
 
+    write_json(run_root / "extract-result.json", result)
     write_json(run_root / "analysis-result.json", result)
     write_json(run_root / "stages.json", stages)
 
     return {
         "ok": True,
         "runId": run_id,
+        "input": {
+            "recordId": record_id,
+            "archiveName": archive_path.name,
+        },
         "stages": stages,
+        "artifacts": artifacts,
+        "documents": extraction_documents,
+        "extraction": extraction,
+        "knowledge": knowledge,
+        "legacyEndpoint": legacy_endpoint,
         "result": result,
     }
 
 
+def analyze_archive(payload: dict) -> dict:
+    return extract_archive(payload, legacy_endpoint=True)
+
+
 def stage(name: str, status: str, payload: dict | None = None) -> dict:
     return {
+        "id": name,
         "name": name,
         "status": status,
         "at": now_iso(),
@@ -263,27 +363,52 @@ def unpack_archive(archive_path: Path, extracted_dir: Path) -> list[dict]:
     return inventory
 
 
-def normalize_documents(inventory: list[dict], normalized_dir: Path, tables_dir: Path) -> list[dict]:
+def normalize_documents(inventory: list[dict], normalized_dir: Path, text_dir: Path) -> list[dict]:
     documents = []
 
     for index, item in enumerate(inventory, start=1):
         source_path = Path(item["path"])
-        text = extract_text(source_path)
+        extracted = extract_text(source_path)
+        text = extracted["text"]
         doc_id = f"doc-{index:03d}"
-        md_path = normalized_dir / f"{doc_id}.md"
-        md = build_md_document(doc_id, item, text)
-        md_path.write_text(md, "utf-8")
+        md_path = None
+        text_path = None
+        md_href = ""
+        text_href = ""
+
+        if extracted["status"] == "extracted":
+            md_path = normalized_dir / f"{doc_id}.md"
+            text_path = text_dir / f"{doc_id}.txt"
+            md = build_md_document(doc_id, item, text, extracted)
+            md_path.write_text(md, "utf-8")
+            text_path.write_text(text, "utf-8")
+            md_href = artifact_href(md_path)
+            text_href = artifact_href(text_path)
 
         documents.append(
             {
                 "id": doc_id,
+                "documentId": doc_id,
                 "name": item["name"],
+                "fileName": item["name"],
                 "relativePath": item["relativePath"],
                 "sourcePath": item["path"],
                 "extension": item["extension"],
+                "mimeType": guess_mime_type(item["name"]),
                 "sizeBytes": item["sizeBytes"],
-                "mdPath": str(md_path),
-                "mdHref": artifact_href(md_path),
+                "status": extracted["status"],
+                "extraction": {
+                    **extracted["extraction"],
+                    "markdownPath": str(md_path) if md_path else None,
+                    "markdownHref": md_href,
+                    "textPath": str(text_path) if text_path else None,
+                    "textHref": text_href,
+                },
+                "fallback": extracted["fallback"],
+                "mdPath": str(md_path) if md_path else "",
+                "mdHref": md_href,
+                "textPath": str(text_path) if text_path else "",
+                "textHref": text_href,
                 "text": text,
             }
         )
@@ -291,38 +416,382 @@ def normalize_documents(inventory: list[dict], normalized_dir: Path, tables_dir:
     return documents
 
 
-def build_md_document(doc_id: str, item: dict, text: str) -> str:
+def build_md_document(doc_id: str, item: dict, text: str, extracted: dict | None = None) -> str:
     frontmatter = {
         "id": doc_id,
         "source_name": item["name"],
         "source_path": item["relativePath"],
         "extension": item["extension"],
         "size_bytes": item["sizeBytes"],
+        "extraction_method": (extracted or {}).get("extraction", {}).get("method"),
+        "extraction_quality": (extracted or {}).get("extraction", {}).get("quality"),
     }
     return f"---\n{json.dumps(frontmatter, ensure_ascii=False, indent=2)}\n---\n\n{text.strip()}\n"
 
 
-def extract_text(path: Path) -> str:
+def extract_text(path: Path) -> dict:
     suffix = path.suffix.lower()
 
-    if suffix == ".docx":
-        return extract_docx_text(path)
+    if suffix in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff"}:
+        return fallback_extraction(path, "image_file", "vision_or_ocr")
 
-    if suffix == ".xlsx":
-        return extract_xlsx_text(path)
+    try:
+        if suffix == ".docx":
+            return successful_extraction(extract_docx_text(path), "docx_xml")
 
-    if suffix == ".pdf":
-        return extract_pdf_text(path)
+        if suffix == ".xlsx":
+            return successful_extraction(extract_xlsx_text(path), "xlsx_xml")
 
-    if suffix in {".txt", ".md", ".csv"}:
-        return path.read_text("utf-8", errors="ignore")
+        if suffix == ".pdf":
+            if PdfReader is None:
+                return fallback_extraction(path, "ocr_required", "pdf_text_or_ocr", "pypdf is not installed")
+            text = extract_pdf_text(path)
+            if not text.strip():
+                return fallback_extraction(path, "empty_text_layer", "ocr")
+            return successful_extraction(text, "pdf_text")
 
-    return f"[binary document: {path.name}]"
+        if suffix in {".txt", ".md", ".csv"}:
+            return successful_extraction(path.read_text("utf-8", errors="ignore"), "plain_text")
+    except zipfile.BadZipFile:
+        return fallback_extraction(path, "corrupted_file", "manual_review")
+    except Exception as error:
+        return fallback_extraction(path, "manual_review_required", "manual_review", str(error))
+
+    return fallback_extraction(path, "unsupported_format", "manual_review")
+
+
+def successful_extraction(text: str, method: str) -> dict:
+    clean_text = text.strip()
+    if not clean_text:
+        return {
+            "status": "needs_fallback",
+            "text": "",
+            "extraction": {"method": method, "quality": "none"},
+            "fallback": {
+                "required": True,
+                "reason": "empty_text_layer",
+                "suggestedPipeline": "ocr_or_manual_review",
+            },
+        }
+
+    return {
+        "status": "extracted",
+        "text": clean_text,
+        "extraction": {"method": method, "quality": "full"},
+        "fallback": None,
+    }
+
+
+def fallback_extraction(path: Path, reason: str, suggested_pipeline: str, message: str = "") -> dict:
+    fallback = {
+        "required": True,
+        "reason": reason,
+        "suggestedPipeline": suggested_pipeline,
+    }
+    if message:
+        fallback["message"] = message
+
+    return {
+        "status": "needs_fallback",
+        "text": "",
+        "extraction": {"method": None, "quality": "none"},
+        "fallback": fallback,
+    }
+
+
+def normalize_extraction_document(document: dict) -> dict:
+    source_file_url = safe_artifact_href(document.get("sourcePath"))
+    normalized_markdown_url = document.get("extraction", {}).get("markdownHref") or ""
+    return {
+        "documentId": document["documentId"],
+        "sourcePath": document["relativePath"],
+        "sourceFileName": document["fileName"],
+        "sourceFileUrl": source_file_url,
+        "sourceMimeType": document["mimeType"],
+        "sourceSizeBytes": document["sizeBytes"],
+        "fileName": document["fileName"],
+        "extension": document["extension"],
+        "mimeType": document["mimeType"],
+        "sizeBytes": document["sizeBytes"],
+        "status": document["status"],
+        "extraction": document["extraction"],
+        "normalizedMarkdownUrl": normalized_markdown_url,
+        "generatedHtmlUrl": "",
+        "fallback": document["fallback"],
+    }
+
+
+def build_extraction_report(documents: list[dict]) -> dict:
+    fallback_documents = [document for document in documents if document.get("fallback")]
+    return {
+        "generatedAt": now_iso(),
+        "summary": {
+            "totalDocuments": len(documents),
+            "extractedDocuments": sum(1 for document in documents if document.get("status") == "extracted"),
+            "fallbackRequiredDocuments": len(fallback_documents),
+        },
+        "fallbacks": [
+            {
+                "documentId": document["documentId"],
+                "sourcePath": document["sourcePath"],
+                "fileName": document["fileName"],
+                "reason": document["fallback"]["reason"],
+                "suggestedPipeline": document["fallback"]["suggestedPipeline"],
+            }
+            for document in fallback_documents
+        ],
+    }
+
+
+def generate_knowledge_site(run_id: str, run_root: Path, documents: list[dict], archive: dict) -> dict:
+    knowledge_dir = run_root / "knowledge"
+    knowledge_dir.mkdir(parents=True, exist_ok=True)
+
+    for document in documents:
+        document_path = knowledge_dir / f"{document['documentId']}.html"
+        document["generatedHtmlUrl"] = artifact_href(document_path)
+        document_path.write_text(render_knowledge_document(document, archive), "utf-8")
+
+    index_url = artifact_href(run_id, "knowledge/index.html")
+    (knowledge_dir / "index.html").write_text(render_knowledge_index(run_id, documents, archive, index_url), "utf-8")
+
+    return {
+        "renderer": "static_html_fallback",
+        "futureRendererCandidate": "Quartz",
+        "indexHtmlUrl": index_url,
+        "documentCount": len(documents),
+        "sourceOfTruth": "original files, normalized Markdown, manifest.json",
+        "generatedAt": now_iso(),
+    }
+
+
+def render_knowledge_index(run_id: str, documents: list[dict], archive: dict, index_url: str) -> str:
+    rows = []
+    for document in documents:
+        fallback = document.get("fallback") or {}
+        status = document.get("status") or ""
+        status_label = status
+        if fallback:
+            status_label = f"{status}: {fallback.get('reason', '')}"
+        rows.append(
+            "<tr>"
+            f"<td><a href=\"{escape(document['generatedHtmlUrl'])}\">{escape(document['documentId'])}</a></td>"
+            f"<td>{escape(document.get('sourceFileName') or document.get('fileName') or '')}</td>"
+            f"<td>{escape(document.get('sourceMimeType') or document.get('mimeType') or '')}</td>"
+            f"<td><span class=\"status {escape(status)}\">{escape(status_label)}</span></td>"
+            f"<td>{render_inline_actions(document)}</td>"
+            "</tr>"
+        )
+
+    return html_page(
+        "Knowledge",
+        f"""
+        <header>
+          <p class="eyebrow">scoring-extractor static knowledge fallback</p>
+          <h1>Knowledge artifact</h1>
+          <dl class="meta">
+            <div><dt>run</dt><dd>{escape(run_id)}</dd></div>
+            <div><dt>source archive</dt><dd>{escape(archive.get("name") or "")}</dd></div>
+            <div><dt>index</dt><dd>{escape(index_url)}</dd></div>
+          </dl>
+        </header>
+        <main>
+          <section>
+            <h2>Documents</h2>
+            <table>
+              <thead>
+                <tr><th>Document</th><th>Source</th><th>Type</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody>{''.join(rows)}</tbody>
+            </table>
+          </section>
+        </main>
+        """,
+    )
+
+
+def render_knowledge_document(document: dict, archive: dict) -> str:
+    markdown_path = document.get("extraction", {}).get("markdownPath")
+    markdown = ""
+    if markdown_path:
+        markdown = Path(markdown_path).read_text("utf-8", errors="ignore")
+
+    fallback = document.get("fallback") or {}
+    fallback_html = ""
+    if fallback:
+        fallback_html = (
+            "<section class=\"fallback\">"
+            "<h2>Fallback required</h2>"
+            f"<p><strong>Reason:</strong> {escape(fallback.get('reason') or '')}</p>"
+            f"<p><strong>Suggested pipeline:</strong> {escape(fallback.get('suggestedPipeline') or '')}</p>"
+            f"{'<p>' + escape(fallback.get('message') or '') + '</p>' if fallback.get('message') else ''}"
+            "</section>"
+        )
+
+    content_html = markdown_to_html(markdown) if markdown.strip() else "<p class=\"empty\">Normalized Markdown is not available for this document.</p>"
+
+    return html_page(
+        document.get("sourceFileName") or document.get("fileName") or document["documentId"],
+        f"""
+        <header>
+          <p class="eyebrow">knowledge document</p>
+          <h1>{escape(document.get("sourceFileName") or document.get("fileName") or document["documentId"])}</h1>
+          <dl class="meta">
+            <div><dt>document</dt><dd>{escape(document["documentId"])}</dd></div>
+            <div><dt>source file</dt><dd>{escape(document.get("sourceFileName") or document.get("fileName") or "")}</dd></div>
+            <div><dt>source type</dt><dd>{escape(document.get("sourceMimeType") or document.get("mimeType") or "")}</dd></div>
+            <div><dt>source size</dt><dd>{escape(str(document.get("sourceSizeBytes") or document.get("sizeBytes") or ""))}</dd></div>
+            <div><dt>status</dt><dd><span class="status {escape(document.get("status") or "")}">{escape(document.get("status") or "")}</span></dd></div>
+            <div><dt>source archive</dt><dd>{escape(archive.get("name") or "")}</dd></div>
+          </dl>
+          <nav class="actions">{render_inline_actions(document)}</nav>
+        </header>
+        <main>
+          {fallback_html}
+          <section>
+            <h2>Normalized content</h2>
+            <article class="content">{content_html}</article>
+          </section>
+        </main>
+        """,
+    )
+
+
+def render_inline_actions(document: dict) -> str:
+    actions = []
+    source_url = document.get("sourceFileUrl") or ""
+    markdown_url = document.get("normalizedMarkdownUrl") or document.get("extraction", {}).get("markdownHref") or ""
+
+    if source_url:
+        actions.append(f"<a href=\"{escape(source_url)}\">Open original</a>")
+        actions.append(f"<a href=\"{escape(source_url)}\" download>Download original</a>")
+    if markdown_url:
+        actions.append(f"<a href=\"{escape(markdown_url)}\" download>Download MD</a>")
+
+    return " ".join(actions) if actions else "<span class=\"muted\">No links available</span>"
+
+
+def markdown_to_html(markdown: str) -> str:
+    lines = strip_frontmatter(markdown).splitlines()
+    blocks = []
+    paragraph = []
+    index = 0
+
+    def flush_paragraph() -> None:
+        if paragraph:
+            blocks.append(f"<p>{escape(' '.join(paragraph))}</p>")
+            paragraph.clear()
+
+    while index < len(lines):
+        line = lines[index].rstrip()
+        stripped = line.strip()
+
+        if not stripped:
+            flush_paragraph()
+            index += 1
+            continue
+
+        if stripped.startswith("#"):
+            flush_paragraph()
+            level = min(len(stripped) - len(stripped.lstrip("#")), 6)
+            title = stripped[level:].strip()
+            blocks.append(f"<h{level}>{escape(title)}</h{level}>")
+            index += 1
+            continue
+
+        if "|" in stripped:
+            flush_paragraph()
+            table_lines = []
+            while index < len(lines) and "|" in lines[index]:
+                candidate = lines[index].strip()
+                if not re.fullmatch(r"\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?", candidate):
+                    table_lines.append(candidate)
+                index += 1
+            blocks.append(render_markdown_table(table_lines))
+            continue
+
+        if stripped.startswith(("- ", "* ")):
+            flush_paragraph()
+            items = []
+            while index < len(lines) and lines[index].strip().startswith(("- ", "* ")):
+                items.append(f"<li>{escape(lines[index].strip()[2:].strip())}</li>")
+                index += 1
+            blocks.append(f"<ul>{''.join(items)}</ul>")
+            continue
+
+        paragraph.append(stripped)
+        index += 1
+
+    flush_paragraph()
+    return "\n".join(blocks)
+
+
+def render_markdown_table(lines: list[str]) -> str:
+    rows = []
+    for line in lines:
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        rows.append("<tr>" + "".join(f"<td>{escape(cell)}</td>" for cell in cells) + "</tr>")
+    return f"<table><tbody>{''.join(rows)}</tbody></table>"
+
+
+def strip_frontmatter(markdown: str) -> str:
+    if not markdown.startswith("---"):
+        return markdown.strip()
+
+    match = re.match(r"^---\s*\n.*?\n---\s*\n?", markdown, flags=re.S)
+    return markdown[match.end() :].strip() if match else markdown.strip()
+
+
+def html_page(title: str, body: str) -> str:
+    return f"""<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{escape(title)}</title>
+  <style>
+    :root {{ color-scheme: light; --border: #d9dee7; --muted: #647084; --text: #162033; --bg: #f7f8fa; --panel: #ffffff; --accent: #2357c6; --warn: #8a4b00; }}
+    body {{ margin: 0; font-family: Arial, sans-serif; color: var(--text); background: var(--bg); line-height: 1.55; }}
+    header, main {{ max-width: 1040px; margin: 0 auto; padding: 28px 20px; }}
+    header {{ border-bottom: 1px solid var(--border); background: var(--panel); }}
+    h1 {{ margin: 0 0 16px; font-size: 30px; line-height: 1.2; }}
+    h2 {{ margin-top: 0; font-size: 20px; }}
+    a {{ color: var(--accent); text-decoration: none; }}
+    a:hover {{ text-decoration: underline; }}
+    table {{ width: 100%; border-collapse: collapse; background: var(--panel); }}
+    th, td {{ padding: 10px 12px; border: 1px solid var(--border); text-align: left; vertical-align: top; }}
+    th {{ background: #eef2f7; }}
+    .eyebrow, .muted {{ color: var(--muted); }}
+    .eyebrow {{ margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }}
+    .meta {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 18px; margin: 0; }}
+    .meta div {{ min-width: 0; }}
+    .meta dt {{ color: var(--muted); font-size: 12px; }}
+    .meta dd {{ margin: 2px 0 0; overflow-wrap: anywhere; }}
+    .actions {{ display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }}
+    .actions a, td a {{ display: inline-block; margin-right: 10px; }}
+    .status {{ font-weight: 700; }}
+    .needs_fallback {{ color: var(--warn); }}
+    .fallback {{ border: 1px solid #f0c36b; background: #fff8e8; padding: 16px; margin-bottom: 22px; }}
+    .content {{ background: var(--panel); border: 1px solid var(--border); padding: 20px; }}
+    .content table {{ margin: 14px 0; }}
+    .empty {{ color: var(--muted); }}
+  </style>
+</head>
+<body>
+{body}
+</body>
+</html>
+"""
+
+
+def guess_mime_type(file_name: str) -> str:
+    guessed, _encoding = mimetypes.guess_type(file_name)
+    return guessed or "application/octet-stream"
 
 
 def extract_pdf_text(path: Path) -> str:
     if PdfReader is None:
-        return f"[pdf text extraction unavailable: {path.name}]"
+        return ""
 
     reader = PdfReader(str(path))
     pages = []
@@ -331,7 +800,7 @@ def extract_pdf_text(path: Path) -> str:
         if text.strip():
             pages.append(text.strip())
 
-    return "\n\n".join(pages).strip() or f"[empty pdf document: {path.name}]"
+    return "\n\n".join(pages).strip()
 
 
 def extract_docx_text(path: Path) -> str:
@@ -564,7 +1033,8 @@ def build_record_patch(classified: list[dict], hints: dict, document_index_href:
         "workflow": {
             "analysis": {
                 "status": "completed",
-                "service": "scoring-analysis",
+                "service": "scoring-extractor",
+                "compatibility": "legacy_record_patch",
                 "documentIndex": document_index_href,
             }
         },
@@ -892,10 +1362,20 @@ def artifact_href(path_or_run_id, relative_path: str | None = None) -> str:
     return f"http://127.0.0.1:{DEFAULT_PORT}/artifacts/{relative}"
 
 
+def safe_artifact_href(path_value) -> str:
+    if not path_value:
+        return ""
+
+    try:
+        return artifact_href(Path(path_value))
+    except (OSError, ValueError):
+        return ""
+
+
 def main() -> None:
     RUNS_ROOT.mkdir(parents=True, exist_ok=True)
-    server = ThreadingHTTPServer((DEFAULT_HOST, DEFAULT_PORT), AnalysisHandler)
-    print(f"scoring-analysis listening on http://{DEFAULT_HOST}:{DEFAULT_PORT}")
+    server = ThreadingHTTPServer((DEFAULT_HOST, DEFAULT_PORT), ExtractorHandler)
+    print(f"scoring-extractor listening on http://{DEFAULT_HOST}:{DEFAULT_PORT}")
     server.serve_forever()
 
 

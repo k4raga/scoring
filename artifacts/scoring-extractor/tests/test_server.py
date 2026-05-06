@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 import zipfile
@@ -10,7 +11,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import server
 
 
-class AnalysisServiceTests(unittest.TestCase):
+def json_load(path: Path):
+    return json.loads(path.read_text("utf-8"))
+
+
+class ExtractorServiceTests(unittest.TestCase):
     def test_safe_slug_keeps_cyrillic_and_fallback(self):
         self.assertEqual(server.safe_slug("МРИЯ smoke"), "МРИЯ-smoke")
         self.assertEqual(server.safe_slug("!!!", "fallback"), "fallback")
@@ -82,6 +87,49 @@ class AnalysisServiceTests(unittest.TestCase):
 
         self.assertIn("Начальная максимальная цена договора", text)
         self.assertIn("25416000.00", text)
+
+    def test_extract_archive_generates_static_knowledge_html_with_source_links_and_fallback(self):
+        original_runs_root = server.RUNS_ROOT
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            server.RUNS_ROOT = temp_path / "runs"
+            archive_path = temp_path / "source.zip"
+            with zipfile.ZipFile(archive_path, "w") as archive:
+                archive.writestr("docs/spec.md", "# Техническое задание\n\nСтрока нормализованного текста.")
+                archive.writestr("images/scheme.png", b"\x89PNG\r\n\x1a\n")
+
+            try:
+                result = server.extract_archive({"recordId": "knowledge-test", "archivePath": str(archive_path)})
+            finally:
+                server.RUNS_ROOT = original_runs_root
+
+            run_root = temp_path / "runs" / result["runId"]
+            manifest = json_load(run_root / "manifest.json")
+            documents = result["documents"]
+            extracted_doc = next(document for document in documents if document["status"] == "extracted")
+            fallback_doc = next(document for document in documents if document["status"] == "needs_fallback")
+
+            index_html = (run_root / "knowledge" / "index.html").read_text("utf-8")
+            extracted_html = (run_root / "knowledge" / f"{extracted_doc['documentId']}.html").read_text("utf-8")
+            fallback_html = (run_root / "knowledge" / f"{fallback_doc['documentId']}.html").read_text("utf-8")
+
+        self.assertIn("/knowledge/index.html", result["artifacts"]["knowledgeIndexHtml"])
+        self.assertEqual(result["knowledge"]["renderer"], "static_html_fallback")
+        self.assertEqual(manifest["knowledge"]["futureRendererCandidate"], "Quartz")
+        self.assertEqual(manifest["documents"][0]["generatedHtmlUrl"], documents[0]["generatedHtmlUrl"])
+        self.assertIn("generatedHtmlUrl", extracted_doc)
+        self.assertIn("sourceFileUrl", extracted_doc)
+        self.assertIn("normalizedMarkdownUrl", extracted_doc)
+        self.assertIn("spec.md", index_html)
+        self.assertIn("scheme.png", index_html)
+        self.assertIn("needs_fallback: image_file", index_html)
+        self.assertIn("Open original", extracted_html)
+        self.assertIn("Download original", extracted_html)
+        self.assertIn("Download MD", extracted_html)
+        self.assertIn("Строка нормализованного текста.", extracted_html)
+        self.assertIn("Fallback required", fallback_html)
+        self.assertIn("vision_or_ocr", fallback_html)
 
     def test_extract_money_near_does_not_fallback_to_unrelated_numbers(self):
         text = "Описание работ\nСтоимость внедрения по похожему проекту 298 688 руб.\nСрок выполнения работ"

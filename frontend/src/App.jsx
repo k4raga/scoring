@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import DetailPage from "./pages/DetailPage.jsx";
 import HomePage from "./pages/HomePage.jsx";
+import MarkdownDocumentPage from "./pages/MarkdownDocumentPage.jsx";
 import MonthPage from "./pages/MonthPage.jsx";
 
 function AppShell() {
@@ -13,6 +14,7 @@ export default function App() {
       <Route element={<AppShell />}>
         <Route index element={<HomePage />} />
         <Route path="years/:year/months/:month" element={<MonthPage />} />
+        <Route path="records/:recordId/documents/:documentId" element={<MarkdownDocumentPage />} />
         <Route path="records/:recordId" element={<DetailPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Route>

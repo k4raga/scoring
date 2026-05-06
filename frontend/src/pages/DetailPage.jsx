@@ -181,6 +181,7 @@ export default function DetailPage() {
   const monthLabel = record ? formatMonth(record.month) : "месяц";
   const searchTargets = useMemo(() => buildSearchTargets(record, form), [form, record]);
   const searchMatches = useMemo(() => filterSearchTargets(searchTargets, searchQuery), [searchQuery, searchTargets]);
+  const documentGroups = useMemo(() => buildDocumentGroups(record), [record]);
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -711,18 +712,7 @@ export default function DetailPage() {
                 })}
               </div>
 
-              {record?.documents?.length ? (
-                <div className="detail-uploaded-docs">
-                  <span className="detail-field-label">Загруженные файлы</span>
-                  <div className="detail-uploaded-doc-list">
-                    {record.documents.map((document, index) => (
-                      <a className="detail-uploaded-doc" href={document.href || "#"} key={`${document.href}-${index}`} rel="noreferrer" target="_blank">
-                        {document.label || document.fileName || `Файл ${index + 1}`}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
+              <DocumentArtifactGroups groups={documentGroups} recordId={recordId} />
             </section>
 
             <section className="detail-side-card" id="section-delete-project">
@@ -915,10 +905,10 @@ function AnalysisStageCard({ analysis }) {
       {stages.length ? (
         <ol className="detail-analysis-steps">
           {stages.map((stage, index) => (
-            <li className={`detail-analysis-step is-${stage.status || "pending"}`.trim()} key={`${stage.name}-${index}`}>
+            <li className={`detail-analysis-step is-${stage.status || "pending"}`.trim()} key={`${stage.id || stage.name}-${index}`}>
               <span className="detail-analysis-step-mark">{index + 1}</span>
               <span>
-                <strong>{getAnalysisStageLabel(stage.name)}</strong>
+                <strong>{getAnalysisStageLabel(stage.id || stage.name)}</strong>
                 <small>{getAnalysisStageSummary(stage)}</small>
               </span>
             </li>
@@ -926,6 +916,105 @@ function AnalysisStageCard({ analysis }) {
         </ol>
       ) : null}
     </section>
+  );
+}
+
+function DocumentArtifactGroups({ groups, recordId }) {
+  const hasArtifacts = Object.values(groups).some((items) => items.length > 0);
+
+  if (!hasArtifacts) {
+    return <div className="detail-doc-empty">Документы пока не привязаны.</div>;
+  }
+
+  return (
+    <div className="detail-artifact-groups">
+      <DocumentArtifactGroup
+        emptyLabel="Исходный архив не найден."
+        items={groups.sourceArchives}
+        title="Исходный архив"
+      />
+      <DocumentArtifactGroup
+        emptyLabel="Нормализованных markdown-документов пока нет."
+        items={groups.normalizedMarkdown}
+        recordId={recordId}
+        title="Нормализованные документы"
+        type="markdown"
+      />
+        <DocumentArtifactGroup
+          emptyLabel="Служебных JSON-артефактов пока нет."
+          items={groups.jsonArtifacts}
+          title="Служебные артефакты"
+        />
+        <DocumentArtifactGroup
+          emptyLabel="База знаний пока не создана."
+          items={groups.knowledgeArtifacts}
+          title="База знаний"
+        />
+        <DocumentArtifactGroup
+        emptyLabel="Файлов с fallback не найдено."
+        items={groups.fallbackDocuments}
+        title="Требуется fallback"
+        type="fallback"
+      />
+      {groups.legacyUploaded.length ? (
+        <DocumentArtifactGroup
+          items={groups.legacyUploaded}
+          title="Загруженные файлы"
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function DocumentArtifactGroup({ emptyLabel, items, recordId = "", title, type = "link" }) {
+  return (
+    <div className="detail-artifact-group">
+      <span className="detail-field-label">{title}</span>
+      {items.length ? (
+        <div className="detail-uploaded-doc-list">
+          {items.map((document, index) => (
+            <DocumentArtifactItem
+              document={document}
+              index={index}
+              key={`${document.documentId || document.href || document.path || document.fileName || title}-${index}`}
+              recordId={recordId}
+              type={type}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="detail-doc-empty">{emptyLabel}</div>
+      )}
+    </div>
+  );
+}
+
+function DocumentArtifactItem({ document, index, recordId, type }) {
+  const label = document.label || document.fileName || document.sourceFileName || `Файл ${index + 1}`;
+
+  if (type === "markdown" && document.documentId) {
+    return (
+      <Link className="detail-uploaded-doc detail-uploaded-doc-markdown" to={`/records/${encodeURIComponent(recordId)}/documents/${encodeURIComponent(document.documentId)}`}>
+        <span>{label}</span>
+        <small>{document.sourceFileName || document.status || "Markdown"}</small>
+      </Link>
+    );
+  }
+
+  if (type === "fallback") {
+    return (
+      <div className="detail-uploaded-doc detail-uploaded-doc-fallback">
+        <span>{label}</span>
+        <small>{formatFallbackSummary(document)}</small>
+      </div>
+    );
+  }
+
+  return (
+    <a className="detail-uploaded-doc" href={document.href || "#"} rel="noreferrer" target="_blank">
+      <span>{label}</span>
+      {document.artifactKey ? <small>{document.artifactKey}</small> : null}
+    </a>
   );
 }
 
@@ -956,6 +1045,9 @@ function getAnalysisStageLabel(name) {
     fill_amounts: "Информация по суммам",
     fill_general: "Общая информация",
     fill_tender: "Информация по тендеру",
+    extract: "Извлечение текста",
+    inventory: "Инвентарь файлов",
+    normalize: "Нормализация в MD",
     normalize_md: "Нормализация в MD",
     unpack: "Распаковка"
   };
@@ -1538,6 +1630,78 @@ function buildDocItems(form) {
       value: form.technicalSpecificationUrl
     }
   ];
+}
+
+function buildDocumentGroups(record) {
+  const artifacts = record?.documentArtifacts && typeof record.documentArtifacts === "object" ? record.documentArtifacts : {};
+  const fallbackFromDocuments = groupLegacyDocuments(record?.documents || []);
+
+  return {
+    sourceArchives: normalizeArtifactItems(artifacts.sourceArchives, fallbackFromDocuments.sourceArchives),
+    normalizedMarkdown: normalizeArtifactItems(artifacts.normalizedMarkdown, fallbackFromDocuments.normalizedMarkdown),
+    jsonArtifacts: normalizeArtifactItems(artifacts.jsonArtifacts, fallbackFromDocuments.jsonArtifacts),
+    knowledgeArtifacts: normalizeArtifactItems(artifacts.knowledgeArtifacts, fallbackFromDocuments.knowledgeArtifacts),
+    fallbackDocuments: normalizeArtifactItems(artifacts.fallbackDocuments, fallbackFromDocuments.fallbackDocuments),
+    legacyUploaded: normalizeArtifactItems(artifacts.legacyUploaded, fallbackFromDocuments.legacyUploaded)
+  };
+}
+
+function groupLegacyDocuments(documents) {
+  const groups = {
+    sourceArchives: [],
+    normalizedMarkdown: [],
+    jsonArtifacts: [],
+    knowledgeArtifacts: [],
+    fallbackDocuments: [],
+    legacyUploaded: []
+  };
+
+  for (const document of Array.isArray(documents) ? documents : []) {
+    const kind = String(document?.kind || "").trim();
+    const group = String(document?.group || "").trim();
+
+    if (kind === "archive") {
+      groups.sourceArchives.push(document);
+    } else if (kind === "normalized_markdown" || group === "normalizedMarkdown") {
+      groups.normalizedMarkdown.push(document);
+    } else if (kind === "json_artifact" || group === "jsonArtifacts") {
+      groups.jsonArtifacts.push(document);
+    } else if (kind === "knowledge_html" || group === "knowledgeArtifacts") {
+      groups.knowledgeArtifacts.push(document);
+    } else if (kind === "fallback_document" || group === "fallbackDocuments") {
+      groups.fallbackDocuments.push(document);
+    } else {
+      groups.legacyUploaded.push(document);
+    }
+  }
+
+  return groups;
+}
+
+function normalizeArtifactItems(primaryItems, fallbackItems = []) {
+  const seen = new Set();
+  const result = [];
+
+  for (const item of [...(Array.isArray(primaryItems) ? primaryItems : []), ...(Array.isArray(fallbackItems) ? fallbackItems : [])]) {
+    const key = String(item?.documentId || item?.href || item?.path || item?.fileName || item?.label || "").trim();
+
+    if (!key || seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(item);
+  }
+
+  return result;
+}
+
+function formatFallbackSummary(document) {
+  const fallback = document?.fallback && typeof document.fallback === "object" ? document.fallback : {};
+  const reason = String(fallback.reason || document?.status || "manual_review_required").trim();
+  const pipeline = String(fallback.suggestedPipeline || fallback.pipeline || "").trim();
+
+  return [reason, pipeline].filter(Boolean).join(" · ");
 }
 
 function getPurchaseByOptions(currentValue) {

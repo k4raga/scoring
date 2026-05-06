@@ -22,6 +22,7 @@ function normalizeRecord(record) {
 
   const documents = normalizeDocuments(record.documents);
   const archiveDocument = documents.find((document) => document.kind === "archive") || documents[0] || null;
+  const documentArtifacts = buildDocumentArtifacts(record, documents, archiveDocument);
   const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
   const uploadSummary = normalizeUploadSummary(record.summary, archiveDocument?.fileName);
   const notes = normalizeDisplayText(normalizeUploadSummary(record.notes, archiveDocument?.fileName)) || uploadSummary;
@@ -77,6 +78,7 @@ function normalizeRecord(record) {
     criteriaRows,
     criteria: buildLegacyCriteriaGroups(criteriaRows),
     documents,
+    documentArtifacts,
     workflow: {
       codingFile: normalizeText(record.workflow?.codingFile) || "Не сформирован",
       bitrixTaskStatus: normalizeText(record.workflow?.bitrixTaskStatus) || "Не создана",
@@ -88,7 +90,8 @@ function normalizeRecord(record) {
         runRoot: normalizeText(record.workflow?.codexRun?.runRoot),
         scriptPath: normalizeText(record.workflow?.codexRun?.scriptPath)
       },
-      analysis: normalizeWorkflowAnalysis(record.workflow?.analysis)
+      analysis: normalizeWorkflowAnalysis(record.workflow?.analysis),
+      extraction: normalizeWorkflowExtraction(record.workflow?.extraction)
     },
     year,
     month,
@@ -179,6 +182,7 @@ export function saveRecords(records) {
       excelSections,
       editableSections,
       editorSchema,
+      documentArtifacts,
       criteria,
       ...rest
     } = normalizeRecord(record);
@@ -534,8 +538,181 @@ function normalizeDocuments(documents) {
   return (Array.isArray(documents) ? documents : []).map((document) => ({
     ...document,
     label: normalizeText(document?.label),
-    fileName: normalizeText(document?.fileName)
+    fileName: normalizeText(document?.fileName),
+    href: normalizeText(document?.href),
+    path: normalizeText(document?.path),
+    kind: normalizeText(document?.kind),
+    group: normalizeText(document?.group),
+    documentId: normalizeText(document?.documentId)
   }));
+}
+
+function buildDocumentArtifacts(record, documents, archiveDocument) {
+  const extraction = normalizeWorkflowExtraction(record.workflow?.extraction);
+  const analysis = normalizeWorkflowAnalysis(record.workflow?.analysis);
+  const sourceArchives = uniqueArtifacts([
+    ...documents.filter((document) => document.kind === "archive"),
+    archiveDocument?.kind === "archive" ? archiveDocument : null
+  ].filter(Boolean).map((document) => ({
+    ...document,
+    kind: "archive",
+    group: "sourceArchive",
+    label: document.label || "Исходный архив"
+  })));
+  const normalizedMarkdown = uniqueArtifacts([
+    ...documents.filter((document) => document.kind === "normalized_markdown" || document.group === "normalizedMarkdown"),
+    ...extractMarkdownDocuments(extraction),
+    ...extractMarkdownDocuments(analysis)
+  ]);
+  const jsonArtifacts = uniqueArtifacts([
+    ...documents.filter((document) => document.kind === "json_artifact" || document.group === "jsonArtifacts"),
+    ...extractJsonArtifacts(extraction),
+    ...extractJsonArtifacts(analysis)
+  ]);
+  const knowledgeArtifacts = uniqueArtifacts([
+    ...documents.filter((document) => document.kind === "knowledge_html" || document.group === "knowledgeArtifacts"),
+    ...extractKnowledgeArtifacts(record.id, extraction),
+    ...extractKnowledgeArtifacts(record.id, analysis)
+  ]);
+  const fallbackDocuments = uniqueArtifacts([
+    ...documents.filter((document) => document.kind === "fallback_document" || document.group === "fallbackDocuments"),
+    ...extractFallbackDocuments(extraction),
+    ...extractFallbackDocuments(analysis)
+  ]);
+  const legacyUploaded = uniqueArtifacts(documents.filter((document) => {
+    return !["archive", "normalized_markdown", "json_artifact", "fallback_document"].includes(document.kind);
+  }));
+
+  return {
+    sourceArchives,
+    normalizedMarkdown,
+    jsonArtifacts,
+    knowledgeArtifacts,
+    fallbackDocuments,
+    legacyUploaded
+  };
+}
+
+function uniqueArtifacts(items) {
+  const seen = new Set();
+  const result = [];
+
+  for (const item of items) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const key = normalizeText(item.documentId) || normalizeText(item.href) || normalizeText(item.path) || normalizeText(item.fileName) || normalizeText(item.label);
+
+    if (!key || seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(item);
+  }
+
+  return result;
+}
+
+function extractMarkdownDocuments(source) {
+  return (Array.isArray(source?.documents) ? source.documents : [])
+    .filter((document) => {
+      const extraction = document?.extraction && typeof document.extraction === "object" ? document.extraction : {};
+      return normalizeText(extraction.markdownHref || extraction.markdownPath || document.markdownHref || document.markdownPath || document.mdHref || document.mdPath);
+    })
+    .map((document) => {
+      const extraction = document.extraction && typeof document.extraction === "object" ? document.extraction : {};
+      const markdownHref = normalizeText(extraction.markdownHref || document.markdownHref || document.mdHref);
+      const markdownPath = normalizeText(extraction.markdownPath || document.markdownPath || document.mdPath);
+      const documentId = normalizeText(document.documentId || document.id);
+
+      return {
+        kind: "normalized_markdown",
+        group: "normalizedMarkdown",
+        documentId,
+        label: normalizeText(document.fileName || document.name || documentId || "Markdown document"),
+        fileName: normalizeText(document.fileName || document.name || `${documentId}.md`),
+        href: markdownHref,
+        path: markdownPath,
+        sourceFileName: normalizeText(document.fileName || document.name),
+        sourcePath: normalizeText(document.sourcePath || document.relativePath),
+        status: normalizeText(document.status),
+        extraction
+      };
+    });
+}
+
+function extractJsonArtifacts(source) {
+  const artifacts = source?.artifacts && typeof source.artifacts === "object" && !Array.isArray(source.artifacts)
+    ? source.artifacts
+    : {};
+  const namedArtifacts = {
+    ...artifacts,
+    manifest: source?.manifest,
+    extractionReport: source?.extractionReport,
+    documentIndex: source?.documentIndex
+  };
+
+  return Object.entries(namedArtifacts)
+    .filter(([key, value]) => normalizeText(key) && normalizeText(value) && /\.json(?:$|[?#])/iu.test(normalizeText(value)))
+    .map(([key, value]) => ({
+      kind: "json_artifact",
+      group: "jsonArtifacts",
+      artifactKey: key,
+      label: formatArtifactLabel(key),
+      fileName: path.basename(normalizeText(value).split(/[?#]/u)[0]),
+      href: normalizeText(value)
+    }));
+}
+
+function extractKnowledgeArtifacts(recordId, source) {
+  const artifacts = source?.artifacts && typeof source.artifacts === "object" && !Array.isArray(source.artifacts)
+    ? source.artifacts
+    : {};
+
+  return Object.entries(artifacts)
+    .filter(([key, value]) => normalizeText(key) && normalizeText(value) && /\.html?(?:$|[?#])/iu.test(normalizeText(value)))
+    .map(([key, value]) => ({
+      kind: "knowledge_html",
+      group: "knowledgeArtifacts",
+      artifactKey: key,
+      label: key === "knowledgeIndexHtml" ? "База знаний" : formatArtifactLabel(key),
+      fileName: path.basename(normalizeText(value).split(/[?#]/u)[0]),
+      href: `/api/records/${encodeURIComponent(recordId)}/extraction-artifacts/${encodeURIComponent(key)}`,
+      sourceHref: normalizeText(value)
+    }));
+}
+
+function extractFallbackDocuments(source) {
+  return (Array.isArray(source?.documents) ? source.documents : [])
+    .filter((document) => document?.fallback || normalizeText(document?.status) === "needs_fallback")
+    .map((document) => ({
+      kind: "fallback_document",
+      group: "fallbackDocuments",
+      documentId: normalizeText(document.documentId || document.id),
+      label: normalizeText(document.fileName || document.name || document.documentId || document.id),
+      fileName: normalizeText(document.fileName || document.name),
+      sourcePath: normalizeText(document.sourcePath || document.relativePath),
+      status: normalizeText(document.status),
+      fallback: document.fallback && typeof document.fallback === "object" ? document.fallback : null
+    }));
+}
+
+function formatArtifactLabel(key) {
+  const labels = {
+    inventoryJson: "inventory.json",
+    documentsJson: "documents.json",
+    manifestJson: "manifest.json",
+    extractionReportJson: "extraction-report.json",
+    legacyDocumentIndexJson: "document-index.json",
+    knowledgeIndexHtml: "База знаний",
+    manifest: "manifest.json",
+    extractionReport: "extraction-report.json",
+    documentIndex: "document-index.json"
+  };
+
+  return labels[key] || key;
 }
 
 function normalizeUploadSummary(value, archiveFileName) {
@@ -564,10 +741,46 @@ function normalizeWorkflowAnalysis(analysis) {
     runRoot: normalizeText(analysis.runRoot),
     normalizedDir: normalizeText(analysis.normalizedDir),
     documentIndex: normalizeText(analysis.documentIndex),
+    manifest: normalizeText(analysis.manifest),
+    extractionReport: normalizeText(analysis.extractionReport),
+    archive: analysis.archive && typeof analysis.archive === "object" && !Array.isArray(analysis.archive) ? analysis.archive : null,
+    artifacts: analysis.artifacts && typeof analysis.artifacts === "object" && !Array.isArray(analysis.artifacts) ? analysis.artifacts : {},
+    documents: Array.isArray(analysis.documents) ? analysis.documents : [],
     stages: Array.isArray(analysis.stages)
       ? analysis.stages
           .filter((stage) => stage && typeof stage === "object" && !Array.isArray(stage))
           .map((stage) => ({
+            id: normalizeText(stage.id),
+            name: normalizeText(stage.name),
+            status: normalizeText(stage.status),
+            at: normalizeText(stage.at),
+            payload: stage.payload && typeof stage.payload === "object" && !Array.isArray(stage.payload) ? stage.payload : {}
+          }))
+      : []
+  };
+}
+
+function normalizeWorkflowExtraction(extraction) {
+  if (!extraction || typeof extraction !== "object" || Array.isArray(extraction)) {
+    return null;
+  }
+
+  return {
+    status: normalizeText(extraction.status),
+    service: normalizeText(extraction.service),
+    version: normalizeText(extraction.version),
+    runId: normalizeText(extraction.runId),
+    runRoot: normalizeText(extraction.runRoot),
+    normalizedDir: normalizeText(extraction.normalizedDir),
+    archive: extraction.archive && typeof extraction.archive === "object" && !Array.isArray(extraction.archive) ? extraction.archive : null,
+    artifacts: extraction.artifacts && typeof extraction.artifacts === "object" && !Array.isArray(extraction.artifacts) ? extraction.artifacts : {},
+    documents: Array.isArray(extraction.documents) ? extraction.documents : [],
+    report: extraction.report && typeof extraction.report === "object" && !Array.isArray(extraction.report) ? extraction.report : null,
+    stages: Array.isArray(extraction.stages)
+      ? extraction.stages
+          .filter((stage) => stage && typeof stage === "object" && !Array.isArray(stage))
+          .map((stage) => ({
+            id: normalizeText(stage.id),
             name: normalizeText(stage.name),
             status: normalizeText(stage.status),
             at: normalizeText(stage.at),
