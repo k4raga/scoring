@@ -36,16 +36,24 @@ const PURCHASE_BY_OPTIONS = [
   "Иное"
 ];
 const LEGACY_INVALID_PURCHASE_BY = new Set(["", "Техническое задание", "Загрузка архива", "Демо-данные"]);
+const SELECTION_CRITERIA_GROUP_OPTIONS = [
+  { value: "price", label: "Ценовой критерий" },
+  { value: "nonPrice", label: "Неценовой критерий" },
+  { value: "requirement", label: "Дополнительное требование" }
+];
+const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
+  { value: "full", label: "Полностью закрываем" },
+  { value: "partial", label: "Частично закрываем" },
+  { value: "none", label: "Не закрываем" }
+];
 
 export default function DetailPage() {
   const { recordId = "" } = useParams();
   const navigate = useNavigate();
   const searchInputRef = useRef(null);
-  const docInputRefs = useRef({});
   const projectTitleInputRef = useRef(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [editingDocKey, setEditingDocKey] = useState("");
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [projectModalTitle, setProjectModalTitle] = useState("");
   const [projectModalArchive, setProjectModalArchive] = useState(null);
@@ -108,24 +116,6 @@ export default function DetailPage() {
   }, [isDeleteModalOpen]);
 
   useEffect(() => {
-    if (!editingDocKey) {
-      return;
-    }
-
-    const inputNode = docInputRefs.current[editingDocKey];
-
-    if (!inputNode) {
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      inputNode.focus();
-      const cursorPosition = inputNode.value.length;
-      inputNode.setSelectionRange(cursorPosition, cursorPosition);
-    });
-  }, [editingDocKey]);
-
-  useEffect(() => {
     let active = true;
 
     async function load() {
@@ -181,7 +171,7 @@ export default function DetailPage() {
   const monthLabel = record ? formatMonth(record.month) : "месяц";
   const searchTargets = useMemo(() => buildSearchTargets(record, form), [form, record]);
   const searchMatches = useMemo(() => filterSearchTargets(searchTargets, searchQuery), [searchQuery, searchTargets]);
-  const documentGroups = useMemo(() => buildDocumentGroups(record), [record]);
+  const documentBlocks = useMemo(() => buildEditableDocumentBlocks(record, form.documentWiki), [form.documentWiki, record]);
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -189,36 +179,165 @@ export default function DetailPage() {
     setSaveMessage("");
   }
 
-  function updateCriteriaRow(rowId, key, value) {
+  function updateSelectionCriteriaRow(rowId, key, value) {
     setForm((current) => ({
       ...current,
-      criteriaRows: current.criteriaRows.map((row) => (row.rowId === rowId ? { ...row, [key]: value } : row))
+      selectionCriteriaRows: current.selectionCriteriaRows.map((row) => {
+        if (row.rowId !== rowId) {
+          return row;
+        }
+
+        const nextRow = { ...row, [key]: value };
+        return key === "group" && value === "requirement" ? { ...nextRow, weightPercent: "" } : nextRow;
+      })
     }));
     setSaveStatus("idle");
     setSaveMessage("");
   }
 
-  function addCriteriaRow() {
+  function addSelectionCriteriaRow() {
     setForm((current) => ({
       ...current,
-      criteriaRows: [...current.criteriaRows, createCriteriaRow()]
+      selectionCriteriaRows: [...current.selectionCriteriaRows, createSelectionCriteriaRow({ order: current.selectionCriteriaRows.length + 1 })]
     }));
     setSaveStatus("idle");
     setSaveMessage("");
   }
 
-  function removeCriteriaRow(rowId) {
+  function removeSelectionCriteriaRow(rowId) {
     setForm((current) => ({
       ...current,
-      criteriaRows: current.criteriaRows.filter((row) => row.rowId !== rowId)
+      selectionCriteriaRows: current.selectionCriteriaRows
+        .filter((row) => row.rowId !== rowId)
+        .map((row, index) => ({ ...row, order: index + 1 }))
     }));
     setSaveStatus("idle");
     setSaveMessage("");
+  }
+
+  function updateDocumentWiki(nextWiki) {
+    setForm((current) => ({ ...current, documentWiki: normalizeDocumentWikiConfig(nextWiki) }));
+    setSaveStatus("idle");
+    setSaveMessage("");
+  }
+
+  function updateDocumentBlockTitle(block, title) {
+    if (block.source === "manual") {
+      updateDocumentWiki({
+        ...form.documentWiki,
+        manualBlocks: form.documentWiki.manualBlocks.map((item) => (item.id === block.id ? { ...item, title } : item))
+      });
+      return;
+    }
+
+    updateDocumentWiki({
+      ...form.documentWiki,
+      overrides: {
+        ...form.documentWiki.overrides,
+        [block.id]: {
+          ...(form.documentWiki.overrides[block.id] || {}),
+          title,
+          visible: block.visible,
+          order: block.order
+        }
+      }
+    });
+  }
+
+  function updateManualDocumentBlock(blockId, patch) {
+    updateDocumentWiki({
+      ...form.documentWiki,
+      manualBlocks: form.documentWiki.manualBlocks.map((block) => (block.id === blockId ? { ...block, ...patch } : block))
+    });
+  }
+
+  function addManualDocumentBlock() {
+    const nextOrder = Math.max(1000, ...documentBlocks.blocks.map((block) => Number(block.order || 0))) + 1;
+    updateDocumentWiki({
+      ...form.documentWiki,
+      manualBlocks: [
+        ...form.documentWiki.manualBlocks,
+        {
+          id: createDocumentBlockId(),
+          type: "manual",
+          title: "Новый блок",
+          href: "",
+          body: "",
+          visible: true,
+          order: nextOrder
+        }
+      ]
+    });
+  }
+
+  function removeManualDocumentBlock(blockId) {
+    updateDocumentWiki({
+      ...form.documentWiki,
+      manualBlocks: form.documentWiki.manualBlocks.filter((block) => block.id !== blockId)
+    });
+  }
+
+  function toggleDocumentBlock(block) {
+    if (block.source === "manual") {
+      updateManualDocumentBlock(block.id, { visible: !block.visible });
+      return;
+    }
+
+    updateDocumentWiki({
+      ...form.documentWiki,
+      overrides: {
+        ...form.documentWiki.overrides,
+        [block.id]: {
+          ...(form.documentWiki.overrides[block.id] || {}),
+          title: block.title,
+          visible: !block.visible,
+          order: block.order
+        }
+      }
+    });
+  }
+
+  function moveDocumentBlock(block, delta) {
+    const currentIndex = documentBlocks.blocks.findIndex((item) => item.id === block.id);
+    const swapBlock = documentBlocks.blocks[currentIndex + delta];
+
+    if (!swapBlock) {
+      return;
+    }
+
+    const updates = [
+      { block, order: swapBlock.order },
+      { block: swapBlock, order: block.order }
+    ];
+    let nextWiki = form.documentWiki;
+
+    for (const update of updates) {
+      if (update.block.source === "manual") {
+        nextWiki = {
+          ...nextWiki,
+          manualBlocks: nextWiki.manualBlocks.map((item) => (item.id === update.block.id ? { ...item, order: update.order } : item))
+        };
+      } else {
+        nextWiki = {
+          ...nextWiki,
+          overrides: {
+            ...nextWiki.overrides,
+            [update.block.id]: {
+              ...(nextWiki.overrides[update.block.id] || {}),
+              title: update.block.title,
+              visible: update.block.visible,
+              order: update.order
+            }
+          }
+        };
+      }
+    }
+
+    updateDocumentWiki(nextWiki);
   }
 
   function resetForm() {
     setForm(savedForm);
-    setEditingDocKey("");
     setSaveStatus("idle");
     setSaveMessage("");
   }
@@ -300,6 +419,14 @@ export default function DetailPage() {
   }
 
   async function handleSave() {
+    const missingCoverage = form.selectionCriteriaRows.some((row) => isMeaningfulSelectionCriteriaRow(row) && !row.coverageStatus);
+
+    if (missingCoverage) {
+      setSaveStatus("error");
+      setSaveMessage("У каждой строки критериев должен быть статус закрытия.");
+      return;
+    }
+
     setSaveStatus("saving");
     setSaveMessage("");
 
@@ -311,7 +438,6 @@ export default function DetailPage() {
       setRecord(nextRecord);
       setForm(nextForm);
       setSavedForm(nextForm);
-      setEditingDocKey("");
       setSaveStatus("success");
       setSaveMessage("Изменения сохранены.");
     } catch (saveError) {
@@ -641,6 +767,13 @@ export default function DetailPage() {
                 ) : null}
               </div>
             </section>
+
+            <SelectionCriteriaSection
+              onAdd={addSelectionCriteriaRow}
+              onRemove={removeSelectionCriteriaRow}
+              onUpdate={updateSelectionCriteriaRow}
+              rows={form.selectionCriteriaRows}
+            />
           </div>
 
           <aside className="detail-side" id="project-docs">
@@ -657,62 +790,7 @@ export default function DetailPage() {
 
             <section className="detail-side-card" id="section-documents">
               <h3>Документы и ссылки</h3>
-              <div className="detail-doc-list">
-                {buildDocItems(form).map((item) => {
-                  const isEditing = editingDocKey === item.key;
-                  const isEmpty = !String(item.value || "").trim();
-
-                  return (
-                    <div className={`detail-doc-field ${isEditing ? "editing" : ""} ${isEmpty ? "is-empty" : ""}`.trim()} id={`doc-${item.key}`} key={item.key}>
-                      <div className="detail-doc-chip-row">
-                        <button
-                          className={`detail-doc-chip-button ${isEmpty ? "is-empty" : ""}`.trim()}
-                          onClick={() => setEditingDocKey(isEditing ? "" : item.key)}
-                          type="button"
-                        >
-                          <span className="detail-doc-chip-text">{item.label}</span>
-                          <span aria-hidden="true" className="detail-doc-chip-icon">✎</span>
-                        </button>
-                        <a
-                          className={`detail-doc-prefix ${isEmpty ? "is-empty" : ""}`.trim()}
-                          href={item.value || "#"}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          ↗
-                        </a>
-                      </div>
-
-                      <div className="detail-doc-edit-row">
-                        <input
-                          className="detail-control detail-control-link"
-                          onChange={(event) => updateField(item.key, event.target.value)}
-                          placeholder={item.placeholder}
-                          ref={(node) => {
-                            if (node) {
-                              docInputRefs.current[item.key] = node;
-                            } else {
-                              delete docInputRefs.current[item.key];
-                            }
-                          }}
-                          type="url"
-                          value={item.value}
-                        />
-                        <a
-                          className="detail-doc-prefix"
-                          href={item.value || "#"}
-                          rel="noreferrer"
-                          target="_blank"
-                        >
-                          ↗
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <DocumentArtifactGroups groups={documentGroups} recordId={recordId} />
+              <DocumentCompactList blocks={documentBlocks.blocks} record={record} recordId={recordId} />
             </section>
 
             <section className="detail-side-card" id="section-delete-project">
@@ -916,6 +994,334 @@ function AnalysisStageCard({ analysis }) {
         </ol>
       ) : null}
     </section>
+  );
+}
+
+function SelectionCriteriaSection({ onAdd, onRemove, onUpdate, rows }) {
+  const groupedRows = groupSelectionCriteriaRows(rows);
+
+  return (
+    <section className="detail-section detail-selection-criteria-section" id="section-selection-criteria">
+      <div className="detail-section-head detail-criteria-head">
+        <div>
+          <h2>Критерии выбора</h2>
+          <p>Критерии, по которым организатор тендера выбирает победителя. Одна строка — один критерий или требование.</p>
+        </div>
+        <button className="section-link detail-add-criteria-button" onClick={onAdd} type="button">
+          Добавить строку
+        </button>
+      </div>
+
+      {rows.length ? (
+        <div className="detail-selection-criteria-groups">
+          {groupedRows.map((group) => (
+            <div className="detail-selection-criteria-group" key={group.value}>
+              <div className="detail-selection-criteria-group-head">
+                <strong>{group.label}</strong>
+                <span>{group.rows.length}</span>
+              </div>
+
+              <div className="detail-selection-criteria-list">
+                {group.rows.map((row) => (
+                  <SelectionCriteriaRow
+                    key={row.rowId}
+                    onRemove={onRemove}
+                    onUpdate={onUpdate}
+                    row={row}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="detail-criteria-empty detail-selection-criteria-empty">
+          Критерии выбора пока не заполнены. Добавьте строки вручную или дождитесь тестового extractor-pass.
+        </div>
+      )}
+    </section>
+  );
+}
+
+function SelectionCriteriaRow({ onRemove, onUpdate, row }) {
+  const showWeight = row.group !== "requirement";
+
+  return (
+    <article className="detail-selection-criteria-row">
+      <div className="detail-selection-criteria-row-top">
+        <span className="detail-selection-criteria-order">#{row.order}</span>
+        <button className="detail-remove-button" onClick={() => onRemove(row.rowId)} type="button">
+          Удалить
+        </button>
+      </div>
+
+      <div className="detail-selection-criteria-grid">
+        <div className="detail-field-card detail-selection-criteria-controls">
+          <div className="detail-selection-criteria-control">
+            <span className="detail-field-label">Группа</span>
+            <CustomSelect
+              onChange={(value) => onUpdate(row.rowId, "group", value)}
+              options={SELECTION_CRITERIA_GROUP_OPTIONS}
+              value={row.group}
+            />
+          </div>
+
+          <label className="detail-selection-criteria-control">
+            <span className="detail-field-label">Вес, %</span>
+            <input
+              className="detail-control"
+              disabled={!showWeight}
+              max="100"
+              min="0"
+              onChange={(event) => onUpdate(row.rowId, "weightPercent", event.target.value)}
+              placeholder={showWeight ? "40" : "Без веса"}
+              type="number"
+              value={showWeight ? row.weightPercent : ""}
+            />
+          </label>
+
+          <div className="detail-selection-criteria-control">
+            <span className="detail-field-label">Закрытие</span>
+            <CustomSelect
+              onChange={(value) => onUpdate(row.rowId, "coverageStatus", value)}
+              options={SELECTION_CRITERIA_COVERAGE_OPTIONS}
+              placeholder="Выберите статус"
+              value={row.coverageStatus}
+            />
+          </div>
+        </div>
+
+        <div className="detail-field-card detail-selection-criteria-body">
+          <label className="detail-selection-criteria-control">
+            <span className="detail-field-label">Критерий / требование</span>
+            <textarea
+              className="detail-control detail-control-textarea"
+              onChange={(event) => onUpdate(row.rowId, "title", event.target.value)}
+              placeholder="Например: минимальная цена, опыт команды или обязательная интеграция"
+              rows="3"
+              value={row.title}
+            />
+          </label>
+
+          <label className="detail-selection-criteria-control">
+            <span className="detail-field-label">Как закрываем</span>
+            <textarea
+              className="detail-control detail-control-textarea"
+              onChange={(event) => onUpdate(row.rowId, "coverageNote", event.target.value)}
+              placeholder="Что именно в нашем предложении закрывает критерий или почему не закрывает"
+              rows="3"
+              value={row.coverageNote}
+            />
+          </label>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function DocumentCompactList({ blocks, record, recordId }) {
+  const rows = buildCompactDocumentRows(blocks, record, recordId);
+
+  if (!rows.length) {
+    return <div className="detail-doc-empty">Документы пока не привязаны.</div>;
+  }
+
+  return (
+    <div className="detail-doc-compact">
+      <div className="detail-doc-compact-head">
+        <span className="detail-field-label">Документация</span>
+        <Link to={`/records/${encodeURIComponent(recordId)}/documents`}>Все документы</Link>
+      </div>
+
+      <div className="detail-doc-row-list">
+        {rows.map((row) => (
+          <DocumentCompactRow key={row.id} row={row} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DocumentCompactRow({ row }) {
+  return (
+    <div className="detail-doc-row">
+      <span className="detail-doc-row-title">{row.title}</span>
+      <span className="detail-doc-row-actions">
+        {row.mdHref ? (
+          row.mdHref.startsWith("/records/") ? (
+            <Link to={row.mdHref}>MD</Link>
+          ) : (
+            <a href={row.mdHref} rel="noreferrer" target="_blank">MD</a>
+          )
+        ) : null}
+        {row.sourceHref ? (
+          row.sourceHref.startsWith("/records/") ? (
+            <Link to={row.sourceHref}>{row.sourceLabel || "Открыть"}</Link>
+          ) : (
+            <a href={row.sourceHref} rel="noreferrer" target="_blank">{row.sourceLabel || "DOCX"}</a>
+          )
+        ) : null}
+        {!row.mdHref && !row.sourceHref && row.href ? (
+          <a href={row.href} rel="noreferrer" target="_blank">Открыть</a>
+        ) : null}
+      </span>
+    </div>
+  );
+}
+
+function DocumentWikiBlocks({
+  blocks,
+  knowledgeBase,
+  onAdd,
+  onMove,
+  onRemoveManual,
+  onToggle,
+  onUpdateManual,
+  onUpdateTitle,
+  recordId
+}) {
+  if (!blocks.length) {
+    return (
+      <div className="detail-wiki-blocks">
+        <div className="detail-doc-empty">Документы пока не привязаны.</div>
+        <button className="detail-wiki-add-button" onClick={onAdd} type="button">
+          Добавить блок
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="detail-wiki-blocks">
+      <div className="detail-wiki-head">
+        <div>
+          <span className="detail-field-label">Wiki / база знаний</span>
+          <small>{knowledgeBase?.publishPath || "Quartz-compatible слой"}</small>
+        </div>
+        <button className="detail-wiki-add-button" onClick={onAdd} type="button">
+          Добавить блок
+        </button>
+      </div>
+
+      {blocks.map((block, index) => (
+        <DocumentWikiBlock
+          block={block}
+          index={index}
+          isFirst={index === 0}
+          isLast={index === blocks.length - 1}
+          key={block.id}
+          onMove={onMove}
+          onRemoveManual={onRemoveManual}
+          onToggle={onToggle}
+          onUpdateManual={onUpdateManual}
+          onUpdateTitle={onUpdateTitle}
+          recordId={recordId}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DocumentWikiBlock({
+  block,
+  isFirst,
+  isLast,
+  onMove,
+  onRemoveManual,
+  onToggle,
+  onUpdateManual,
+  onUpdateTitle,
+  recordId
+}) {
+  const href = block.route || block.href || "";
+  const isMarkdownRoute = href.startsWith("/records/");
+  const isManual = block.source === "manual";
+
+  return (
+    <article className={`detail-wiki-block ${block.visible ? "" : "is-hidden"}`.trim()}>
+      <div className="detail-wiki-block-top">
+        <span className={`detail-wiki-type is-${block.type}`.trim()}>{getDocumentBlockTypeLabel(block.type)}</span>
+        <div className="detail-wiki-actions">
+          <button disabled={isFirst} onClick={() => onMove(block, -1)} type="button" aria-label="Поднять блок">
+            ↑
+          </button>
+          <button disabled={isLast} onClick={() => onMove(block, 1)} type="button" aria-label="Опустить блок">
+            ↓
+          </button>
+          <button onClick={() => onToggle(block)} type="button">
+            {block.visible ? "Скрыть" : "Вернуть"}
+          </button>
+          {isManual ? (
+            <button onClick={() => onRemoveManual(block.id)} type="button">
+              Удалить
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <label className="detail-wiki-title-field">
+        <span>Название</span>
+        <input
+          className="detail-control"
+          onChange={(event) => onUpdateTitle(block, event.target.value)}
+          value={block.title}
+        />
+      </label>
+
+      {isManual ? (
+        <div className="detail-wiki-manual-fields">
+          <label className="detail-wiki-title-field">
+            <span>Ссылка</span>
+            <input
+              className="detail-control"
+              onChange={(event) => onUpdateManual(block.id, { href: event.target.value })}
+              placeholder="https:// или /records/..."
+              value={block.href || ""}
+            />
+          </label>
+          <label className="detail-wiki-title-field">
+            <span>MD / заметка</span>
+            <textarea
+              className="detail-control detail-control-textarea"
+              onChange={(event) => onUpdateManual(block.id, { body: event.target.value })}
+              placeholder="Короткое описание или Markdown-блок"
+              rows="3"
+              value={block.body || ""}
+            />
+          </label>
+        </div>
+      ) : null}
+
+      <div className="detail-wiki-preview">
+        {block.visible ? (
+          href ? (
+            isMarkdownRoute ? (
+              <Link className="detail-uploaded-doc detail-uploaded-doc-markdown" to={href}>
+                <span>{block.title}</span>
+                <small>{block.subtitle || "Открыть"}</small>
+              </Link>
+            ) : (
+              <a className="detail-uploaded-doc" href={href} rel="noreferrer" target="_blank">
+                <span>{block.title}</span>
+                <small>{block.subtitle || "Открыть"}</small>
+              </a>
+            )
+          ) : block.body ? (
+            <div className="detail-wiki-note">{block.body}</div>
+          ) : (
+            <div className="detail-doc-empty">У блока пока нет ссылки или текста.</div>
+          )
+        ) : (
+          <div className="detail-doc-empty">Блок скрыт, но может быть восстановлен.</div>
+        )}
+      </div>
+
+      {block.source === "generated" && block.documentId && !isMarkdownRoute && block.type === "wiki" ? (
+        <Link className="detail-wiki-inline-link" to={`/records/${encodeURIComponent(recordId)}/documents/${encodeURIComponent(block.documentId)}`}>
+          Открыть MD-страницу
+        </Link>
+      ) : null}
+    </article>
   );
 }
 
@@ -1483,7 +1889,8 @@ function createEmptyForm() {
     technicalSpecificationUrl: "",
     notes: "",
     stage: "",
-    criteriaRows: []
+    selectionCriteriaRows: [],
+    documentWiki: createEmptyDocumentWiki()
   };
 }
 
@@ -1514,20 +1921,25 @@ function buildFormState(record) {
     technicalSpecificationUrl: String(record?.technicalSpecificationUrl || ""),
     notes: String(record?.notes || ""),
     stage: getCanonicalStageLabel(record?.stage, record?.status),
-    criteriaRows: (record?.editableSections?.find((section) => section.id === "criteria")?.rows || record?.criteriaRows || []).map((row) =>
-      createCriteriaRow(row)
-    )
+    selectionCriteriaRows: (record?.selectionCriteriaRows || []).map((row, index) =>
+      createSelectionCriteriaRow(row, index)
+    ),
+    documentWiki: normalizeDocumentWikiConfig(record?.documentWiki)
   };
 }
 
-function createCriteriaRow(row = {}) {
+function createSelectionCriteriaRow(row = {}, index = 0) {
   return {
     rowId: createRowId(),
-    group: String(row.group || "nonPrice"),
+    order: Number.isFinite(Number(row.order)) ? Number(row.order) : index + 1,
+    group: normalizeSelectionCriteriaGroupValue(row.group),
     title: String(row.title || ""),
-    description: String(row.description || ""),
-    kind: String(row.kind || "критерий"),
-    note: String(row.note || "")
+    weightPercent: row.weightPercent === null || row.weightPercent === undefined ? "" : String(row.weightPercent),
+    coverageStatus: Object.prototype.hasOwnProperty.call(row, "coverageStatus")
+      ? normalizeSelectionCriteriaCoverageValue(row.coverageStatus)
+      : "",
+    coverageNote: String(row.coverageNote || ""),
+    sourceExcerpt: String(row.sourceExcerpt || "")
   };
 }
 
@@ -1538,13 +1950,16 @@ function createRowId() {
 function serializeForm(form) {
   return JSON.stringify({
     ...form,
-    criteriaRows: form.criteriaRows.map(({ group, title, description, kind, note }) => ({
+    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
+      order: index + 1,
       group,
       title,
-      description,
-      kind,
-      note
-    }))
+      weightPercent,
+      coverageStatus,
+      coverageNote,
+      sourceExcerpt
+    })),
+    documentWiki: normalizeDocumentWikiConfig(form.documentWiki)
   });
 }
 
@@ -1575,12 +1990,15 @@ function buildSavePayload(form) {
     technicalSpecificationUrl: form.technicalSpecificationUrl,
     notes: form.notes,
     stage: form.stage,
-    criteriaRows: form.criteriaRows.map(({ group, title, description, kind, note }) => ({
+    documentWiki: normalizeDocumentWikiConfig(form.documentWiki),
+    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
+      order: index + 1,
       group,
       title,
-      description,
-      kind,
-      note
+      weightPercent: normalizeWeightPercentValue(weightPercent),
+      coverageStatus,
+      coverageNote,
+      sourceExcerpt
     }))
   };
 }
@@ -1644,6 +2062,257 @@ function buildDocumentGroups(record) {
     fallbackDocuments: normalizeArtifactItems(artifacts.fallbackDocuments, fallbackFromDocuments.fallbackDocuments),
     legacyUploaded: normalizeArtifactItems(artifacts.legacyUploaded, fallbackFromDocuments.legacyUploaded)
   };
+}
+
+function createEmptyDocumentWiki() {
+  return {
+    version: 1,
+    overrides: {},
+    manualBlocks: []
+  };
+}
+
+function normalizeDocumentWikiConfig(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const overrides = {};
+
+  for (const [blockId, override] of Object.entries(source.overrides || {})) {
+    if (!override || typeof override !== "object" || Array.isArray(override)) {
+      continue;
+    }
+
+    overrides[String(blockId)] = {
+      title: String(override.title || ""),
+      visible: override.visible === false ? false : true,
+      order: Number.isFinite(Number(override.order)) ? Number(override.order) : null
+    };
+  }
+
+  return {
+    version: 1,
+    overrides,
+    manualBlocks: (Array.isArray(source.manualBlocks) ? source.manualBlocks : []).map((block, index) => ({
+      id: String(block?.id || `manual-${index + 1}`),
+      type: normalizeDocumentBlockType(block?.type || "manual"),
+      title: String(block?.title || "Ручной блок"),
+      href: String(block?.href || ""),
+      body: String(block?.body || ""),
+      visible: block?.visible === false ? false : true,
+      order: Number.isFinite(Number(block?.order)) ? Number(block.order) : 1000 + index
+    }))
+  };
+}
+
+function buildEditableDocumentBlocks(record, documentWiki) {
+  const config = normalizeDocumentWikiConfig(documentWiki);
+  const sourceBlocks = Array.isArray(record?.documentBlocks?.blocks)
+    ? record.documentBlocks.blocks
+    : buildDocumentBlocksFromLegacyGroups(record);
+  const generatedBlocks = sourceBlocks
+    .filter((block) => block.source !== "manual")
+    .map((block) => {
+      const override = config.overrides[block.id] || {};
+
+      return {
+        ...block,
+        title: override.title || block.title,
+        visible: override.visible === false ? false : true,
+        order: Number.isFinite(Number(override.order)) ? Number(override.order) : Number(block.order || 0)
+      };
+    });
+  const manualBlocks = config.manualBlocks.map((block) => ({
+    id: block.id,
+    source: "manual",
+    type: normalizeDocumentBlockType(block.type),
+    title: block.title,
+    subtitle: block.body ? "Ручная заметка" : "Ручная ссылка",
+    href: block.href,
+    body: block.body,
+    visible: block.visible,
+    order: block.order,
+    editable: true,
+    removable: true
+  }));
+  const blocks = [...generatedBlocks, ...manualBlocks]
+    .sort((left, right) => Number(left.order || 0) - Number(right.order || 0) || String(left.title).localeCompare(String(right.title), "ru-RU"));
+
+  return {
+    version: 1,
+    knowledgeBase: record?.documentBlocks?.knowledgeBase || {
+      target: "Quartz",
+      renderer: "quartz-compatible",
+      projectId: record?.id || "",
+      projectTitle: record?.projectTitle || record?.title || "",
+      publishPath: ""
+    },
+    blocks
+  };
+}
+
+function buildCompactDocumentRows(blocks, record, recordId) {
+  const sourceByDocumentId = new Map();
+  const wikiByDocumentId = new Map();
+  const rows = [];
+  const normalizedRecordId = String(recordId || record?.id || "").trim();
+
+  for (const block of Array.isArray(blocks) ? blocks : []) {
+    if (!block.visible) {
+      continue;
+    }
+
+    if (block.documentId && block.type === "source") {
+      sourceByDocumentId.set(block.documentId, block);
+    }
+
+    if (block.documentId && block.type === "wiki") {
+      wikiByDocumentId.set(block.documentId, block);
+    }
+  }
+
+  if (hasSourceArchive(record, blocks) && normalizedRecordId) {
+    rows.push({
+      id: "source-archive",
+      title: "Исходный архив",
+      mdHref: "",
+      sourceHref: `/api/records/${encodeURIComponent(normalizedRecordId)}/source-archive`,
+      sourceLabel: "Архив",
+      href: ""
+    });
+  }
+
+  if (normalizedRecordId) {
+    rows.push({
+      id: "source-folder",
+      title: "Папка распаковки",
+      mdHref: "",
+      sourceHref: `/records/${encodeURIComponent(normalizedRecordId)}/source-folder`,
+      sourceLabel: "Папка",
+      href: ""
+    });
+  }
+
+  for (const [documentId, wiki] of wikiByDocumentId.entries()) {
+    if (String(documentId).startsWith("artifact-")) {
+      continue;
+    }
+
+    const source = sourceByDocumentId.get(documentId);
+    rows.push({
+      id: `document-${documentId}`,
+      title: stripExtension(wiki.title || source?.title || documentId),
+      mdHref: wiki.route || wiki.href || "",
+      sourceHref: source?.route || source?.href || "",
+      sourceLabel: source ? getSourceActionLabel(source) : "",
+      href: ""
+    });
+  }
+
+  return rows;
+}
+
+function hasSourceArchive(record, blocks) {
+  if (Array.isArray(blocks) && blocks.some((block) => block?.type === "source" && !block?.documentId)) {
+    return true;
+  }
+
+  return Boolean(
+    record?.documentsFolderHref ||
+    record?.googleDocumentsFolderHref ||
+    (Array.isArray(record?.documents) && record.documents.some((document) => document?.kind === "archive"))
+  );
+}
+
+function stripExtension(value) {
+  return String(value || "").replace(/\.[a-z0-9]{2,6}$/iu, "");
+}
+
+function getSourceActionLabel(block) {
+  const fileName = String(block.fileName || block.title || block.href || "").toLowerCase();
+
+  if (fileName.endsWith(".zip") || fileName.endsWith(".rar") || fileName.endsWith(".7z")) {
+    return "Архив";
+  }
+
+  if (fileName.endsWith(".pdf")) {
+    return "PDF";
+  }
+
+  if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+    return "XLSX";
+  }
+
+  if (fileName.endsWith(".doc") || fileName.endsWith(".docx")) {
+    return "DOCX";
+  }
+
+  return "Файл";
+}
+
+function buildDocumentBlocksFromLegacyGroups(record) {
+  const groups = buildDocumentGroups(record);
+  const blockGroups = [
+    ["sourceArchives", "source", 100],
+    ["legacyUploaded", "source", 200],
+    ["knowledgeArtifacts", "wiki", 300],
+    ["normalizedMarkdown", "wiki", 400],
+    ["fallbackDocuments", "fallback", 700],
+    ["jsonArtifacts", "diagnostic", 900]
+  ];
+  const blocks = [];
+
+  for (const [groupKey, type, baseOrder] of blockGroups) {
+    for (const [index, document] of (groups[groupKey] || []).entries()) {
+      const documentId = String(document?.documentId || document?.artifactKey || "").trim();
+      const route = type === "wiki" && document.kind === "normalized_markdown" && documentId && record?.id
+        ? `/records/${encodeURIComponent(record.id)}/documents/${encodeURIComponent(documentId)}`
+        : "";
+      const id = `${type}:${documentId || document?.href || document?.fileName || index}`;
+
+      blocks.push({
+        id,
+        source: "generated",
+        type,
+        title: String(document?.label || document?.sourceFileName || document?.fileName || `Документ ${index + 1}`),
+        subtitle: String(document?.sourcePath || document?.artifactKey || document?.status || ""),
+        href: String(document?.href || ""),
+        route,
+        body: "",
+        visible: true,
+        order: baseOrder + index,
+        documentId,
+        artifactKey: String(document?.artifactKey || ""),
+        sourceDocument: document
+      });
+    }
+  }
+
+  return blocks;
+}
+
+function createDocumentBlockId() {
+  return `manual-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeDocumentBlockType(value) {
+  const normalized = String(value || "").trim();
+
+  if (["source", "wiki", "manual", "fallback", "diagnostic"].includes(normalized)) {
+    return normalized;
+  }
+
+  return "manual";
+}
+
+function getDocumentBlockTypeLabel(type) {
+  const labels = {
+    source: "Оригинал",
+    wiki: "Wiki / MD",
+    manual: "Ручной",
+    fallback: "Fallback",
+    diagnostic: "Диагностика"
+  };
+
+  return labels[type] || type || "Блок";
 }
 
 function groupLegacyDocuments(documents) {
@@ -1733,13 +2402,55 @@ function normalizePurchaseByValue(value) {
   return normalized || PURCHASE_BY_UNKNOWN;
 }
 
+function normalizeSelectionCriteriaGroupValue(value) {
+  const normalized = String(value || "").trim();
+  return SELECTION_CRITERIA_GROUP_OPTIONS.some((option) => option.value === normalized) ? normalized : "nonPrice";
+}
+
+function normalizeSelectionCriteriaCoverageValue(value) {
+  const normalized = String(value || "").trim();
+  return SELECTION_CRITERIA_COVERAGE_OPTIONS.some((option) => option.value === normalized) ? normalized : "";
+}
+
+function normalizeWeightPercentValue(value) {
+  if (value === "" || value === null || value === undefined) {
+    return null;
+  }
+
+  const numeric = Number(String(value).replace(",", "."));
+  return Number.isFinite(numeric) ? Math.max(0, Math.min(100, numeric)) : null;
+}
+
+function isMeaningfulSelectionCriteriaRow(row) {
+  return Boolean(
+    String(row?.title || "").trim() ||
+    String(row?.coverageNote || "").trim() ||
+    String(row?.sourceExcerpt || "").trim() ||
+    String(row?.weightPercent || "").trim()
+  );
+}
+
+function groupSelectionCriteriaRows(rows) {
+  return SELECTION_CRITERIA_GROUP_OPTIONS.map((option) => ({
+    ...option,
+    rows: rows
+      .filter((row) => row.group === option.value)
+      .sort((left, right) => Number(left.order || 0) - Number(right.order || 0))
+  })).filter((group) => group.rows.length);
+}
+
 function buildSearchTargets(record, form) {
+  const wikiBlocks = buildEditableDocumentBlocks(record, form.documentWiki).blocks;
+  const criteriaText = form.selectionCriteriaRows
+    .map((row) => [row.title, row.coverageNote, row.sourceExcerpt, row.coverageStatus, row.weightPercent].join(" "))
+    .join(" ");
   const targets = [
     { id: "section-general", label: "Общая информация", group: "Секция", value: [form.customer, form.title, form.shortTitle, form.nmc, form.purchaseBy].join(" ") },
     { id: "section-amounts", label: "Информация по суммам", group: "Секция", value: [form.platformPayment, form.applicationSecurity, form.contractSecurity].join(" ") },
     { id: "section-tender", label: "Информация по тендеру", group: "Секция", value: [form.overallExecutionTerm, form.contractTerm, form.retrade, form.antiDumpingMeasures, form.notes].join(" ") },
+    { id: "section-selection-criteria", label: "Критерии выбора", group: "Секция", value: criteriaText },
     { id: "section-stage", label: "Этап проекта", group: "Правая колонка", value: form.stage },
-    { id: "section-documents", label: "Документы и ссылки", group: "Правая колонка", value: buildDocItems(form).map((item) => item.value).join(" ") }
+    { id: "section-documents", label: "Документы и ссылки", group: "Правая колонка", value: `${buildDocItems(form).map((item) => item.value).join(" ")} ${wikiBlocks.map((block) => `${block.title} ${block.subtitle} ${block.href} ${block.body}`).join(" ")}` }
   ];
 
   for (const item of buildDocItems(form)) {

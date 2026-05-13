@@ -61,8 +61,16 @@ export function fetchRecord(recordId) {
   return request(`/api/records/${recordId}`);
 }
 
+export function fetchDocumentRecordsIndex() {
+  return request("/api/document-records");
+}
+
 export function fetchRecordMarkdownDocument(recordId, documentId) {
   return request(`/api/records/${encodeURIComponent(recordId)}/documents/${encodeURIComponent(documentId)}/markdown`);
+}
+
+export function fetchRecordSourceFolder(recordId) {
+  return request(`/api/records/${encodeURIComponent(recordId)}/source-folder`);
 }
 
 export function ingestArchive(archiveFile) {

@@ -7,6 +7,7 @@ const root = path.resolve(scriptDir, "..");
 const targets = [
   "frontend/src",
   "backend/src",
+  "backend/data",
   "docs",
   "prototype-home.html",
   "prototype-month.html",
@@ -14,7 +15,7 @@ const targets = [
   "scripts/smoke.mjs"
 ];
 
-const allowedExtensions = new Set([".js", ".jsx", ".mjs", ".cjs", ".css", ".html", ".md"]);
+const allowedExtensions = new Set([".js", ".jsx", ".mjs", ".cjs", ".css", ".html", ".md", ".json"]);
 const findings = [];
 
 for (const target of targets) {
@@ -59,10 +60,11 @@ function walk(targetPath) {
   }
 
   const content = fs.readFileSync(targetPath, "utf8");
+  const extension = path.extname(targetPath);
   const lines = content.split(/\r?\n/u);
 
   lines.forEach((line, index) => {
-    if (!isSuspiciousLine(line)) {
+    if (!isSuspiciousLine(line, extension)) {
       return;
     }
 
@@ -74,7 +76,7 @@ function walk(targetPath) {
   });
 }
 
-function isSuspiciousLine(line) {
+function isSuspiciousLine(line, extension) {
   if (!line.trim()) {
     return false;
   }
@@ -82,6 +84,7 @@ function isSuspiciousLine(line) {
   const latinMojibake = [...line.matchAll(/(?:Ã.|Â.|Ð.|Ñ.)/gu)].length;
   const cp1251Pairs = [...line.matchAll(/[РС][А-яЁё]/gu)].length;
   const weirdGlyphs = [...line.matchAll(/(?:вЂ.|в„.|[Ѓ™љњћџ�])/gu)].length;
+  const replacementQuestionRuns = [...line.matchAll(/\?{4,}/gu)].length;
 
   if (latinMojibake >= 2) {
     return true;
@@ -91,5 +94,9 @@ function isSuspiciousLine(line) {
     return true;
   }
 
-  return cp1251Pairs >= 6 && /Р/u.test(line) && /С/u.test(line);
+  if (replacementQuestionRuns >= 1 && /[A-Za-zА-Яа-яЁё]/u.test(line)) {
+    return true;
+  }
+
+  return extension !== ".json" && cp1251Pairs >= 6 && /Р/u.test(line) && /С/u.test(line);
 }

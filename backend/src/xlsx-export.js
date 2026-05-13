@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { normalizeCriteriaRows } from "./record-schema.js";
+import { normalizeSelectionCriteriaRows } from "./record-schema.js";
 
 export async function createDayWorkbook(dayView, records) {
   const workbook = new ExcelJS.Workbook();
@@ -67,35 +67,38 @@ export async function createDayWorkbook(dayView, records) {
     { header: "Проект", key: "project", width: 24 },
     { header: "Группа", key: "group", width: 20 },
     { header: "Наименование", key: "title", width: 30 },
-    { header: "Пояснение/основание", key: "description", width: 42 },
-    { header: "Тип", key: "kind", width: 18 },
-    { header: "Комментарий", key: "note", width: 30 }
+    { header: "Вес, %", key: "weightPercent", width: 12 },
+    { header: "Статус закрытия", key: "coverageStatus", width: 24 },
+    { header: "Пояснение", key: "coverageNote", width: 42 },
+    { header: "Источник", key: "sourceExcerpt", width: 42 }
   ];
 
   criteriaSheet.addRows(
     records.flatMap((record) => {
-      const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
+      const selectionCriteriaRows = normalizeSelectionCriteriaRows(record.selectionCriteriaRows);
 
-      if (!criteriaRows.length) {
+      if (!selectionCriteriaRows.length) {
         return [
           {
             project: record.shortTitle,
             group: "",
             title: "Критерии не заполнены",
-            description: "",
-            kind: "",
-            note: ""
+            weightPercent: "",
+            coverageStatus: "",
+            coverageNote: "",
+            sourceExcerpt: ""
           }
         ];
       }
 
-      return criteriaRows.map((criteriaRow) => ({
+      return selectionCriteriaRows.map((criteriaRow) => ({
         project: record.shortTitle,
-        group: criteriaRow.group,
+        group: formatCriteriaGroup(criteriaRow.group),
         title: criteriaRow.title,
-        description: criteriaRow.description,
-        kind: criteriaRow.kind,
-        note: criteriaRow.note
+        weightPercent: criteriaRow.weightPercent ?? "",
+        coverageStatus: formatCoverageStatus(criteriaRow.coverageStatus),
+        coverageNote: criteriaRow.coverageNote,
+        sourceExcerpt: criteriaRow.sourceExcerpt
       }));
     })
   );
@@ -140,4 +143,24 @@ function formatYesNo(value) {
   }
 
   return "";
+}
+
+function formatCriteriaGroup(value) {
+  const labels = {
+    price: "Ценовой критерий",
+    nonPrice: "Неценовой критерий",
+    requirement: "Дополнительное требование"
+  };
+
+  return labels[value] || value || "";
+}
+
+function formatCoverageStatus(value) {
+  const labels = {
+    full: "Полностью закрываем",
+    partial: "Частично закрываем",
+    none: "Не закрываем"
+  };
+
+  return labels[value] || value || "";
 }

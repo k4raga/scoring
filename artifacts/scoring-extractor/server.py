@@ -426,7 +426,181 @@ def build_md_document(doc_id: str, item: dict, text: str, extracted: dict | None
         "extraction_method": (extracted or {}).get("extraction", {}).get("method"),
         "extraction_quality": (extracted or {}).get("extraction", {}).get("quality"),
     }
-    return f"---\n{json.dumps(frontmatter, ensure_ascii=False, indent=2)}\n---\n\n{text.strip()}\n"
+    normalized_body = normalize_markdown_body(text, item, extracted)
+    return f"---\n{json.dumps(frontmatter, ensure_ascii=False, indent=2)}\n---\n\n{normalized_body.strip()}\n"
+
+
+def normalize_markdown_body(text: str, item: dict, extracted: dict | None = None) -> str:
+    lines = [clean_spaces(line) for line in str(text or "").replace("\r\n", "\n").replace("\r", "\n").split("\n")]
+    lines = [line for line in lines if line]
+    title = Path(str(item.get("name") or "Документ")).stem.replace("_", " ").replace("-", " ").strip()
+    method = ((extracted or {}).get("extraction") or {}).get("method") or "unknown"
+    quality = ((extracted or {}).get("extraction") or {}).get("quality") or "unknown"
+    blocks = [
+        f"# {title}",
+        "",
+        "## Сведения об извлечении",
+        "",
+        f"- Источник: `{item.get('relativePath') or item.get('name') or ''}`",
+        f"- Метод извлечения: `{method}`",
+        f"- Качество извлечения: `{quality}`",
+        "",
+        "## Содержание документа",
+        "",
+    ]
+    index = 0
+
+    while index < len(lines):
+        line = clean_document_line(lines[index])
+
+        if is_table_like_line(line):
+            table_lines = []
+            while index < len(lines) and is_table_like_line(lines[index]):
+                table_lines.append(clean_document_line(lines[index]))
+                index += 1
+            blocks.extend(markdown_table_from_lines(table_lines))
+            blocks.append("")
+            continue
+
+        bullet = re.match(r"^[•●▪–—-]\s+(.+)$", line)
+        if bullet:
+            while index < len(lines):
+                current_bullet = re.match(r"^[•●▪–—-]\s+(.+)$", lines[index])
+                if not current_bullet:
+                    break
+                blocks.append(f"- {clean_document_line(current_bullet.group(1)).strip()}")
+                index += 1
+            blocks.append("")
+            continue
+
+        roman_heading = re.match(r"^([IVXLCDM]+)\.\s+(.+)$", line, flags=re.I)
+        if roman_heading and len(roman_heading.group(2)) <= 120:
+            blocks.append(f"## {roman_heading.group(1).upper()}. {roman_heading.group(2).strip()}")
+            blocks.append("")
+            index += 1
+            continue
+
+        numbered = re.match(r"^(\d+(?:\.\d+)*\.?)[\s\t]*(.+)$", line)
+        if numbered and (is_heading_like(numbered.group(2)) or len(numbered.group(2).strip()) <= 90):
+            level = min(2 + numbered.group(1).count("."), 4)
+            blocks.append(f"{'#' * level} {numbered.group(1).rstrip('.')} {numbered.group(2).strip()}")
+            blocks.append("")
+            index += 1
+            continue
+
+        if numbered:
+            blocks.append(f"{numbered.group(1).rstrip('.')} . {numbered.group(2).strip()}".replace(" . ", ". "))
+            index += 1
+            continue
+
+        if is_heading_like(line):
+            blocks.append(f"### {line.rstrip(':')}")
+            blocks.append("")
+            index += 1
+            continue
+
+        if line.endswith(":") and index + 1 < len(lines):
+            list_blocks = []
+            next_index = collect_semicolon_list(lines, index + 1, list_blocks)
+            if next_index > index + 1:
+                blocks.append(line)
+                blocks.append("")
+                blocks.extend(list_blocks)
+                blocks.append("")
+                index = next_index
+                continue
+
+        blocks.append(line)
+        blocks.append("")
+        index += 1
+
+    return "\n".join(blocks).replace("\n\n\n", "\n\n").strip() + "\n"
+
+
+def clean_document_line(line: str) -> str:
+    value = clean_spaces(line)
+    value = re.sub(r"^([•●▪–—-])(?=\S)", r"\1 ", value)
+    value = re.sub(r"^(\d+(?:\.\d+)*\.)(?=[^\d\s])", r"\1 ", value)
+    value = re.sub(r"^([IVXLCDM]+\.)(?=\S)", r"\1 ", value, flags=re.I)
+
+    if len(value) <= 140:
+        value = re.sub(r"(?<=[А-Яа-яЁёA-Za-z»)])\s*(\d{1,3})$", "", value).strip()
+
+    return value
+
+
+def collect_semicolon_list(lines: list[str], start_index: int, blocks: list[str]) -> int:
+    items = []
+    index = start_index
+
+    while index < len(lines):
+        candidate = clean_document_line(lines[index])
+
+        if not candidate or is_table_like_line(candidate) or is_heading_like(candidate):
+            break
+
+        if len(candidate) > 220:
+            break
+
+        if candidate.endswith(";") or candidate.endswith(".") or candidate.endswith(","):
+            items.append(candidate.rstrip(";, ."))
+            index += 1
+            if candidate.endswith("."):
+                break
+            continue
+
+        if items:
+            items.append(candidate.rstrip(";, ."))
+            index += 1
+            continue
+
+        break
+
+    if len(items) < 2:
+        return start_index
+
+    for item in items:
+        blocks.append(f"- {item}")
+
+    return index
+
+
+def is_heading_like(line: str) -> bool:
+    value = line.strip()
+    if not value or len(value) > 140:
+        return False
+    value = clean_document_line(value)
+    if value.endswith(":") and len(value) < 90:
+        return True
+    if value.lower() in {"оглавление", "термины и определения", "общие положения", "условия договора"}:
+        return True
+    if re.fullmatch(r"[А-ЯЁA-Z0-9 №.,()«»\"/-]{5,}", value) and re.search(r"[А-ЯЁA-Z]", value):
+        return True
+    if re.match(r"^(раздел|глава|приложение|таблица)\s+\d+", value, flags=re.I):
+        return True
+    return False
+
+
+def is_table_like_line(line: str) -> bool:
+    return "|" in line and len([cell for cell in line.split("|") if cell.strip()]) >= 2
+
+
+def markdown_table_from_lines(lines: list[str]) -> list[str]:
+    rows = [[cell.strip() for cell in line.strip("|").split("|")] for line in lines]
+    width = max((len(row) for row in rows), default=0)
+    if width < 2:
+        return lines
+
+    normalized_rows = [row + [""] * (width - len(row)) for row in rows]
+    header = normalized_rows[0]
+    separator = ["---"] * width
+    body = normalized_rows[1:]
+
+    return [
+        "| " + " | ".join(header) + " |",
+        "| " + " | ".join(separator) + " |",
+        *["| " + " | ".join(row) + " |" for row in body],
+    ]
 
 
 def extract_text(path: Path) -> dict:
@@ -719,6 +893,16 @@ def markdown_to_html(markdown: str) -> str:
             blocks.append(f"<ul>{''.join(items)}</ul>")
             continue
 
+        if re.match(r"^\d+[.)]\s+", stripped):
+            flush_paragraph()
+            items = []
+            while index < len(lines) and re.match(r"^\d+[.)]\s+", lines[index].strip()):
+                item_text = re.sub(r"^\d+[.)]\s+", "", lines[index].strip())
+                items.append(f"<li>{escape(item_text)}</li>")
+                index += 1
+            blocks.append(f"<ol>{''.join(items)}</ol>")
+            continue
+
         paragraph.append(stripped)
         index += 1
 
@@ -727,11 +911,18 @@ def markdown_to_html(markdown: str) -> str:
 
 
 def render_markdown_table(lines: list[str]) -> str:
-    rows = []
-    for line in lines:
-        cells = [cell.strip() for cell in line.strip("|").split("|")]
-        rows.append("<tr>" + "".join(f"<td>{escape(cell)}</td>" for cell in cells) + "</tr>")
-    return f"<table><tbody>{''.join(rows)}</tbody></table>"
+    if not lines:
+        return ""
+
+    rows = [[cell.strip() for cell in line.strip("|").split("|")] for line in lines]
+    header = rows[0]
+    body = rows[1:]
+    head_html = "<thead><tr>" + "".join(f"<th>{escape(cell)}</th>" for cell in header) + "</tr></thead>"
+    body_html = "<tbody>" + "".join(
+        "<tr>" + "".join(f"<td>{escape(cell)}</td>" for cell in row) + "</tr>"
+        for row in body
+    ) + "</tbody>"
+    return f"<table>{head_html}{body_html}</table>"
 
 
 def strip_frontmatter(markdown: str) -> str:
@@ -809,15 +1000,61 @@ def extract_docx_text(path: Path) -> str:
 
     root = ET.fromstring(xml)
     ns = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
-    paragraphs = []
+    body = root.find(ns + "body")
+    blocks = []
 
-    for paragraph in root.iter(ns + "p"):
-        texts = [node.text or "" for node in paragraph.iter(ns + "t")]
-        line = "".join(texts).strip()
-        if line:
-            paragraphs.append(line)
+    if body is None:
+        return ""
 
-    return "\n".join(paragraphs)
+    for child in body:
+        if child.tag == ns + "p":
+            line = extract_docx_paragraph_text(child, ns)
+            if line:
+                blocks.append(line)
+            continue
+
+        if child.tag == ns + "tbl":
+            table_lines = extract_docx_table_lines(child, ns)
+            if table_lines:
+                blocks.extend(table_lines)
+
+    return "\n".join(blocks)
+
+
+def extract_docx_paragraph_text(paragraph: ET.Element, ns: str) -> str:
+    parts = []
+
+    for child in paragraph.iter():
+        if child.tag == ns + "t":
+            parts.append(child.text or "")
+        elif child.tag == ns + "tab":
+            parts.append(" ")
+        elif child.tag == ns + "br":
+            parts.append("\n")
+
+    return clean_spaces("".join(parts))
+
+
+def extract_docx_table_lines(table: ET.Element, ns: str) -> list[str]:
+    lines = []
+
+    for row in table.findall(".//" + ns + "tr"):
+        cells = []
+        for cell in row.findall(ns + "tc"):
+            paragraphs = [
+                extract_docx_paragraph_text(paragraph, ns)
+                for paragraph in cell.findall(".//" + ns + "p")
+            ]
+            value = clean_spaces(" ".join(paragraph for paragraph in paragraphs if paragraph))
+            cells.append(value)
+
+        cells = [cell for cell in cells if cell]
+        if len(cells) >= 2:
+            lines.append(" | ".join(cells))
+        elif cells:
+            lines.append(cells[0])
+
+    return lines
 
 
 def extract_xlsx_text(path: Path) -> str:
@@ -990,15 +1227,17 @@ def build_record_patch(classified: list[dict], hints: dict, document_index_href:
     if not criteria_href:
         criteria_href = md_href if primary.get("type") in {"notice", "procurement_documentation"} else spec_href
 
-    criteria_rows = []
-    for req in requirements[:8]:
-        criteria_rows.append(
+    selection_criteria_rows = []
+    for index, req in enumerate(requirements[:8], start=1):
+        selection_criteria_rows.append(
             {
-                "group": "hardRequirements",
+                "order": index,
+                "group": "requirement",
                 "title": req[:120],
-                "description": req,
-                "kind": "критерий",
-                "note": "Из технического задания",
+                "weightPercent": None,
+                "coverageStatus": "partial",
+                "coverageNote": "Требование требует проверки менеджером.",
+                "sourceExcerpt": req,
             }
         )
 
@@ -1027,7 +1266,7 @@ def build_record_patch(classified: list[dict], hints: dict, document_index_href:
         "requirementsDocumentUrl": requirements_href,
         "technicalSpecificationUrl": spec_href,
         "criteriaDocumentUrl": criteria_href,
-        "criteriaRows": criteria_rows,
+        "selectionCriteriaRows": selection_criteria_rows,
         "notes": "\n".join(notes_parts),
         "summary": summarize(primary_text),
         "workflow": {
@@ -1043,7 +1282,7 @@ def build_record_patch(classified: list[dict], hints: dict, document_index_href:
     fields = {
         "general": pick_keys(patch, ["title", "shortTitle", "deadlineAt", "customer", "purchaseBy", "overallExecutionTerm"]),
         "amounts": pick_keys(patch, ["nmc", "platformPayment", "applicationSecurity", "contractSecurity"]),
-        "tender": pick_keys(patch, ["retrade", "antiDumpingMeasures", "creative", "notes", "criteriaRows"]),
+        "tender": pick_keys(patch, ["retrade", "antiDumpingMeasures", "creative", "notes", "selectionCriteriaRows"]),
         "documents": classified,
     }
 

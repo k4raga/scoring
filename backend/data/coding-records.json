@@ -18,17 +18,29 @@
       {
         "label": "Кодинг",
         "href": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
-        "fileName": ""
+        "fileName": "",
+        "path": "",
+        "kind": "",
+        "group": "",
+        "documentId": ""
       },
       {
         "label": "Техническое задание",
         "href": "/assets/tmp/site-archive/%D0%A2%D0%97%20%D1%81%D0%B0%D0%B9%D1%82%D0%B0.doc",
-        "fileName": ""
+        "fileName": "",
+        "path": "",
+        "kind": "",
+        "group": "",
+        "documentId": ""
       },
       {
         "label": "Извещение Bidzaar",
         "href": "/assets/tmp/site-archive/%D0%98%D0%B7%D0%B2%D0%B5%D1%89%D0%B5%D0%BD%D0%B8%D0%B5.%20%D0%A2%D0%BE%D1%80%D0%B3%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%BF%D0%BB%D0%BE%D1%89%D0%B0%D0%B4%D0%BA%D0%B0%20Bidzaar.doc",
-        "fileName": ""
+        "fileName": "",
+        "path": "",
+        "kind": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -41,7 +53,9 @@
         "method": "",
         "runRoot": "",
         "scriptPath": ""
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "purchaseBy": "Bidzaar / РосТендер",
     "etpUrl": "",
@@ -55,50 +69,15 @@
     "contractTerm": "",
     "retrade": "",
     "antiDumpingMeasures": "",
-    "notes": "??????????????? ???? ? ????????????? ???????????, ????????-?????????, ????????, ??????-???????, ?????? ?????????, ??????? ? ???????????????? ??????.",
+    "notes": "Многостраничный сайт с адаптивной версткой, дизайн-концепцией, каталогом, пресс-центром, формами обратной связи, картой объектов и интеграциями.",
     "creative": false,
     "requirementsDocumentUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
     "criteriaDocumentUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
     "technicalSpecificationUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
-    "criteriaRows": [
-      {
-        "group": "price",
-        "title": "??????????? ???? ???????????",
-        "description": "",
-        "kind": "основной",
-        "note": ""
-      },
-      {
-        "group": "nonPrice",
-        "title": "??????????",
-        "description": "",
-        "kind": "критерий",
-        "note": ""
-      },
-      {
-        "group": "nonPrice",
-        "title": "???? ?????????? ?? 3 ???????",
-        "description": "",
-        "kind": "критерий",
-        "note": ""
-      },
-      {
-        "group": "hardRequirements",
-        "title": "???????????? ???????????? ???????",
-        "description": "",
-        "kind": "блок-фактор",
-        "note": ""
-      },
-      {
-        "group": "hardRequirements",
-        "title": "?????????? ???????? ? ?????? ?????????",
-        "description": "",
-        "kind": "блок-фактор",
-        "note": ""
-      }
-    ],
+    "criteriaRows": [],
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Разработка многостраничного сайта бренда ЦЕМРОС БЛОК"
   },
   {
     "id": "demo-brand-portal-2026-04-18",
@@ -126,13 +105,15 @@
         "method": "",
         "runRoot": "",
         "scriptPath": ""
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "etpUrl": "",
     "documentsFolderHref": "",
     "googleDocumentsFolderHref": "",
     "nmc": "Ожидается бюджетный диапазон",
-    "purchaseBy": "Демо-данные",
+    "purchaseBy": "Нет информации",
     "platformPayment": "",
     "applicationSecurity": "",
     "contractSecurity": "",
@@ -183,7 +164,8 @@
       }
     ],
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Демо: Корпоративный портал бренда для дилерской сети"
   },
   {
     "id": "demo-retail-catalog-2026-05-03",
@@ -211,9 +193,11 @@
         "method": "",
         "runRoot": "",
         "scriptPath": ""
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
-    "purchaseBy": "Демо-данные",
+    "purchaseBy": "Нет информации",
     "etpUrl": "",
     "documentsFolderHref": "",
     "googleDocumentsFolderHref": "",
@@ -261,7 +245,8 @@
       }
     ],
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Демо: B2B-каталог и личный кабинет для оптовых клиентов"
   },
   {
     "id": "demo-landing-2025-12-11",
@@ -289,9 +274,11 @@
         "method": "",
         "runRoot": "",
         "scriptPath": ""
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
-    "purchaseBy": "Демо-данные",
+    "purchaseBy": "Нет информации",
     "etpUrl": "",
     "documentsFolderHref": "",
     "googleDocumentsFolderHref": "",
@@ -339,7 +326,8 @@
       }
     ],
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Демо: Промо-лендинг для новой линейки продукта"
   },
   {
     "id": "2026-04-16-razrabotka-mnogostranichnogo-sajta",
@@ -361,7 +349,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
         "kind": "archive",
-        "fileName": "91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip"
+        "fileName": "91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -374,9 +365,11 @@
         "method": "python",
         "runRoot": "mvp/runs/20260416-221337-2026-04-16-razrabotka-mnogostranichnogo-sajta",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
     "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
@@ -395,7 +388,8 @@
     "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-16-razrabotka-mnogostranichnogo-sajta/91648071_2026-04-16_Razrabotka-mnogostranichnogo-sajta.zip",
     "criteriaRows": [],
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Razrabotka mnogostranichnogo sajta"
   },
   {
     "id": "2026-04-17-ð-ð3-4ð3ð3-4ð2ð3-4n-ð-n-ð3-4ðμðon-117-docx-2",
@@ -406,7 +400,7 @@
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
@@ -435,7 +429,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-17-%C3%B0-%C3%B03-4%C3%B03%C3%B03-4%C3%B02%C3%B03-4n-%C3%B0-n-%C3%B03-4%C3%B0%CE%BC%C3%B0on-117-docx-2/%C3%90%C2%94%C3%90%C2%BE%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B2%C3%90%C2%BE%C3%91%C2%80_%C3%90%C2%9F%C3%91%C2%80%C3%90%C2%BE%C3%90%C2%B5%C3%90%C2%BA%C3%91%C2%82-117.docx-(2).zip",
         "kind": "archive",
-        "fileName": "Договор_Проект-117.docx-(2).zip"
+        "fileName": "Договор_Проект-117.docx-(2).zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -448,10 +445,13 @@
         "method": "python",
         "runRoot": "mvp/runs/20260417-111708-2026-04-17-3-4-3-3-4-2-3-4n-n-3-4-on-117-docx-2",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Договор Проект 117.docx (2)"
   },
   {
     "id": "2026-04-17-1123",
@@ -462,7 +462,7 @@
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
@@ -491,7 +491,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-17-1123/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
         "kind": "archive",
-        "fileName": "Корп_университет_Сбербанка_02_12_разработка.rar"
+        "fileName": "Корп_университет_Сбербанка_02_12_разработка.rar",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -504,10 +507,13 @@
         "method": "python",
         "runRoot": "mvp/runs/20260417-115303-2026-04-17-1123",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "1123"
   },
   {
     "id": "2026-04-20-123",
@@ -518,7 +524,7 @@
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
@@ -547,7 +553,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-20-123/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2).zip",
         "kind": "archive",
-        "fileName": "Договор_Проект-117.docx-(2).zip"
+        "fileName": "Договор_Проект-117.docx-(2).zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -560,7 +569,9 @@
         "method": "python",
         "runRoot": "mvp/runs/20260420-122549-2026-04-20-123",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "analysis": {
       "analysisId": "35d90b1a-78eb-4d6b-b4c3-c2bc69edf65a",
@@ -660,7 +671,8 @@
       ]
     },
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "123"
   },
   {
     "id": "2026-04-20-554",
@@ -671,7 +683,7 @@
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
@@ -700,7 +712,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-20-554/%D0%9A%D0%BE%D1%80%D0%BF_%D1%83%D0%BD%D0%B8%D0%B2%D0%B5%D1%80%D1%81%D0%B8%D1%82%D0%B5%D1%82_%D0%A1%D0%B1%D0%B5%D1%80%D0%B1%D0%B0%D0%BD%D0%BA%D0%B0_02_12_%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%BA%D0%B0.rar",
         "kind": "archive",
-        "fileName": "Корп_университет_Сбербанка_02_12_разработка.rar"
+        "fileName": "Корп_университет_Сбербанка_02_12_разработка.rar",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -713,7 +728,9 @@
         "method": "python",
         "runRoot": "mvp/runs/20260420-132610-2026-04-20-554",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "analysis": {
       "analysisId": "be8c1b8f-46aa-47d6-ae3a-5e2f83f1c2e0",
@@ -813,7 +830,8 @@
       ]
     },
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "554"
   },
   {
     "id": "2026-04-20-5454",
@@ -824,7 +842,7 @@
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
@@ -853,7 +871,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-20-5454/zapret-winws.rar",
         "kind": "archive",
-        "fileName": "zapret-winws.rar"
+        "fileName": "zapret-winws.rar",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -866,7 +887,9 @@
         "method": "python",
         "runRoot": "mvp/runs/20260420-132911-2026-04-20-5454",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "analysis": {
       "analysisId": "e952a826-d05c-4745-86d0-c205988d57db",
@@ -966,7 +989,8 @@
       ]
     },
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "5454"
   },
   {
     "id": "2026-04-22-демо-b2b-каталог-и-личныи-кабинет-для-оптовых-клиентов",
@@ -977,7 +1001,7 @@
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
@@ -1006,7 +1030,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-22-%D0%B4%D0%B5%D0%BC%D0%BE-b2b-%D0%BA%D0%B0%D1%82%D0%B0%D0%BB%D0%BE%D0%B3-%D0%B8-%D0%BB%D0%B8%D1%87%D0%BD%D1%8B%D0%B8-%D0%BA%D0%B0%D0%B1%D0%B8%D0%BD%D0%B5%D1%82-%D0%B4%D0%BB%D1%8F-%D0%BE%D0%BF%D1%82%D0%BE%D0%B2%D1%8B%D1%85-%D0%BA%D0%BB%D0%B8%D0%B5%D0%BD%D1%82%D0%BE%D0%B2/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(1).zip",
         "kind": "archive",
-        "fileName": "Договор_Проект-117.docx-(2)-(1).zip"
+        "fileName": "Договор_Проект-117.docx-(2)-(1).zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -1019,7 +1046,9 @@
         "method": "python",
         "runRoot": "mvp/runs/20260422-110521-2026-04-22-b2b",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "analysis": {
       "analysisId": "e9f0f14c-5b00-4420-898e-03cacc67de51",
@@ -1119,18 +1148,19 @@
       ]
     },
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "projectTitle": "Демо: B2B-каталог и личный кабинет для оптовых клиентов"
   },
   {
     "id": "2026-04-22-тест",
-    "title": "тест",
-    "shortTitle": "тест",
+    "title": "Тест",
+    "shortTitle": "Тест",
     "publishedAt": "2026-04-22",
     "deadlineAt": null,
     "customer": "",
     "region": "",
     "platform": "Загрузка архива",
-    "purchaseBy": "Загрузка архива",
+    "purchaseBy": "Нет информации",
     "sourceUrl": "",
     "etpUrl": "",
     "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
@@ -1159,7 +1189,10 @@
         "label": "Архив проекта",
         "href": "/assets/storage/projects/2026/04/2026-04-22-%D1%82%D0%B5%D1%81%D1%82/%D0%94%D0%BE%D0%B3%D0%BE%D0%B2%D0%BE%D1%80_%D0%9F%D1%80%D0%BE%D0%B5%D0%BA%D1%82-117.docx-(2)-(2).zip",
         "kind": "archive",
-        "fileName": "Договор_Проект-117.docx-(2)-(2).zip"
+        "fileName": "Договор_Проект-117.docx-(2)-(2).zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
       }
     ],
     "workflow": {
@@ -1172,7 +1205,9 @@
         "method": "python",
         "runRoot": "mvp/runs/20260422-164359-2026-04-22-project-0ebb8840",
         "scriptPath": "mvp/scripts/init_run.py"
-      }
+      },
+      "analysis": null,
+      "extraction": null
     },
     "analysis": {
       "analysisId": "46e6278d-5448-479b-b479-19ef09cf6bf6",
@@ -1271,6 +1306,1968 @@
         "page_level_provenance_not_available_for_codex_local_yet"
       ]
     },
+    "description": "",
+    "contractor": "",
+    "projectTitle": "Тест"
+  },
+  {
+    "id": "2026-04-25-тест",
+    "title": "Тест",
+    "shortTitle": "Тест",
+    "publishedAt": "2026-04-25",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Нет информации",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-25-%D1%82%D0%B5%D1%81%D1%82/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-25-%D1%82%D0%B5%D1%81%D1%82/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "nmc": "Не заполнено",
+    "status": "Нужен анализ",
+    "stage": "Скоринг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "",
+    "applicationSecurity": "",
+    "contractSecurity": "",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "",
+    "antiDumpingMeasures": "",
+    "notes": "Архив Сетевая-компания-06.05-20260423T075626Z-3-001.zip загружен. Запущен локальный Codex-run.",
+    "creative": null,
+    "requirementsDocumentUrl": "/assets/storage/projects/2026/04/2026-04-25-%D1%82%D0%B5%D1%81%D1%82/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "criteriaDocumentUrl": "/assets/storage/projects/2026/04/2026-04-25-%D1%82%D0%B5%D1%81%D1%82/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "technicalSpecificationUrl": "/assets/storage/projects/2026/04/2026-04-25-%D1%82%D0%B5%D1%81%D1%82/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "summary": "Архив Сетевая-компания-06.05-20260423T075626Z-3-001.zip загружен. Запущен локальный Codex-run.",
+    "criteriaRows": [],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-25-%D1%82%D0%B5%D1%81%D1%82/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "Сетевая-компания-06.05-20260423T075626Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-25-тест",
+      "codexRun": {
+        "status": "initialized",
+        "method": "python",
+        "runRoot": "mvp/runs/20260425-134023-2026-04-25-project-0ebb8840",
+        "scriptPath": "mvp/scripts/init_run.py"
+      },
+      "analysis": null,
+      "extraction": null
+    },
+    "analysis": {
+      "analysisId": "861ca188-dece-4022-8864-2dfea1d6f34c",
+      "status": "completed",
+      "provider": {
+        "id": "codex-local",
+        "label": "Codex Local",
+        "status": "active",
+        "transport": "local",
+        "supportsPageEvidence": false,
+        "supportsDocumentExtraction": false
+      },
+      "archive": {
+        "name": "Сетевая компания 06.05-20260423T075626Z-3-001.zip",
+        "sizeBytes": 742126
+      },
+      "documents": [
+        {
+          "id": "archive",
+          "name": "Сетевая компания 06.05-20260423T075626Z-3-001.zip",
+          "kind": "zip",
+          "pageCount": null
+        }
+      ],
+      "fields": {
+        "title": {
+          "value": "тест",
+          "status": "filled",
+          "confidence": 0.98,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "тест",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "shortTitle": {
+          "value": "тест",
+          "status": "filled",
+          "confidence": 0.92,
+          "evidence": [
+            {
+              "sourceType": "request_payload",
+              "field": "title",
+              "documentId": null,
+              "documentName": null,
+              "page": null,
+              "quote": "тест",
+              "note": "Значение передано вызывающей стороной API."
+            }
+          ]
+        },
+        "publishedAt": {
+          "value": "2026-04-25",
+          "status": "filled",
+          "confidence": 0.35,
+          "evidence": [
+            {
+              "sourceType": "archive_filename",
+              "field": null,
+              "documentId": "archive",
+              "documentName": "Сетевая компания 06.05-20260423T075626Z-3-001.zip",
+              "page": null,
+              "quote": "Сетевая компания 06.05-20260423T075626Z-3-001.zip",
+              "note": "Дата взята из времени загрузки, потому что в имени архива дата не найдена."
+            }
+          ]
+        },
+        "sourceUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        },
+        "etpUrl": {
+          "value": "",
+          "status": "empty",
+          "confidence": 0,
+          "evidence": []
+        }
+      },
+      "recordPatch": {
+        "title": "тест",
+        "shortTitle": "тест",
+        "publishedAt": "2026-04-25",
+        "sourceUrl": "",
+        "etpUrl": ""
+      },
+      "warnings": [
+        "content_extraction_not_enabled",
+        "page_level_provenance_not_available_for_codex_local_yet"
+      ]
+    },
+    "description": "",
+    "contractor": "",
+    "projectTitle": "Тест"
+  },
+  {
+    "id": "2026-04-25-сетевая-компания",
+    "title": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»",
+    "shortTitle": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»",
+    "publishedAt": "2026-04-25",
+    "deadlineAt": "2026-05-06T10:00:00+03:00",
+    "customer": "АО «Сетевая компания»",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "223-ФЗ / Положение о закупке",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-25-%D1%81%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-25-%D1%81%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+    "nmc": "25 416 000 руб.",
+    "status": "Нужен анализ",
+    "stage": "Скоринг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "Не указано в документах",
+    "applicationSecurity": "508 320,00 рублей",
+    "contractSecurity": "5% от НМЦ (25 416 000 руб.)",
+    "overallExecutionTerm": "До 30.10.2026",
+    "contractTerm": "",
+    "retrade": "Нет",
+    "antiDumpingMeasures": "Да",
+    "notes": "Условия оплаты: 3.6. Оплата Работ по Договору осуществляется в течение 7 рабочих дней с даты подписания Сторонами Универсального передаточного документа со статусом 1 (УПД).",
+    "creative": null,
+    "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260425-164556-2026-04-25-сетевая-компания-e2be1e0a/normalized/doc-005.md",
+    "criteriaDocumentUrl": "http://127.0.0.1:4200/artifacts/20260425-164556-2026-04-25-сетевая-компания-e2be1e0a/normalized/doc-019.md",
+    "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260425-164556-2026-04-25-сетевая-компания-e2be1e0a/normalized/doc-005.md",
+    "summary": "Документация о закупке Конкурс в электронной форме, участниками которого могут быть только субъекты малого и среднего предпринимательства Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»",
+    "criteriaRows": [
+      {
+        "group": "hardRequirements",
+        "title": "Документ содержит описание требований к Платформе управления, функциональных модулей, их интеграции, этапов создания и в",
+        "description": "Документ содержит описание требований к Платформе управления, функциональных модулей, их интеграции, этапов создания и внедрения, а также требования к оформлению документов.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "интеграция с внешними информационными системами и источниками данных.",
+        "description": "интеграция с внешними информационными системами и источниками данных.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Интеграция на уровне данных - модули могут обмениваться информацией и использовать результаты работы друг друга для реше",
+        "description": "Интеграция на уровне данных - модули могут обмениваться информацией и использовать результаты работы друг друга для решения комплексных задач",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Платформа управления экосистемой (ПУЭ). Центральное ядро Экосистемы, обеспечивающее интеграцию, координацию и мониторинг",
+        "description": "Платформа управления экосистемой (ПУЭ). Центральное ядро Экосистемы, обеспечивающее интеграцию, координацию и мониторинг всех интеллектуальных модулей. Платформа должна обеспечивать выполнение следующих функций:",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Запрос персональных данных через интеграции с внешними системами",
+        "description": "Запрос персональных данных через интеграции с внешними системами",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Разработка должна предусматривать возможность автоматической обработки и классификации обращений потребителей, поступающ",
+        "description": "Разработка должна предусматривать возможность автоматической обработки и классификации обращений потребителей, поступающих по заочным каналам обслуживания потребителей, посредством интеграционного взаимодействия с системами Заказчика. Обработка и классификация обращений клиентов должна осуществляться на основании дообучения моделей на ранее поступивших обращениях потребителей. Должна быть реализована возможность управления базой знаний типовых ответов.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Разработка должна предусматривать возможность автоматической генерации аудиозаписей речи для уведомления потребителей об",
+        "description": "Разработка должна предусматривать возможность автоматической генерации аудиозаписей речи для уведомления потребителей об отключениях электроэнергии, посредством интеграционного взаимодействия с системами Заказчика. Должна быть реализована возможность управления базой знаний типовых шаблонов аудио ответов.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Общая архитектура.  Экосистема должна быть построена на основе микросервисной архитектуры, в центре которой находится Пл",
+        "description": "Общая архитектура.  Экосистема должна быть построена на основе микросервисной архитектуры, в центре которой находится Платформа управления экосистемой (ПУЭ), выполняющая функции координатора и API-шлюза для всех интеллектуальных модулей, описанных в разделе 4.1. Интеграция с внешними системами должна осуществляться через API с использованием стандартных протоколов обмена данными и обеспечивать сохранность и конфиденциальность передаваемой информации.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      }
+    ],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-25-%D1%81%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F/%D0%A1%D0%B5%D1%82%D0%B5%D0%B2%D0%B0%D1%8F-%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8F-06.05-20260423T075626Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "Сетевая-компания-06.05-20260423T075626Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-25-сетевая-компания",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      },
+      "analysis": {
+        "status": "completed",
+        "service": "scoring-analysis",
+        "runId": "20260425-164556-2026-04-25-сетевая-компания-e2be1e0a",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260425-164556-2026-04-25-сетевая-компания-e2be1e0a",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260425-164556-2026-04-25-сетевая-компания-e2be1e0a\\normalized",
+        "documentIndex": "http://127.0.0.1:4200/artifacts/20260425-164556-2026-04-25-сетевая-компания-e2be1e0a/normalized/document-index.json",
+        "manifest": "",
+        "extractionReport": "",
+        "archive": null,
+        "artifacts": {},
+        "documents": [],
+        "stages": [
+          {
+            "id": "",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-04-25T16:45:56.894456+00:00",
+            "payload": {
+              "files": 20
+            }
+          },
+          {
+            "id": "",
+            "name": "normalize_md",
+            "status": "completed",
+            "at": "2026-04-25T16:45:57.126995+00:00",
+            "payload": {
+              "documents": 20
+            }
+          },
+          {
+            "id": "",
+            "name": "classify_documents",
+            "status": "completed",
+            "at": "2026-04-25T16:45:57.131106+00:00",
+            "payload": {
+              "documents": 20
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_general",
+            "status": "completed",
+            "at": "2026-04-25T16:45:57.159090+00:00",
+            "payload": {
+              "customer": "АО «Сетевая компания»",
+              "title": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»",
+              "shortTitle": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»",
+              "overallExecutionTerm": "до 30.10.2026",
+              "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260425-164556-2026-04-25-сетевая-компания-e2be1e0a/normalized/doc-005.md",
+              "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260425-164556-2026-04-25-сетевая-компания-e2be1e0a/normalized/doc-005.md"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_amounts",
+            "status": "completed",
+            "at": "2026-04-25T16:45:57.159100+00:00",
+            "payload": {
+              "nmc": "25 416 000 руб.",
+              "platformPayment": "Не указано в документах",
+              "applicationSecurity": "508 320,00 рублей",
+              "contractSecurity": "5% от НМЦ (25 416 000 руб.)"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_tender",
+            "status": "completed",
+            "at": "2026-04-25T16:45:57.159103+00:00",
+            "payload": {
+              "purchaseBy": "223-ФЗ / Положение о закупке",
+              "retrade": "Нет",
+              "antiDumpingMeasures": "Да",
+              "notes": "Условия оплаты: 3.6. Оплата Работ по Договору осуществляется в течение 7 рабочих дней с даты подписания Сторонами Универсального передаточного документа со статусом 1 (УПД).",
+              "criteriaRows": [
+                {
+                  "group": "hardRequirements",
+                  "title": "Документ содержит описание требований к Платформе управления, функциональных модулей, их интеграции, этапов создания и в",
+                  "description": "Документ содержит описание требований к Платформе управления, функциональных модулей, их интеграции, этапов создания и внедрения, а также требования к оформлению документов.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "интеграция с внешними информационными системами и источниками данных.",
+                  "description": "интеграция с внешними информационными системами и источниками данных.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Интеграция на уровне данных - модули могут обмениваться информацией и использовать результаты работы друг друга для реше",
+                  "description": "Интеграция на уровне данных - модули могут обмениваться информацией и использовать результаты работы друг друга для решения комплексных задач",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Платформа управления экосистемой (ПУЭ). Центральное ядро Экосистемы, обеспечивающее интеграцию, координацию и мониторинг",
+                  "description": "Платформа управления экосистемой (ПУЭ). Центральное ядро Экосистемы, обеспечивающее интеграцию, координацию и мониторинг всех интеллектуальных модулей. Платформа должна обеспечивать выполнение следующих функций:",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Запрос персональных данных через интеграции с внешними системами",
+                  "description": "Запрос персональных данных через интеграции с внешними системами",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Разработка должна предусматривать возможность автоматической обработки и классификации обращений потребителей, поступающ",
+                  "description": "Разработка должна предусматривать возможность автоматической обработки и классификации обращений потребителей, поступающих по заочным каналам обслуживания потребителей, посредством интеграционного взаимодействия с системами Заказчика. Обработка и классификация обращений клиентов должна осуществляться на основании дообучения моделей на ранее поступивших обращениях потребителей. Должна быть реализована возможность управления базой знаний типовых ответов.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Разработка должна предусматривать возможность автоматической генерации аудиозаписей речи для уведомления потребителей об",
+                  "description": "Разработка должна предусматривать возможность автоматической генерации аудиозаписей речи для уведомления потребителей об отключениях электроэнергии, посредством интеграционного взаимодействия с системами Заказчика. Должна быть реализована возможность управления базой знаний типовых шаблонов аудио ответов.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Общая архитектура.  Экосистема должна быть построена на основе микросервисной архитектуры, в центре которой находится Пл",
+                  "description": "Общая архитектура.  Экосистема должна быть построена на основе микросервисной архитектуры, в центре которой находится Платформа управления экосистемой (ПУЭ), выполняющая функции координатора и API-шлюза для всех интеллектуальных модулей, описанных в разделе 4.1. Интеграция с внешними системами должна осуществляться через API с использованием стандартных протоколов обмена данными и обеспечивать сохранность и конфиденциальность передаваемой информации.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "extraction": null
+    },
+    "analysis": null,
+    "description": "",
+    "contractor": "",
+    "projectTitle": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»"
+  },
+  {
+    "id": "2026-04-26-тест2",
+    "title": "Разработка ЛК для ЮЛ",
+    "shortTitle": "Разработка ЛК для ЮЛ",
+    "publishedAt": "2026-04-26",
+    "deadlineAt": null,
+    "customer": "АО «АльфаСтрахование»",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Коммерческая закупка",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%822/%D0%90%D0%BB%D1%8C%D1%84%D0%B0%D0%A1%D1%82%D1%80%D0%B0%D1%85%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-27.03-20260416T072909Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%822/%D0%90%D0%BB%D1%8C%D1%84%D0%B0%D0%A1%D1%82%D1%80%D0%B0%D1%85%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-27.03-20260416T072909Z-3-001.zip",
+    "nmc": "Не указано в документах",
+    "status": "Нужен анализ",
+    "stage": "Скоринг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "Подача через bidzaar",
+    "applicationSecurity": "-",
+    "contractSecurity": "-",
+    "overallExecutionTerm": "До 27.07.2026",
+    "contractTerm": "До исполнения обязательств",
+    "retrade": "Возможна",
+    "antiDumpingMeasures": "Нет",
+    "notes": "Условия оплаты: Оплата работ осуществляется поэтапно, по результатам подписания акта приема-передачи по каждому завершённому этапу",
+    "creative": false,
+    "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-114633-2026-04-26-тест2-833f4547/normalized/doc-001.md",
+    "criteriaDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-114633-2026-04-26-тест2-833f4547/normalized/doc-001.md",
+    "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260426-114633-2026-04-26-тест2-833f4547/normalized/doc-002.md",
+    "summary": "ЗАКУПОЧНАЯ ПРОЦЕДУРА №_____ 1.1. АО «АльфаСтрахование», сообщает о проведении открытой закупочной процедуры по выбору партнера на разработку ЛК ЮЛ для страховой группы АльфаСтрахование. 1.2. Предметом конкурса является наилучшее предложение о заключении договора на следующих условиях:",
+    "criteriaRows": [
+      {
+        "group": "hardRequirements",
+        "title": "Интеграция с почтовым сервисом НПФ «Альфа»",
+        "description": "Интеграция с почтовым сервисом НПФ «Альфа»",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Система должна обеспечивать интеграцию с почтовым сервисом НПФ «Альфа» с целью отправки сервисных и информационных писем",
+        "description": "Система должна обеспечивать интеграцию с почтовым сервисом НПФ «Альфа» с целью отправки сервисных и информационных писем на внешние почтовые адреса. Интеграция должна поддерживать отправку писем с указанием темы, текста, получателя и приложений при необходимости.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Предусмотреть логирование процесса отправки писем, включая статусы (успешно, неуспешно, в очереди и т.д.). Интеграция до",
+        "description": "Предусмотреть логирование процесса отправки писем, включая статусы (успешно, неуспешно, в очереди и т.д.). Интеграция должна обеспечивать обработку ошибок и возможность повторной отправки в случае сбоя. Передача данных должна быть защищена с использованием шифрования и проверки целостности.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Система должна предоставлять возможность интеграции с Учетной системой (далее — УС) через защищенные API-эндпоинты. Инте",
+        "description": "Система должна предоставлять возможность интеграции с Учетной системой (далее — УС) через защищенные API-эндпоинты. Интеграция предназначена для обмена данными: передачи данных из Системы в УС, получения обработанных данных из УС в Систему для сохранения в Витрине данных.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Интеграция с внутренним сервисом СМЭВ",
+        "description": "Интеграция с внутренним сервисом СМЭВ",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Система должна поддерживать механизм периодического запроса к ресурсам для получения актуальной информации о состоянии д",
+        "description": "Система должна поддерживать механизм периодического запроса к ресурсам для получения актуальной информации о состоянии данных. Это включает в себя регулярную проверку статуса ранее отправленных реестров и синхронизацию результатов с внутренними данными. Интеграция также должна позволять собирать идентификаторы, необходимые для выполнения запросов, и сохранять их в целях обеспечения корректности и актуальности передаваемых данных.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Интеграция с сервисом ФНС в части проверки актуальности МЧД",
+        "description": "Интеграция с сервисом ФНС в части проверки актуальности МЧД",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Система должна обеспечивать взаимодействие с внешним сервисом ФНС посредством регулярного выполнения запросов. Система д",
+        "description": "Система должна обеспечивать взаимодействие с внешним сервисом ФНС посредством регулярного выполнения запросов. Система должна поддерживать настройку частоты запросов, что позволяет администратору управлять процессом получения информации в зависимости от текущих требований. В рамках интеграции система должна автоматически собирать идентификаторы, необходимые для формирования запросов, и отправлять их в соответствии с заданной периодичностью. Полученные данные должны использоваться для обновления состояния соответствующих записей внутри системы, обеспечивая их актуальность и согласованность с внешними источниками.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      }
+    ],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%822/%D0%90%D0%BB%D1%8C%D1%84%D0%B0%D0%A1%D1%82%D1%80%D0%B0%D1%85%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-27.03-20260416T072909Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "АльфаСтрахование-27.03-20260416T072909Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-26-тест2",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      },
+      "analysis": {
+        "status": "completed",
+        "service": "scoring-analysis",
+        "runId": "20260426-114633-2026-04-26-тест2-833f4547",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260426-114633-2026-04-26-тест2-833f4547",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260426-114633-2026-04-26-тест2-833f4547\\normalized",
+        "documentIndex": "http://127.0.0.1:4200/artifacts/20260426-114633-2026-04-26-тест2-833f4547/normalized/document-index.json",
+        "manifest": "",
+        "extractionReport": "",
+        "archive": null,
+        "artifacts": {},
+        "documents": [],
+        "stages": [
+          {
+            "id": "",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-04-26T11:46:33.733339+00:00",
+            "payload": {
+              "files": 5
+            }
+          },
+          {
+            "id": "",
+            "name": "normalize_md",
+            "status": "completed",
+            "at": "2026-04-26T11:46:33.813788+00:00",
+            "payload": {
+              "documents": 5
+            }
+          },
+          {
+            "id": "",
+            "name": "classify_documents",
+            "status": "completed",
+            "at": "2026-04-26T11:46:33.816291+00:00",
+            "payload": {
+              "documents": 5
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_general",
+            "status": "completed",
+            "at": "2026-04-26T11:46:33.834862+00:00",
+            "payload": {
+              "customer": "АО «АльфаСтрахование»",
+              "title": "разработка ЛК для ЮЛ",
+              "shortTitle": "разработка ЛК для ЮЛ",
+              "overallExecutionTerm": "до 27.07.2026",
+              "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-114633-2026-04-26-тест2-833f4547/normalized/doc-001.md",
+              "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260426-114633-2026-04-26-тест2-833f4547/normalized/doc-002.md"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_amounts",
+            "status": "completed",
+            "at": "2026-04-26T11:46:33.834873+00:00",
+            "payload": {
+              "nmc": "Не указано в документах",
+              "platformPayment": "подача через bidzaar",
+              "applicationSecurity": "-",
+              "contractSecurity": "-"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_tender",
+            "status": "completed",
+            "at": "2026-04-26T11:46:33.834878+00:00",
+            "payload": {
+              "purchaseBy": "Коммерческая закупка",
+              "retrade": "Возможна",
+              "antiDumpingMeasures": "Нет",
+              "notes": "Условия оплаты: Оплата работ осуществляется поэтапно, по результатам подписания акта приема-передачи по каждому завершённому этапу",
+              "criteriaRows": [
+                {
+                  "group": "hardRequirements",
+                  "title": "Интеграция с почтовым сервисом НПФ «Альфа»",
+                  "description": "Интеграция с почтовым сервисом НПФ «Альфа»",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Система должна обеспечивать интеграцию с почтовым сервисом НПФ «Альфа» с целью отправки сервисных и информационных писем",
+                  "description": "Система должна обеспечивать интеграцию с почтовым сервисом НПФ «Альфа» с целью отправки сервисных и информационных писем на внешние почтовые адреса. Интеграция должна поддерживать отправку писем с указанием темы, текста, получателя и приложений при необходимости.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Предусмотреть логирование процесса отправки писем, включая статусы (успешно, неуспешно, в очереди и т.д.). Интеграция до",
+                  "description": "Предусмотреть логирование процесса отправки писем, включая статусы (успешно, неуспешно, в очереди и т.д.). Интеграция должна обеспечивать обработку ошибок и возможность повторной отправки в случае сбоя. Передача данных должна быть защищена с использованием шифрования и проверки целостности.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Система должна предоставлять возможность интеграции с Учетной системой (далее — УС) через защищенные API-эндпоинты. Инте",
+                  "description": "Система должна предоставлять возможность интеграции с Учетной системой (далее — УС) через защищенные API-эндпоинты. Интеграция предназначена для обмена данными: передачи данных из Системы в УС, получения обработанных данных из УС в Систему для сохранения в Витрине данных.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Интеграция с внутренним сервисом СМЭВ",
+                  "description": "Интеграция с внутренним сервисом СМЭВ",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Система должна поддерживать механизм периодического запроса к ресурсам для получения актуальной информации о состоянии д",
+                  "description": "Система должна поддерживать механизм периодического запроса к ресурсам для получения актуальной информации о состоянии данных. Это включает в себя регулярную проверку статуса ранее отправленных реестров и синхронизацию результатов с внутренними данными. Интеграция также должна позволять собирать идентификаторы, необходимые для выполнения запросов, и сохранять их в целях обеспечения корректности и актуальности передаваемых данных.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Интеграция с сервисом ФНС в части проверки актуальности МЧД",
+                  "description": "Интеграция с сервисом ФНС в части проверки актуальности МЧД",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "Система должна обеспечивать взаимодействие с внешним сервисом ФНС посредством регулярного выполнения запросов. Система д",
+                  "description": "Система должна обеспечивать взаимодействие с внешним сервисом ФНС посредством регулярного выполнения запросов. Система должна поддерживать настройку частоты запросов, что позволяет администратору управлять процессом получения информации в зависимости от текущих требований. В рамках интеграции система должна автоматически собирать идентификаторы, необходимые для формирования запросов, и отправлять их в соответствии с заданной периодичностью. Полученные данные должны использоваться для обновления состояния соответствующих записей внутри системы, обеспечивая их актуальность и согласованность с внешними источниками.",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "extraction": null
+    },
+    "analysis": null,
+    "description": "",
+    "contractor": "",
+    "projectTitle": "Разработка ЛК для ЮЛ"
+  },
+  {
+    "id": "2026-04-26-тест3",
+    "title": "Оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной системы «Информационный портал для Движения Первых»",
+    "shortTitle": "Оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной систем",
+    "publishedAt": "2026-04-26",
+    "deadlineAt": null,
+    "customer": "Общероссийское общественно -государственное движение детей и молодежи «Движение первых» (Движение Первых)",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Коммерческая закупка",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%823/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%823/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+    "nmc": "Не указано в документах",
+    "status": "Нужен анализ",
+    "stage": "Скоринг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "Подача через Росэлторг",
+    "applicationSecurity": "-",
+    "contractSecurity": "25% от НМЦ",
+    "overallExecutionTerm": "С 01.06.2026 по 30.04.2027",
+    "contractTerm": "С 01.06.2026 по 30.04.2027",
+    "retrade": "Нет",
+    "antiDumpingMeasures": "Нет",
+    "notes": "Условия оплаты: Фактическое количество поставленных товаров/выполненных работ/оказанных услуг, подлежащих оплате, указывается в акте сдачи-приемки выполненных",
+    "creative": false,
+    "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-120023-2026-04-26-тест3-f8c589b8/normalized/doc-001.md",
+    "criteriaDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-120023-2026-04-26-тест3-f8c589b8/normalized/doc-001.md",
+    "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260426-120023-2026-04-26-тест3-f8c589b8/normalized/doc-004.md",
+    "summary": "ОБЩЕРОССИЙСКОЕ ОБЩЕСТВЕННО-ГОСУДАРСТВЕННОЕ ДВИЖЕНИЕ ДЕТЕЙ И МОЛОДЕЖИ «ДВИЖЕНИЕ ПЕРВЫХ» ЗАПРОС КОММЕРЧЕСКИХ ПРЕДЛОЖЕНИЙ",
+    "criteriaRows": [
+      {
+        "group": "hardRequirements",
+        "title": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+        "description": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+        "description": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+        "description": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+        "description": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+        "description": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+        "description": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В Системе должны быть реализованы технические решения, обеспечивающие",
+        "description": "В Системе должны быть реализованы технические решения, обеспечивающие",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+        "description": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      }
+    ],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%823/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "Движение-первых-16.04-20260426T114445Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-26-тест3",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      },
+      "analysis": {
+        "status": "completed",
+        "service": "scoring-analysis",
+        "runId": "20260426-120023-2026-04-26-тест3-f8c589b8",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260426-120023-2026-04-26-тест3-f8c589b8",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260426-120023-2026-04-26-тест3-f8c589b8\\normalized",
+        "documentIndex": "http://127.0.0.1:4200/artifacts/20260426-120023-2026-04-26-тест3-f8c589b8/normalized/document-index.json",
+        "manifest": "",
+        "extractionReport": "",
+        "archive": null,
+        "artifacts": {},
+        "documents": [],
+        "stages": [
+          {
+            "id": "",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-04-26T12:00:23.118892+00:00",
+            "payload": {
+              "files": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "normalize_md",
+            "status": "completed",
+            "at": "2026-04-26T12:00:25.558321+00:00",
+            "payload": {
+              "documents": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "classify_documents",
+            "status": "completed",
+            "at": "2026-04-26T12:00:25.562666+00:00",
+            "payload": {
+              "documents": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_general",
+            "status": "completed",
+            "at": "2026-04-26T12:00:25.605574+00:00",
+            "payload": {
+              "customer": "Общероссийское общественно -государственное движение детей и молодежи «Движение первых» (Движение Первых)",
+              "title": "оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной системы «Информационный портал для Движения Первых»",
+              "shortTitle": "оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной систем",
+              "overallExecutionTerm": "с 01.06.2026 по 30.04.2027",
+              "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-120023-2026-04-26-тест3-f8c589b8/normalized/doc-001.md",
+              "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260426-120023-2026-04-26-тест3-f8c589b8/normalized/doc-004.md"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_amounts",
+            "status": "completed",
+            "at": "2026-04-26T12:00:25.605585+00:00",
+            "payload": {
+              "nmc": "Не указано в документах",
+              "platformPayment": "подача через Росэлторг",
+              "applicationSecurity": "-",
+              "contractSecurity": "25% от НМЦ"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_tender",
+            "status": "completed",
+            "at": "2026-04-26T12:00:25.605589+00:00",
+            "payload": {
+              "purchaseBy": "Коммерческая закупка",
+              "retrade": "Нет",
+              "antiDumpingMeasures": "Нет",
+              "notes": "Условия оплаты: Фактическое количество поставленных товаров/выполненных работ/оказанных услуг, подлежащих оплате, указывается в акте сдачи-приемки выполненных",
+              "criteriaRows": [
+                {
+                  "group": "hardRequirements",
+                  "title": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+                  "description": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+                  "description": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+                  "description": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+                  "description": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+                  "description": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+                  "description": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "В Системе должны быть реализованы технические решения, обеспечивающие",
+                  "description": "В Системе должны быть реализованы технические решения, обеспечивающие",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+                  "description": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "extraction": null
+    },
+    "analysis": null,
+    "description": "",
+    "contractor": "",
+    "projectTitle": "Тест3"
+  },
+  {
+    "id": "2026-04-26-тест4",
+    "projectTitle": "Тест4",
+    "title": "Оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной системы «Информационный портал для Движения Первых»",
+    "shortTitle": "Оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной систем",
+    "publishedAt": "2026-04-26",
+    "deadlineAt": null,
+    "customer": "Общероссийское общественно -государственное движение детей и молодежи «Движение первых» (Движение Первых)",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Коммерческая закупка",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%824/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%824/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+    "nmc": "Не указано в документах",
+    "status": "Нужен анализ",
+    "stage": "Скоринг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "Подача через Росэлторг",
+    "applicationSecurity": "-",
+    "contractSecurity": "25% от НМЦ",
+    "overallExecutionTerm": "С 01.06.2026 по 30.04.2027",
+    "contractTerm": "С 01.06.2026 по 30.04.2027",
+    "retrade": "Нет",
+    "antiDumpingMeasures": "Нет",
+    "notes": "Условия оплаты: Фактическое количество поставленных товаров/выполненных работ/оказанных услуг, подлежащих оплате, указывается в акте сдачи-приемки выполненных",
+    "creative": false,
+    "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-121123-2026-04-26-тест4-ed8de552/normalized/doc-001.md",
+    "criteriaDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-121123-2026-04-26-тест4-ed8de552/normalized/doc-001.md",
+    "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260426-121123-2026-04-26-тест4-ed8de552/normalized/doc-004.md",
+    "summary": "ОБЩЕРОССИЙСКОЕ ОБЩЕСТВЕННО-ГОСУДАРСТВЕННОЕ ДВИЖЕНИЕ ДЕТЕЙ И МОЛОДЕЖИ «ДВИЖЕНИЕ ПЕРВЫХ» ЗАПРОС КОММЕРЧЕСКИХ ПРЕДЛОЖЕНИЙ",
+    "criteriaRows": [
+      {
+        "group": "hardRequirements",
+        "title": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+        "description": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+        "description": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+        "description": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+        "description": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+        "description": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+        "description": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В Системе должны быть реализованы технические решения, обеспечивающие",
+        "description": "В Системе должны быть реализованы технические решения, обеспечивающие",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+        "description": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      }
+    ],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-26-%D1%82%D0%B5%D1%81%D1%824/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "Движение-первых-16.04-20260426T114445Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-26-тест4",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      },
+      "analysis": {
+        "status": "completed",
+        "service": "scoring-analysis",
+        "runId": "20260426-121123-2026-04-26-тест4-ed8de552",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260426-121123-2026-04-26-тест4-ed8de552",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260426-121123-2026-04-26-тест4-ed8de552\\normalized",
+        "documentIndex": "http://127.0.0.1:4200/artifacts/20260426-121123-2026-04-26-тест4-ed8de552/normalized/document-index.json",
+        "manifest": "",
+        "extractionReport": "",
+        "archive": null,
+        "artifacts": {},
+        "documents": [],
+        "stages": [
+          {
+            "id": "",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-04-26T12:11:23.614545+00:00",
+            "payload": {
+              "files": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "normalize_md",
+            "status": "completed",
+            "at": "2026-04-26T12:11:26.022086+00:00",
+            "payload": {
+              "documents": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "classify_documents",
+            "status": "completed",
+            "at": "2026-04-26T12:11:26.025357+00:00",
+            "payload": {
+              "documents": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_general",
+            "status": "completed",
+            "at": "2026-04-26T12:11:26.060871+00:00",
+            "payload": {
+              "customer": "Общероссийское общественно -государственное движение детей и молодежи «Движение первых» (Движение Первых)",
+              "title": "оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной системы «Информационный портал для Движения Первых»",
+              "shortTitle": "оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной систем",
+              "overallExecutionTerm": "с 01.06.2026 по 30.04.2027",
+              "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260426-121123-2026-04-26-тест4-ed8de552/normalized/doc-001.md",
+              "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260426-121123-2026-04-26-тест4-ed8de552/normalized/doc-004.md"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_amounts",
+            "status": "completed",
+            "at": "2026-04-26T12:11:26.060880+00:00",
+            "payload": {
+              "nmc": "Не указано в документах",
+              "platformPayment": "подача через Росэлторг",
+              "applicationSecurity": "-",
+              "contractSecurity": "25% от НМЦ"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_tender",
+            "status": "completed",
+            "at": "2026-04-26T12:11:26.060882+00:00",
+            "payload": {
+              "purchaseBy": "Коммерческая закупка",
+              "retrade": "Нет",
+              "antiDumpingMeasures": "Нет",
+              "notes": "Условия оплаты: Фактическое количество поставленных товаров/выполненных работ/оказанных услуг, подлежащих оплате, указывается в акте сдачи-приемки выполненных",
+              "criteriaRows": [
+                {
+                  "group": "hardRequirements",
+                  "title": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+                  "description": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+                  "description": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+                  "description": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+                  "description": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+                  "description": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+                  "description": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "В Системе должны быть реализованы технические решения, обеспечивающие",
+                  "description": "В Системе должны быть реализованы технические решения, обеспечивающие",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+                  "description": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "extraction": null
+    },
+    "analysis": null,
+    "description": "",
+    "contractor": ""
+  },
+  {
+    "id": "2026-04-29-тест6",
+    "projectTitle": "Тест6",
+    "title": "Оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной системы «Информационный портал для Движения Первых»",
+    "shortTitle": "Оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной систем",
+    "publishedAt": "2026-04-29",
+    "deadlineAt": null,
+    "customer": "Общероссийское общественно -государственное движение детей и молодежи «Движение первых» (Движение Первых)",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Иное",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/04/2026-04-29-%D1%82%D0%B5%D1%81%D1%826/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/04/2026-04-29-%D1%82%D0%B5%D1%81%D1%826/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+    "nmc": "Не указано в документах",
+    "status": "Нужен анализ",
+    "stage": "Предоценка",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "Подача через Росэлторг",
+    "applicationSecurity": "-",
+    "contractSecurity": "25% от НМЦ",
+    "overallExecutionTerm": "С 01.06.2026 по 30.04.2027",
+    "contractTerm": "С 01.06.2026 по 30.04.2027",
+    "retrade": "Нет",
+    "antiDumpingMeasures": "Нет",
+    "notes": "Условия оплаты: Фактическое количество поставленных товаров/выполненных работ/оказанных услуг, подлежащих оплате, указывается в акте сдачи-приемки выполненных",
+    "creative": false,
+    "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260429-152517-2026-04-29-тест6-78d7c76a/normalized/doc-001.md",
+    "criteriaDocumentUrl": "http://127.0.0.1:4200/artifacts/20260429-152517-2026-04-29-тест6-78d7c76a/normalized/doc-001.md",
+    "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260429-152517-2026-04-29-тест6-78d7c76a/normalized/doc-004.md",
+    "summary": "ОБЩЕРОССИЙСКОЕ ОБЩЕСТВЕННО-ГОСУДАРСТВЕННОЕ ДВИЖЕНИЕ ДЕТЕЙ И МОЛОДЕЖИ «ДВИЖЕНИЕ ПЕРВЫХ» ЗАПРОС КОММЕРЧЕСКИХ ПРЕДЛОЖЕНИЙ",
+    "criteriaRows": [
+      {
+        "group": "hardRequirements",
+        "title": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+        "description": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+        "description": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+        "description": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+        "description": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+        "description": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+        "description": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В Системе должны быть реализованы технические решения, обеспечивающие",
+        "description": "В Системе должны быть реализованы технические решения, обеспечивающие",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+        "description": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      }
+    ],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/04/2026-04-29-%D1%82%D0%B5%D1%81%D1%826/%D0%94%D0%B2%D0%B8%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BF%D0%B5%D1%80%D0%B2%D1%8B%D1%85-16.04-20260426T114445Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "Движение-первых-16.04-20260426T114445Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/04/2026-04-29-тест6",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      },
+      "analysis": {
+        "status": "completed",
+        "service": "scoring-analysis",
+        "runId": "20260429-152517-2026-04-29-тест6-78d7c76a",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260429-152517-2026-04-29-тест6-78d7c76a",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring-analysis\\runs\\20260429-152517-2026-04-29-тест6-78d7c76a\\normalized",
+        "documentIndex": "http://127.0.0.1:4200/artifacts/20260429-152517-2026-04-29-тест6-78d7c76a/normalized/document-index.json",
+        "manifest": "",
+        "extractionReport": "",
+        "archive": null,
+        "artifacts": {},
+        "documents": [],
+        "stages": [
+          {
+            "id": "",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-04-29T15:25:17.098557+00:00",
+            "payload": {
+              "files": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "normalize_md",
+            "status": "completed",
+            "at": "2026-04-29T15:25:19.600364+00:00",
+            "payload": {
+              "documents": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "classify_documents",
+            "status": "completed",
+            "at": "2026-04-29T15:25:19.604962+00:00",
+            "payload": {
+              "documents": 6
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_general",
+            "status": "completed",
+            "at": "2026-04-29T15:25:19.652562+00:00",
+            "payload": {
+              "customer": "Общероссийское общественно -государственное движение детей и молодежи «Движение первых» (Движение Первых)",
+              "title": "оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной системы «Информационный портал для Движения Первых»",
+              "shortTitle": "оказание услуг по технической поддержке и сопровождению и выполнение работ по развитию и доработке информационной систем",
+              "overallExecutionTerm": "с 01.06.2026 по 30.04.2027",
+              "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260429-152517-2026-04-29-тест6-78d7c76a/normalized/doc-001.md",
+              "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260429-152517-2026-04-29-тест6-78d7c76a/normalized/doc-004.md"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_amounts",
+            "status": "completed",
+            "at": "2026-04-29T15:25:19.652574+00:00",
+            "payload": {
+              "nmc": "Не указано в документах",
+              "platformPayment": "подача через Росэлторг",
+              "applicationSecurity": "-",
+              "contractSecurity": "25% от НМЦ"
+            }
+          },
+          {
+            "id": "",
+            "name": "fill_tender",
+            "status": "completed",
+            "at": "2026-04-29T15:25:19.652577+00:00",
+            "payload": {
+              "purchaseBy": "Коммерческая закупка",
+              "retrade": "Нет",
+              "antiDumpingMeasures": "Нет",
+              "notes": "Условия оплаты: Фактическое количество поставленных товаров/выполненных работ/оказанных услуг, подлежащих оплате, указывается в акте сдачи-приемки выполненных",
+              "criteriaRows": [
+                {
+                  "group": "hardRequirements",
+                  "title": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+                  "description": "усмотрению Заказчика материалы для работы с дизайном Системы могут быть переданы",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+                  "description": "пользовательской частью; интеграция с административной частью (1С-Битрикс).",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+                  "description": "программного обеспечения и интеграциям, за исключением параметров, связанных с реальными",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+                  "description": "информации в административной части (интерфейсе) Системы должны быть реализованы",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+                  "description": "взаимодействия, обеспечивающих возможность интеграции и совместной работы программного",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+                  "description": "возможность интеграции или дальнейшего развития Системы, допускается только по",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "В Системе должны быть реализованы технические решения, обеспечивающие",
+                  "description": "В Системе должны быть реализованы технические решения, обеспечивающие",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                },
+                {
+                  "group": "hardRequirements",
+                  "title": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+                  "description": "поступающих из внешней системы, должна быть донастроена интеграция по API для получения",
+                  "kind": "критерий",
+                  "note": "Из технического задания"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "extraction": null
+    },
+    "analysis": null,
+    "description": "",
+    "contractor": "",
+    "creativeLinkUrl": ""
+  },
+  {
+    "id": "2026-05-06-тест7",
+    "projectTitle": "Тест7",
+    "title": "Выполнение работ9",
+    "shortTitle": "Выполнение работ9",
+    "publishedAt": "2026-05-06",
+    "deadlineAt": null,
+    "customer": "",
+    "region": "",
+    "platform": "Загрузка архива",
+    "purchaseBy": "Коммерческая закупка",
+    "sourceUrl": "",
+    "etpUrl": "",
+    "documentsFolderHref": "/assets/storage/projects/2026/05/2026-05-06-%D1%82%D0%B5%D1%81%D1%827/%D0%9D%D0%A2%D0%98-2035-02.04-20260506T092409Z-3-001.zip",
+    "googleDocumentsFolderHref": "/assets/storage/projects/2026/05/2026-05-06-%D1%82%D0%B5%D1%81%D1%827/%D0%9D%D0%A2%D0%98-2035-02.04-20260506T092409Z-3-001.zip",
+    "nmc": "2026 руб.",
+    "status": "Нужен анализ",
+    "stage": "Скоринг",
+    "priceStatus": "Не заполнено",
+    "executionWindow": "Не заполнено",
+    "platformPayment": "Не указано в документах",
+    "applicationSecurity": "-",
+    "contractSecurity": "-",
+    "overallExecutionTerm": "Не заполнено",
+    "contractTerm": "",
+    "retrade": "Нет",
+    "antiDumpingMeasures": "Нет",
+    "notes": "Техническое задание на работы по развитию информационно-аналитической системы Университета 2035 – цифрового реестра кадров БАС» Термины и определения3 1. Цели выполнения работ5",
+    "creative": false,
+    "requirementsDocumentUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+    "criteriaDocumentUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+    "technicalSpecificationUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+    "summary": "Техническое задание на работы по развитию информационно-аналитической системы Университета 2035 – цифрового реестра кадров БАС» Термины и определения3 1. Цели выполнения работ5",
+    "criteriaRows": [
+      {
+        "group": "hardRequirements",
+        "title": "Интеграций с внешними LMS (системами управления обучением) и обеспечение обмена данными",
+        "description": "Интеграций с внешними LMS (системами управления обучением) и обеспечение обмена данными",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "Реализация механизмов интеграционного взаимодействия ЦРК БАС с Цифровой платформой Университета 2035 и/или с другими сис",
+        "description": "Реализация механизмов интеграционного взаимодействия ЦРК БАС с Цифровой платформой Университета 2035 и/или с другими системами для обеспечения сквозных пользовательских сценариев",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "2.18.  Задача считается принятой Заказчиком после подписания протокола тестирования работоспособности разработанного фун",
+        "description": "2.18.  Задача считается принятой Заказчиком после подписания протокола тестирования работоспособности разработанного функционала ЦРК БАС, после чего Заказчик присваивает Задаче статус «Выполнено».",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "2.19. Если в принятой Заказчиком Задаче после подписания Протокола тестирования работоспособности разработанного функцио",
+        "description": "2.19. Если в принятой Заказчиком Задаче после подписания Протокола тестирования работоспособности разработанного функционала ЦРК БАС выявляются недостатки, в том числе связанные с реализацией последующих Задач, то представитель Заказчика создает инцидент в Сервисе и присваивает инциденту уровень критичности. Исполнитель подтверждает факт наличия недостатка и устраняет его в соответствии со сроками, определенными в приложении № 1. Задача не может быть принятой Заказчиком до устранения недостатков. Расходы на устранение недостатков, зафиксированных как инцидент, несет Исполнитель.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В ЦРК БАС обрабатываются следующие категории информации – конфиденциальная (персональные данные) и общедоступная. Выполн",
+        "description": "В ЦРК БАС обрабатываются следующие категории информации – конфиденциальная (персональные данные) и общедоступная. Выполнение работ не должно снижать уровень защищенности персональных данных в ЦРК БАС. Развитие ЦРК БАС не должно снижать уровень защищенности ниже чем 3-й уровень защищенности персональных данных согласно Постановлению Правительства РФ от 01.11.2012 № 1119 «Об утверждении требований к защите персональных данных при их обработке в информационных системах персональных данных» и требованиям приказа ФСТЭК России от 18.02.2013 № 21. Разработанный функционал должен использовать имеющуюся СЗИ, доработанную (при необходимости) в рамках реализации настоящего Договора. Уровень защищенности средств криптографической защиты информации (класс СКЗИ), применяемых для защиты информационной системы, должен быть не ниже уровня КС1.",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В применяемом средстве виртуализации должны быть реализованы следующие функции безопасности:",
+        "description": "В применяемом средстве виртуализации должны быть реализованы следующие функции безопасности:",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В средстве контейнеризации должны быть реализованы следующие функции безопасности:",
+        "description": "В средстве контейнеризации должны быть реализованы следующие функции безопасности:",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      },
+      {
+        "group": "hardRequirements",
+        "title": "В средстве контейнеризации дополнительно могут быть реализованы следующие функции безопасности:",
+        "description": "В средстве контейнеризации дополнительно могут быть реализованы следующие функции безопасности:",
+        "kind": "критерий",
+        "note": "Из технического задания"
+      }
+    ],
+    "documents": [
+      {
+        "label": "Архив проекта",
+        "href": "/assets/storage/projects/2026/05/2026-05-06-%D1%82%D0%B5%D1%81%D1%827/%D0%9D%D0%A2%D0%98-2035-02.04-20260506T092409Z-3-001.zip",
+        "kind": "archive",
+        "fileName": "НТИ-2035-02.04-20260506T092409Z-3-001.zip",
+        "path": "",
+        "group": "",
+        "documentId": ""
+      },
+      {
+        "kind": "normalized_markdown",
+        "group": "normalizedMarkdown",
+        "documentId": "doc-001",
+        "label": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+        "fileName": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+        "path": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-001.md",
+        "sourceFileName": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+        "sourcePath": "НТИ 2035 02.04/ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+        "status": "extracted",
+        "extraction": {
+          "method": "docx_xml",
+          "quality": "full",
+          "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-001.md",
+          "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+          "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-001.txt",
+          "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-001.txt"
+        }
+      },
+      {
+        "kind": "normalized_markdown",
+        "group": "normalizedMarkdown",
+        "documentId": "doc-002",
+        "label": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+        "fileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-002.md",
+        "path": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-002.md",
+        "sourceFileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+        "sourcePath": "НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+        "status": "extracted",
+        "extraction": {
+          "method": "docx_xml",
+          "quality": "full",
+          "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-002.md",
+          "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-002.md",
+          "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-002.txt",
+          "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-002.txt"
+        }
+      },
+      {
+        "kind": "normalized_markdown",
+        "group": "normalizedMarkdown",
+        "documentId": "doc-003",
+        "label": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+        "fileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-003.md",
+        "path": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-003.md",
+        "sourceFileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+        "sourcePath": "НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+        "status": "extracted",
+        "extraction": {
+          "method": "docx_xml",
+          "quality": "full",
+          "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-003.md",
+          "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-003.md",
+          "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-003.txt",
+          "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-003.txt"
+        }
+      },
+      {
+        "kind": "json_artifact",
+        "group": "jsonArtifacts",
+        "artifactKey": "inventoryJson",
+        "documentId": "artifact-inventoryJson",
+        "label": "inventory.json",
+        "fileName": "inventory.json",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/inventory.json",
+        "path": ""
+      },
+      {
+        "kind": "json_artifact",
+        "group": "jsonArtifacts",
+        "artifactKey": "documentsJson",
+        "documentId": "artifact-documentsJson",
+        "label": "documents.json",
+        "fileName": "documents.json",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/documents.json",
+        "path": ""
+      },
+      {
+        "kind": "json_artifact",
+        "group": "jsonArtifacts",
+        "artifactKey": "manifestJson",
+        "documentId": "artifact-manifestJson",
+        "label": "manifest.json",
+        "fileName": "manifest.json",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/manifest.json",
+        "path": ""
+      },
+      {
+        "kind": "json_artifact",
+        "group": "jsonArtifacts",
+        "artifactKey": "extractionReportJson",
+        "documentId": "artifact-extractionReportJson",
+        "label": "extraction-report.json",
+        "fileName": "extraction-report.json",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extraction-report.json",
+        "path": ""
+      },
+      {
+        "kind": "json_artifact",
+        "group": "jsonArtifacts",
+        "artifactKey": "legacyDocumentIndexJson",
+        "documentId": "artifact-legacyDocumentIndexJson",
+        "label": "document-index.json",
+        "fileName": "document-index.json",
+        "href": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/document-index.json",
+        "path": ""
+      },
+      {
+        "kind": "knowledge_html",
+        "group": "knowledgeArtifacts",
+        "artifactKey": "knowledgeIndexHtml",
+        "documentId": "artifact-knowledgeIndexHtml",
+        "label": "База знаний",
+        "fileName": "index.html",
+        "href": "/api/records/2026-05-06-%D1%82%D0%B5%D1%81%D1%827/extraction-artifacts/knowledgeIndexHtml",
+        "sourceHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/index.html",
+        "path": ""
+      }
+    ],
+    "workflow": {
+      "codingFile": "Не сформирован",
+      "bitrixTaskStatus": "Не создана",
+      "pageStatus": "Запись создана автоматически",
+      "projectFolder": "projects/2026/05/2026-05-06-тест7",
+      "codexRun": {
+        "status": "",
+        "method": "",
+        "runRoot": "",
+        "scriptPath": ""
+      },
+      "analysis": {
+        "status": "completed",
+        "service": "scoring-extractor",
+        "runId": "20260506-092434-2026-05-06-тест7-605cceb8",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized",
+        "documentIndex": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/document-index.json",
+        "manifest": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/manifest.json",
+        "extractionReport": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extraction-report.json",
+        "archive": null,
+        "artifacts": {
+          "inventoryJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/inventory.json",
+          "documentsJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/documents.json",
+          "manifestJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/manifest.json",
+          "extractionReportJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extraction-report.json",
+          "legacyDocumentIndexJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/document-index.json",
+          "knowledgeIndexHtml": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/index.html"
+        },
+        "documents": [
+          {
+            "documentId": "doc-001",
+            "sourcePath": "НТИ 2035 02.04/ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "sourceFileName": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "sourceFileUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extracted/НТИ 2035 02.04/ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "sourceMimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sourceSizeBytes": 650863,
+            "fileName": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "extension": ".docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sizeBytes": 650863,
+            "status": "extracted",
+            "extraction": {
+              "method": "docx_xml",
+              "quality": "full",
+              "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-001.md",
+              "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+              "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-001.txt",
+              "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-001.txt"
+            },
+            "normalizedMarkdownUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+            "generatedHtmlUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/doc-001.html",
+            "fallback": null
+          },
+          {
+            "documentId": "doc-002",
+            "sourcePath": "НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "sourceFileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "sourceFileUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extracted/НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "sourceMimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sourceSizeBytes": 736000,
+            "fileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "extension": ".docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sizeBytes": 736000,
+            "status": "extracted",
+            "extraction": {
+              "method": "docx_xml",
+              "quality": "full",
+              "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-002.md",
+              "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-002.md",
+              "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-002.txt",
+              "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-002.txt"
+            },
+            "normalizedMarkdownUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-002.md",
+            "generatedHtmlUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/doc-002.html",
+            "fallback": null
+          },
+          {
+            "documentId": "doc-003",
+            "sourcePath": "НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "sourceFileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "sourceFileUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extracted/НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "sourceMimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sourceSizeBytes": 19810,
+            "fileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "extension": ".docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sizeBytes": 19810,
+            "status": "extracted",
+            "extraction": {
+              "method": "docx_xml",
+              "quality": "full",
+              "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-003.md",
+              "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-003.md",
+              "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-003.txt",
+              "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-003.txt"
+            },
+            "normalizedMarkdownUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-003.md",
+            "generatedHtmlUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/doc-003.html",
+            "fallback": null
+          }
+        ],
+        "stages": [
+          {
+            "id": "unpack",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.352929+00:00",
+            "payload": {
+              "files": 3
+            }
+          },
+          {
+            "id": "inventory",
+            "name": "inventory",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.352941+00:00",
+            "payload": {
+              "inventoryJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/inventory.json"
+            }
+          },
+          {
+            "id": "extract",
+            "name": "extract",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.411020+00:00",
+            "payload": {
+              "documents": 3,
+              "extracted": 3,
+              "fallback": 0
+            }
+          },
+          {
+            "id": "normalize",
+            "name": "normalize",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.411028+00:00",
+            "payload": {
+              "documents": 3
+            }
+          }
+        ]
+      },
+      "extraction": {
+        "status": "completed",
+        "service": "scoring-extractor",
+        "version": "0.2",
+        "runId": "20260506-092434-2026-05-06-тест7-605cceb8",
+        "runRoot": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8",
+        "normalizedDir": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized",
+        "archive": {
+          "name": "НТИ-2035-02.04-20260506T092409Z-3-001.zip",
+          "sourcePath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\storage\\projects\\2026\\05\\2026-05-06-тест7\\НТИ-2035-02.04-20260506T092409Z-3-001.zip",
+          "href": "/assets/storage/projects/2026/05/2026-05-06-%D1%82%D0%B5%D1%81%D1%827/%D0%9D%D0%A2%D0%98-2035-02.04-20260506T092409Z-3-001.zip"
+        },
+        "artifacts": {
+          "inventoryJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/inventory.json",
+          "documentsJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/documents.json",
+          "manifestJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/manifest.json",
+          "extractionReportJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extraction-report.json",
+          "legacyDocumentIndexJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/document-index.json",
+          "knowledgeIndexHtml": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/index.html"
+        },
+        "documents": [
+          {
+            "documentId": "doc-001",
+            "sourcePath": "НТИ 2035 02.04/ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "sourceFileName": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "sourceFileUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extracted/НТИ 2035 02.04/ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "sourceMimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sourceSizeBytes": 650863,
+            "fileName": "ТЗ_на_развитие_ЦРК_БАС_24.03.docx",
+            "extension": ".docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sizeBytes": 650863,
+            "status": "extracted",
+            "extraction": {
+              "method": "docx_xml",
+              "quality": "full",
+              "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-001.md",
+              "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+              "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-001.txt",
+              "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-001.txt"
+            },
+            "normalizedMarkdownUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-001.md",
+            "generatedHtmlUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/doc-001.html",
+            "fallback": null
+          },
+          {
+            "documentId": "doc-002",
+            "sourcePath": "НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "sourceFileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "sourceFileUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extracted/НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "sourceMimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sourceSizeBytes": 736000,
+            "fileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ заполнена.docx",
+            "extension": ".docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sizeBytes": 736000,
+            "status": "extracted",
+            "extraction": {
+              "method": "docx_xml",
+              "quality": "full",
+              "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-002.md",
+              "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-002.md",
+              "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-002.txt",
+              "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-002.txt"
+            },
+            "normalizedMarkdownUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-002.md",
+            "generatedHtmlUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/doc-002.html",
+            "fallback": null
+          },
+          {
+            "documentId": "doc-003",
+            "sourcePath": "НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "sourceFileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "sourceFileUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/extracted/НТИ 2035 02.04/ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "sourceMimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sourceSizeBytes": 19810,
+            "fileName": "ФОРМА_ПРЕДЛОЖЕНИЯ_О_ЦЕНЕ.docx",
+            "extension": ".docx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "sizeBytes": 19810,
+            "status": "extracted",
+            "extraction": {
+              "method": "docx_xml",
+              "quality": "full",
+              "markdownPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\normalized\\doc-003.md",
+              "markdownHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-003.md",
+              "textPath": "C:\\Users\\illki\\Desktop\\projects\\scoring\\artifacts\\scoring-extractor\\runs\\20260506-092434-2026-05-06-тест7-605cceb8\\text\\doc-003.txt",
+              "textHref": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/text/doc-003.txt"
+            },
+            "normalizedMarkdownUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/normalized/doc-003.md",
+            "generatedHtmlUrl": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/knowledge/doc-003.html",
+            "fallback": null
+          }
+        ],
+        "report": {
+          "generatedAt": "2026-05-06T09:24:34.456150+00:00",
+          "summary": {
+            "totalDocuments": 3,
+            "extractedDocuments": 3,
+            "fallbackRequiredDocuments": 0
+          },
+          "fallbacks": []
+        },
+        "stages": [
+          {
+            "id": "unpack",
+            "name": "unpack",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.352929+00:00",
+            "payload": {
+              "files": 3
+            }
+          },
+          {
+            "id": "inventory",
+            "name": "inventory",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.352941+00:00",
+            "payload": {
+              "inventoryJson": "http://127.0.0.1:4200/artifacts/20260506-092434-2026-05-06-тест7-605cceb8/inventory.json"
+            }
+          },
+          {
+            "id": "extract",
+            "name": "extract",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.411020+00:00",
+            "payload": {
+              "documents": 3,
+              "extracted": 3,
+              "fallback": 0
+            }
+          },
+          {
+            "id": "normalize",
+            "name": "normalize",
+            "status": "completed",
+            "at": "2026-05-06T09:24:34.411028+00:00",
+            "payload": {
+              "documents": 3
+            }
+          }
+        ]
+      }
+    },
+    "analysis": null,
     "description": "",
     "contractor": ""
   }

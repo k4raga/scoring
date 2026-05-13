@@ -6,7 +6,7 @@
 
 - считать `C:\Users\illki\Desktop\projects\scoring` полным проектным контуром;
 - не расширять анализ на родительский `projects/`-root, если пользователь явно об этом не просил;
-- не переносить сюда runtime-логику `Watson`, структуру `estimate` или архитектуру других проектов.
+- не переносить сюда runtime-логику, структуру `estimate` или архитектуру других проектов.
 
 ## Постоянный состав команды
 
@@ -125,9 +125,27 @@
 Этот контур опирается на следующие файлы:
 
 - `AGENT-LOOP.md`
+- `backlog.config.yml`
+- `.codex-workflow/sprint-2026-05-12.md`
+- `.codex-workflow/backlog/tasks/`
 - `.codex-workflow/team-policy.md`
 - `.codex-workflow/task-board.md`
 - `.codex-workflow/test-scenarios.md`
+
+## Sprint/task source of truth
+
+- текущий sprint/task backlog ведется через Backlog.md;
+- Markdown-задачи лежат в `.codex-workflow/backlog/tasks/`;
+- web UI запускается командой `backlog browser --no-open --port 6420`;
+- перед началом цикла manager читает sprint-файл и только выбранную задачу через `backlog task view TASK-N --plain`;
+- `.codex-workflow/task-board.md` считать историческим/координационным документом, а не главным источником текущих sprint-задач.
+
+## Язык workflow-артефактов
+
+- все содержательные workflow-артефакты проекта писать на русском языке;
+- это относится к Backlog.md-задачам, sprint-документам, OpenSpec `proposal.md`, `design.md`, `tasks.md`, `spec.md`, acceptance criteria, handoff и QA-отчетам;
+- английские служебные заголовки, delta-маркеры и ключевые слова OpenSpec (`ADDED Requirements`, `Requirement`, `Scenario`, `SHALL`, `WHEN`, `THEN` и близкие) допустимы только там, где они нужны для корректной работы OpenSpec CLI или принятого формата;
+- если агент создает черновик по предположениям, он должен явно пометить это по-русски как несогласованный draft и не подавать его как финальную спецификацию.
 
 ## Текущее правило для scoring
 

@@ -6,6 +6,7 @@ import {
   buildEditorSchema,
   buildLegacyCriteriaGroups,
   normalizeCriteriaRows,
+  normalizeSelectionCriteriaRows,
   normalizePurchaseBy,
   normalizeYesNo
 } from "./record-schema.js";
@@ -23,7 +24,9 @@ function normalizeRecord(record) {
   const documents = normalizeDocuments(record.documents);
   const archiveDocument = documents.find((document) => document.kind === "archive") || documents[0] || null;
   const documentArtifacts = buildDocumentArtifacts(record, documents, archiveDocument);
+  const documentWiki = normalizeDocumentWikiConfig(record.documentWiki);
   const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
+  const selectionCriteriaRows = normalizeSelectionCriteriaRows(record.selectionCriteriaRows ?? record.selectionCriteria);
   const uploadSummary = normalizeUploadSummary(record.summary, archiveDocument?.fileName);
   const notes = normalizeDisplayText(normalizeUploadSummary(record.notes, archiveDocument?.fileName)) || uploadSummary;
   const summary = uploadSummary || notes || "Описание пока не заполнено.";
@@ -77,8 +80,10 @@ function normalizeRecord(record) {
     summary,
     criteriaRows,
     criteria: buildLegacyCriteriaGroups(criteriaRows),
+    selectionCriteriaRows,
     documents,
     documentArtifacts,
+    documentWiki,
     workflow: {
       codingFile: normalizeText(record.workflow?.codingFile) || "Не сформирован",
       bitrixTaskStatus: normalizeText(record.workflow?.bitrixTaskStatus) || "Не создана",
@@ -103,6 +108,7 @@ function normalizeRecord(record) {
 
   return {
     ...normalizedBase,
+    documentBlocks: buildDocumentBlocks(normalizedBase),
     editableSections: buildEditableSections(normalizedBase),
     editorSchema,
     excelSections: buildExcelSections(normalizedBase)
@@ -183,6 +189,7 @@ export function saveRecords(records) {
       editableSections,
       editorSchema,
       documentArtifacts,
+      documentBlocks,
       criteria,
       ...rest
     } = normalizeRecord(record);
@@ -378,8 +385,8 @@ export function getCurrentMonthDashboard(records, now = new Date()) {
 }
 
 function buildExcelSections(record) {
-  const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
-  const criteriaGroups = groupCriteriaRows(criteriaRows);
+  const selectionCriteriaRows = normalizeSelectionCriteriaRows(record.selectionCriteriaRows);
+  const selectionCriteriaGroups = groupSelectionCriteriaRows(selectionCriteriaRows);
 
   return [
     {
@@ -425,36 +432,36 @@ function buildExcelSections(record) {
     },
     {
       id: "criteria",
-      title: "Критерии выбора подрядчика",
+      title: "Критерии выбора",
       groups:
-        criteriaGroups.length > 0
-          ? criteriaGroups
+        selectionCriteriaGroups.length > 0
+          ? selectionCriteriaGroups
           : [
-              { title: "Ценовые", rows: [row("Ценовые", "-")] },
-              { title: "Неценовые", rows: [row("Неценовые", "-")] },
-              { title: "Требования без веса", rows: [row("Требования без веса", "-")] }
+              { title: "Ценовые критерии", rows: [row("Ценовые критерии", "Не заполнено")] },
+              { title: "Неценовые критерии", rows: [row("Неценовые критерии", "Не заполнено")] },
+              { title: "Дополнительные требования", rows: [row("Дополнительные требования", "Не заполнено")] }
             ]
     }
   ];
 }
 
-function groupCriteriaRows(criteriaRows) {
+function groupSelectionCriteriaRows(selectionCriteriaRows) {
   const groups = new Map([
-    ["price", { title: "Ценовые", rows: [] }],
-    ["nonPrice", { title: "Неценовые", rows: [] }],
-    ["hardRequirements", { title: "Требования без веса", rows: [] }]
+    ["price", { title: "Ценовые критерии", rows: [] }],
+    ["nonPrice", { title: "Неценовые критерии", rows: [] }],
+    ["requirement", { title: "Дополнительные требования", rows: [] }]
   ]);
 
-  for (const criteriaRow of criteriaRows) {
-    const groupKey = normalizeGroupKey(criteriaRow.group);
-    const group = groups.get(groupKey) || groups.get("nonPrice");
+  for (const criteriaRow of selectionCriteriaRows) {
+    const group = groups.get(criteriaRow.group) || groups.get("nonPrice");
     group.rows.push(
       row(
         criteriaRow.title || "Без названия",
         [
-          criteriaRow.kind ? `Тип: ${criteriaRow.kind}` : "",
-          criteriaRow.description ? `Основание: ${criteriaRow.description}` : "",
-          criteriaRow.note ? `Комментарий: ${criteriaRow.note}` : ""
+          criteriaRow.weightPercent !== null && criteriaRow.weightPercent !== undefined ? `Вес: ${criteriaRow.weightPercent}%` : "",
+          criteriaRow.coverageStatus ? `Закрытие: ${formatCoverageStatus(criteriaRow.coverageStatus)}` : "",
+          criteriaRow.coverageNote ? `Пояснение: ${criteriaRow.coverageNote}` : "",
+          criteriaRow.sourceExcerpt ? `Источник: ${criteriaRow.sourceExcerpt}` : ""
         ]
           .filter(Boolean)
           .join(" • ") || "-"
@@ -464,17 +471,8 @@ function groupCriteriaRows(criteriaRows) {
 
   return [...groups.values()].map((group) => ({
     title: group.title,
-    rows: group.rows.length ? group.rows : [row(group.title, "-")]
+    rows: group.rows.length ? group.rows : [row(group.title, "Не заполнено")]
   }));
-}
-
-function normalizeGroupKey(value) {
-  const text = normalizeText(value);
-  if (text === "price" || text === "nonPrice" || text === "hardRequirements") {
-    return text;
-  }
-
-  return "nonPrice";
 }
 
 function formatYesNo(value) {
@@ -487,6 +485,16 @@ function formatYesNo(value) {
   }
 
   return "-";
+}
+
+function formatCoverageStatus(value) {
+  const labels = {
+    full: "Полностью закрываем",
+    partial: "Частично закрываем",
+    none: "Не закрываем"
+  };
+
+  return labels[value] || value || "-";
 }
 
 function row(label, value) {
@@ -564,6 +572,10 @@ function buildDocumentArtifacts(record, documents, archiveDocument) {
     ...extractMarkdownDocuments(extraction),
     ...extractMarkdownDocuments(analysis)
   ]);
+  const originalDocuments = uniqueArtifacts([
+    ...extractOriginalDocuments(extraction),
+    ...extractOriginalDocuments(analysis)
+  ]);
   const jsonArtifacts = uniqueArtifacts([
     ...documents.filter((document) => document.kind === "json_artifact" || document.group === "jsonArtifacts"),
     ...extractJsonArtifacts(extraction),
@@ -580,17 +592,35 @@ function buildDocumentArtifacts(record, documents, archiveDocument) {
     ...extractFallbackDocuments(analysis)
   ]);
   const legacyUploaded = uniqueArtifacts(documents.filter((document) => {
-    return !["archive", "normalized_markdown", "json_artifact", "fallback_document"].includes(document.kind);
+    return !["archive", "source_document", "normalized_markdown", "json_artifact", "knowledge_html", "fallback_document"].includes(document.kind);
   }));
 
   return {
     sourceArchives,
+    originalDocuments,
     normalizedMarkdown,
     jsonArtifacts,
     knowledgeArtifacts,
     fallbackDocuments,
     legacyUploaded
   };
+}
+
+function extractOriginalDocuments(source) {
+  return (Array.isArray(source?.documents) ? source.documents : [])
+    .filter((document) => normalizeText(document?.sourceFileUrl || document?.href))
+    .map((document) => ({
+      kind: "source_document",
+      group: "sourceDocuments",
+      documentId: normalizeText(document.documentId || document.id),
+      label: normalizeText(document.sourceFileName || document.fileName || document.name || document.documentId || document.id),
+      fileName: normalizeText(document.sourceFileName || document.fileName || document.name),
+      href: normalizeText(document.sourceFileUrl || document.href),
+      sourcePath: normalizeText(document.sourcePath || document.relativePath),
+      mimeType: normalizeText(document.sourceMimeType || document.mimeType),
+      sizeBytes: Number(document.sourceSizeBytes || document.sizeBytes || 0),
+      status: normalizeText(document.status)
+    }));
 }
 
 function uniqueArtifacts(items) {
@@ -602,7 +632,7 @@ function uniqueArtifacts(items) {
       continue;
     }
 
-    const key = normalizeText(item.documentId) || normalizeText(item.href) || normalizeText(item.path) || normalizeText(item.fileName) || normalizeText(item.label);
+    const key = normalizeText(item.href) || normalizeText(item.path) || normalizeText(item.documentId) || normalizeText(item.fileName) || normalizeText(item.label);
 
     if (!key || seen.has(key)) {
       continue;
@@ -613,6 +643,214 @@ function uniqueArtifacts(items) {
   }
 
   return result;
+}
+
+function normalizeDocumentWikiConfig(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const overridesSource = source.overrides && typeof source.overrides === "object" && !Array.isArray(source.overrides)
+    ? source.overrides
+    : {};
+  const overrides = {};
+
+  for (const [blockId, override] of Object.entries(overridesSource)) {
+    if (!override || typeof override !== "object" || Array.isArray(override)) {
+      continue;
+    }
+
+    const normalizedBlockId = normalizeText(blockId);
+
+    if (!normalizedBlockId) {
+      continue;
+    }
+
+    overrides[normalizedBlockId] = {
+      title: normalizeText(override.title),
+      visible: override.visible === false ? false : true,
+      order: Number.isFinite(Number(override.order)) ? Number(override.order) : null
+    };
+  }
+
+  const manualBlocks = (Array.isArray(source.manualBlocks) ? source.manualBlocks : [])
+    .filter((block) => block && typeof block === "object" && !Array.isArray(block))
+    .map((block, index) => ({
+      id: normalizeText(block.id) || `manual-${index + 1}`,
+      type: normalizeDocumentBlockType(block.type, "manual"),
+      title: normalizeText(block.title) || "Ручной блок",
+      href: normalizeText(block.href),
+      body: normalizeText(block.body),
+      visible: block.visible === false ? false : true,
+      order: Number.isFinite(Number(block.order)) ? Number(block.order) : 1000 + index
+    }));
+
+  return {
+    version: 1,
+    overrides,
+    manualBlocks
+  };
+}
+
+function buildDocumentBlocks(record) {
+  const documentWiki = normalizeDocumentWikiConfig(record.documentWiki);
+  const artifacts = record.documentArtifacts && typeof record.documentArtifacts === "object" ? record.documentArtifacts : {};
+  const generatedBlocks = [
+    ...buildGeneratedBlocks(artifacts.sourceArchives, "source", "Исходный архив", 100),
+    ...buildGeneratedBlocks(artifacts.originalDocuments, "source", "Оригинал документа", 200, record.id),
+    ...buildGeneratedBlocks(artifacts.knowledgeArtifacts, "wiki", "База знаний", 300),
+    ...buildGeneratedBlocks(artifacts.normalizedMarkdown, "wiki", "Wiki/MD документ", 400, record.id),
+    ...buildGeneratedBlocks(artifacts.fallbackDocuments, "fallback", "Требуется fallback", 700),
+    ...buildGeneratedBlocks(artifacts.legacyUploaded, "source", "Загруженный файл", 800),
+    ...buildGeneratedBlocks(artifacts.jsonArtifacts, "diagnostic", "Служебный артефакт", 900)
+  ];
+  const blocks = [
+    ...generatedBlocks.map((block) => applyDocumentBlockOverride(block, documentWiki.overrides[block.id])),
+    ...documentWiki.manualBlocks.map((block) => ({
+      id: block.id,
+      source: "manual",
+      type: normalizeDocumentBlockType(block.type, "manual"),
+      title: block.title,
+      subtitle: block.body ? "Ручная заметка" : "Ручная ссылка",
+      href: block.href,
+      body: block.body,
+      visible: block.visible,
+      order: block.order,
+      editable: true,
+      removable: true
+    }))
+  ].sort((left, right) => left.order - right.order || left.title.localeCompare(right.title, "ru-RU"));
+
+  return {
+    version: 1,
+    knowledgeBase: {
+      target: "Quartz",
+      renderer: "quartz-compatible",
+      projectId: normalizeText(record.id),
+      projectTitle: normalizeText(record.projectTitle || record.title || record.id),
+      publishPath: buildKnowledgePublishPath(record)
+    },
+    blocks,
+    groups: groupDocumentBlocks(blocks)
+  };
+}
+
+function buildGeneratedBlocks(items, type, fallbackTitle, baseOrder, recordId = "") {
+  return (Array.isArray(items) ? items : []).map((item, index) => {
+    const documentId = normalizeText(item.documentId || item.artifactKey || item.id);
+    const href = normalizeText(item.href || item.sourceHref);
+    const blockId = buildDocumentBlockId(type, item, index);
+    const title = normalizeText(item.label || item.sourceFileName || item.fileName || item.artifactKey) || fallbackTitle;
+    const route = type === "wiki" && documentId && item.kind === "normalized_markdown" && recordId
+      ? `/records/${encodeURIComponent(recordId)}/documents/${encodeURIComponent(documentId)}`
+      : type === "source" && documentId && item.kind === "source_document" && recordId
+        ? `/api/records/${encodeURIComponent(recordId)}/source-documents/${encodeURIComponent(documentId)}`
+        : "";
+
+    return {
+      id: blockId,
+      source: "generated",
+      type: normalizeDocumentBlockType(type, "source"),
+      title,
+      subtitle: buildDocumentBlockSubtitle(item, type),
+      href,
+      route,
+      body: "",
+      visible: true,
+      order: baseOrder + index,
+      editable: true,
+      removable: false,
+      documentId,
+      artifactKey: normalizeText(item.artifactKey),
+      fileName: normalizeText(item.fileName || item.sourceFileName),
+      sourcePath: normalizeText(item.sourcePath),
+      sourceDocument: item
+    };
+  });
+}
+
+function applyDocumentBlockOverride(block, override) {
+  if (!override) {
+    return block;
+  }
+
+  return {
+    ...block,
+    title: normalizeText(override.title) || block.title,
+    visible: override.visible === false ? false : true,
+    order: Number.isFinite(Number(override.order)) ? Number(override.order) : block.order
+  };
+}
+
+function buildDocumentBlockId(type, item, index) {
+  const sourceKey =
+    normalizeText(item.documentId) ||
+    normalizeText(item.artifactKey) ||
+    normalizeText(item.href) ||
+    normalizeText(item.path) ||
+    normalizeText(item.fileName) ||
+    normalizeText(item.label) ||
+    String(index + 1);
+
+  return `${normalizeDocumentBlockType(type, "source")}:${sourceKey}`;
+}
+
+function buildDocumentBlockSubtitle(item, type) {
+  if (type === "diagnostic") {
+    return normalizeText(item.artifactKey || item.fileName || "Диагностика");
+  }
+
+  if (type === "fallback") {
+    const fallback = item.fallback && typeof item.fallback === "object" ? item.fallback : {};
+    return [normalizeText(item.status), normalizeText(fallback.reason || fallback.suggestedPipeline)].filter(Boolean).join(" · ");
+  }
+
+  if (type === "wiki") {
+    return normalizeText(item.sourceFileName || item.fileName || item.status || "Markdown");
+  }
+
+  return normalizeText(item.sourcePath || item.fileName || item.mimeType);
+}
+
+function groupDocumentBlocks(blocks) {
+  const labels = {
+    source: "Оригиналы",
+    wiki: "Wiki / MD",
+    manual: "Ручные блоки",
+    fallback: "Требуется fallback",
+    diagnostic: "Диагностика"
+  };
+  const groups = {};
+
+  for (const block of blocks) {
+    const type = normalizeDocumentBlockType(block.type, "source");
+
+    if (!groups[type]) {
+      groups[type] = {
+        id: type,
+        title: labels[type] || type,
+        blocks: []
+      };
+    }
+
+    groups[type].blocks.push(block);
+  }
+
+  return Object.values(groups);
+}
+
+function normalizeDocumentBlockType(value, fallback) {
+  const normalized = normalizeText(value);
+
+  if (["source", "wiki", "manual", "fallback", "diagnostic"].includes(normalized)) {
+    return normalized;
+  }
+
+  return fallback;
+}
+
+function buildKnowledgePublishPath(record) {
+  const year = normalizeText(record.year);
+  const month = String(record.month || "").padStart(2, "0");
+  const slug = slugify(record.projectTitle || record.title || record.id || "project");
+  return ["projects", year, month, slug].filter(Boolean).join("/");
 }
 
 function extractMarkdownDocuments(source) {

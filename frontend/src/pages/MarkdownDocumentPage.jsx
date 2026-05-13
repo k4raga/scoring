@@ -92,6 +92,12 @@ export default function MarkdownDocumentPage() {
               <dd>{document.extraction?.method || "нет информации"}</dd>
             </div>
           </dl>
+
+          {document.sourceFileUrl ? (
+            <a className="markdown-source-link" href={document.sourceFileUrl} rel="noreferrer" target="_blank">
+              Открыть оригинал
+            </a>
+          ) : null}
         </section>
 
         <article className="markdown-document">
@@ -186,10 +192,26 @@ function renderMarkdown(markdown) {
       continue;
     }
 
+    if (/^\s*\d+[.)]\s+/u.test(line)) {
+      const items = [];
+
+      while (index < lines.length && /^\s*\d+[.)]\s+/u.test(lines[index])) {
+        items.push(lines[index].replace(/^\s*\d+[.)]\s+/u, ""));
+        index += 1;
+      }
+
+      blocks.push(
+        <ol key={`ordered-list-${index}`}>
+          {items.map((item, itemIndex) => <li key={`${item}-${itemIndex}`}>{item}</li>)}
+        </ol>
+      );
+      continue;
+    }
+
     const paragraph = [line.trim()];
     index += 1;
 
-    while (index < lines.length && lines[index].trim() && !/^(#{1,4})\s+/u.test(lines[index]) && !isTableStart(lines, index) && !/^\s*[-*]\s+/u.test(lines[index])) {
+    while (index < lines.length && lines[index].trim() && !/^(#{1,4})\s+/u.test(lines[index]) && !isTableStart(lines, index) && !/^\s*[-*]\s+/u.test(lines[index]) && !/^\s*\d+[.)]\s+/u.test(lines[index])) {
       paragraph.push(lines[index].trim());
       index += 1;
     }

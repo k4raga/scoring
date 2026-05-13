@@ -88,6 +88,72 @@ class ExtractorServiceTests(unittest.TestCase):
         self.assertIn("Начальная максимальная цена договора", text)
         self.assertIn("25416000.00", text)
 
+    def test_extract_docx_text_preserves_tables_and_numbering_spacing(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            docx_path = Path(temp_dir) / "spec.docx"
+            with zipfile.ZipFile(docx_path, "w") as docx:
+                docx.writestr(
+                    "word/document.xml",
+                    """<?xml version="1.0" encoding="UTF-8"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p><w:r><w:t>2.1.Постановка задачи</w:t></w:r></w:p>
+    <w:tbl>
+      <w:tr>
+        <w:tc><w:p><w:r><w:t>Термин</w:t></w:r></w:p></w:tc>
+        <w:tc><w:p><w:r><w:t>Определение</w:t></w:r></w:p></w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc><w:p><w:r><w:t>API</w:t></w:r></w:p></w:tc>
+        <w:tc><w:p><w:r><w:t>Интерфейс обмена</w:t></w:r></w:p></w:tc>
+      </w:tr>
+    </w:tbl>
+  </w:body>
+</w:document>""",
+                )
+
+            text = server.extract_docx_text(docx_path)
+            md = server.normalize_markdown_body(
+                text,
+                {"name": "spec.docx", "relativePath": "spec.docx"},
+                {"extraction": {"method": "docx_xml", "quality": "full"}},
+            )
+
+        self.assertIn("2.1.Постановка задачи", text)
+        self.assertIn("Термин | Определение", text)
+        self.assertIn("### 2.1 Постановка задачи", md)
+        self.assertIn("| Термин | Определение |", md)
+
+    def test_build_md_document_normalizes_human_readable_structure(self):
+        md = server.build_md_document(
+            "doc-001",
+            {
+                "name": "Техническое_задание.docx",
+                "relativePath": "docs/Техническое_задание.docx",
+                "extension": ".docx",
+                "sizeBytes": 120,
+            },
+            "\n".join(
+                [
+                    "ТЕХНИЧЕСКОЕ ЗАДАНИЕ",
+                    "1. Общие положения",
+                    "- выполнить аудит",
+                    "- подготовить отчет",
+                    "Этап | Срок | Результат",
+                    "Аудит | 5 дней | Отчет",
+                ]
+            ),
+            {"extraction": {"method": "docx_xml", "quality": "full"}},
+        )
+
+        self.assertIn("# Техническое задание", md)
+        self.assertIn("## Сведения об извлечении", md)
+        self.assertIn("### ТЕХНИЧЕСКОЕ ЗАДАНИЕ", md)
+        self.assertIn("### 1 Общие положения", md)
+        self.assertIn("- выполнить аудит", md)
+        self.assertIn("| Этап | Срок | Результат |", md)
+        self.assertIn("| --- | --- | --- |", md)
+
     def test_extract_archive_generates_static_knowledge_html_with_source_links_and_fallback(self):
         original_runs_root = server.RUNS_ROOT
 
@@ -205,7 +271,7 @@ class ExtractorServiceTests(unittest.TestCase):
                     "doc-003",
                     "Требования к работам.docx",
                     "technical_specification",
-                    "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»\nСрок выполнения работ\nне более 6 месяцев",
+                    "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»\nСрок выполнения работ\nне более 6 месяцев\nДолжны быть реализованы интеграции с внутренними системами заказчика.",
                 ),
             ]
 
@@ -224,6 +290,13 @@ class ExtractorServiceTests(unittest.TestCase):
         self.assertEqual(patch["applicationSecurity"], "508 320,00 рублей")
         self.assertEqual(patch["contractSecurity"], "5% от НМЦ (25 416 000,00 руб.)")
         self.assertEqual(fields["general"]["deadlineAt"], "2026-05-06T10:00:00+03:00")
+        self.assertNotIn("criteriaRows", patch)
+        self.assertEqual(patch["selectionCriteriaRows"][0]["order"], 1)
+        self.assertEqual(patch["selectionCriteriaRows"][0]["group"], "requirement")
+        self.assertIsNone(patch["selectionCriteriaRows"][0]["weightPercent"])
+        self.assertEqual(patch["selectionCriteriaRows"][0]["coverageStatus"], "partial")
+        self.assertIn("интеграции", patch["selectionCriteriaRows"][0]["sourceExcerpt"])
+        self.assertIn("selectionCriteriaRows", fields["tender"])
 
     def test_build_record_patch_extracts_eapo_notice_values(self):
         with tempfile.TemporaryDirectory() as temp_dir:

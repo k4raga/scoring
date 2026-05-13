@@ -1,4 +1,4 @@
-import { normalizeCriteriaRows } from "./record-schema.js";
+import { normalizeCriteriaRows, normalizeSelectionCriteriaRows } from "./record-schema.js";
 
 export function applyRecordPatch(existingRecord, patch) {
   const hasOwn = (key) => Object.prototype.hasOwnProperty.call(patch, key);
@@ -7,6 +7,13 @@ export function applyRecordPatch(existingRecord, patch) {
       ? patch.criteriaRows ?? patch.criteria
       : undefined;
   const criteriaRows = criteriaSource !== undefined ? normalizeCriteriaRows(criteriaSource) : undefined;
+  const selectionCriteriaSource =
+    patch.selectionCriteriaRows !== undefined || patch.selectionCriteria !== undefined
+      ? patch.selectionCriteriaRows ?? patch.selectionCriteria
+      : undefined;
+  const selectionCriteriaRows = selectionCriteriaSource !== undefined
+    ? normalizeSelectionCriteriaRows(selectionCriteriaSource, { requireCoverage: true })
+    : undefined;
   const nextRecord = {
     ...existingRecord,
     projectTitle: patch.projectTitle ?? existingRecord.projectTitle,
@@ -37,7 +44,11 @@ export function applyRecordPatch(existingRecord, patch) {
     criteriaDocumentUrl: patch.criteriaDocumentUrl ?? existingRecord.criteriaDocumentUrl,
     technicalSpecificationUrl: patch.technicalSpecificationUrl ?? existingRecord.technicalSpecificationUrl,
     criteriaRows: criteriaRows ?? existingRecord.criteriaRows,
-    documents: Array.isArray(patch.documents) ? patch.documents : existingRecord.documents
+    selectionCriteriaRows: selectionCriteriaRows ?? existingRecord.selectionCriteriaRows,
+    documents: Array.isArray(patch.documents) ? patch.documents : existingRecord.documents,
+    documentWiki: patch.documentWiki && typeof patch.documentWiki === "object" && !Array.isArray(patch.documentWiki)
+      ? patch.documentWiki
+      : existingRecord.documentWiki
   };
 
   if (patch.workflow && typeof patch.workflow === "object") {

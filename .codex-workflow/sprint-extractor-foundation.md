@@ -1052,3 +1052,60 @@ Residual risks:
 - A second isolated upload smoke attempt after manager fixes hit the same Windows `PermissionDenied`; live backend on `4100` was not used for upload smoke to avoid mutating `backend/data/coding-records.json`.
 - Worker-level isolated upload/API smoke for Task 3 passed without touching `backend/data/coding-records.json`.
 - RC deploy/smoke is still blocked by GitLab default-branch issue, RC DNS and absent `DOKPLOY_TOKEN`.
+
+## Acceptance Feedback / Corrections
+
+### 2026-05-06: Normalized Documents UX Correction
+
+User feedback from local test project `2026-05-06-тест7`:
+
+```text
+В блоке "Документы и ссылки" нормализованные документы должны создаваться по форме и по смыслу.
+Ссылки должны вести на отдельные страницы.
+Текущий normalized document выглядит как огромный набор технических данных, а не как удобный неструктурированный документ.
+```
+
+Required correction:
+
+1. В `Документы и ссылки` показывать не технический dump artifacts, а понятные пользовательские документные сущности:
+   - исходный архив;
+   - оригинальные документы из архива;
+   - нормализованные документы;
+   - база знаний;
+   - fallback-required файлы;
+   - служебные JSON только как диагностический блок, не как основной пользовательский сценарий.
+
+2. Каждая ссылка в `Документы и ссылки` должна вести на отдельную осмысленную страницу:
+   - source archive / original file page или download/open action;
+   - normalized document viewer page;
+   - knowledge base page;
+   - fallback document state page;
+   - JSON diagnostic page только для технического просмотра.
+
+3. Normalized document viewer должен быть человекочитаемым:
+   - скрывать или визуально отделять frontmatter/metadata;
+   - не показывать служебный JSON как основной контент;
+   - показывать название исходного файла, статус extraction, метод, fallback warning;
+   - показывать сам текст документа как нормальный читаемый документ;
+   - таблицы и списки должны выглядеть как таблицы и списки;
+   - длинный извлеченный текст должен быть разделен на логические блоки, если это возможно без бизнес-анализа.
+
+4. Название `Нормализованные документы` в UI должно означать:
+
+```text
+человекочитаемая версия исходного документа после технического извлечения текста,
+а не финальный бизнес-анализ и не сырой технический manifest.
+```
+
+5. Extractor по-прежнему не принимает решений:
+   - он может структурировать документ по технической форме Markdown;
+   - он не должен определять бизнес-смысл, победителей, риски или заполнять scoring-поля.
+
+6. Acceptance for next correction pass:
+   - загрузить новый тестовый архив;
+   - открыть карточку проекта;
+   - в `Документы и ссылки` увидеть нормализованные документы как отдельные документы, а не набор служебных файлов;
+   - открыть normalized document link;
+   - увидеть читаемую страницу документа без ощущения "огромного набора данных";
+   - открыть knowledge base link;
+   - проверить, что оригиналы документов не потеряны.

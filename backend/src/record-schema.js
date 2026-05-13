@@ -9,6 +9,18 @@ const CRITERIA_GROUP_OPTIONS = [
   { value: "hardRequirements", label: "Требования без веса" }
 ];
 
+const SELECTION_CRITERIA_GROUP_OPTIONS = [
+  { value: "price", label: "Ценовой критерий" },
+  { value: "nonPrice", label: "Неценовой критерий" },
+  { value: "requirement", label: "Дополнительное требование" }
+];
+
+const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
+  { value: "full", label: "Полностью закрываем" },
+  { value: "partial", label: "Частично закрываем" },
+  { value: "none", label: "Не закрываем" }
+];
+
 const CRITERIA_KIND_OPTIONS = [
   { value: "основной", label: "основной" },
   { value: "критерий", label: "критерий" },
@@ -82,22 +94,13 @@ const CRITERIA_ROW_SCHEMA = [
 ];
 
 export function buildEditorSchema(record) {
-  const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
-
   return {
-    sections: [
-      ...EDITOR_SECTIONS.map((section) => ({
-        ...section,
-        fields: section.fields.map((item) => withValue(item, record))
-      })),
-      {
-        id: "criteria",
-        title: "Критерии выбора подрядчика",
-        rowSchema: CRITERIA_ROW_SCHEMA,
-        rows: criteriaRows
-      }
-    ],
-    criteriaRowSchema: CRITERIA_ROW_SCHEMA
+    sections: EDITOR_SECTIONS.map((section) => ({
+      ...section,
+      fields: section.fields.map((item) => withValue(item, record))
+    })),
+    criteriaRowSchema: CRITERIA_ROW_SCHEMA,
+    selectionCriteriaRowSchema: buildSelectionCriteriaRowSchema()
   };
 }
 
@@ -115,6 +118,46 @@ export function getCriteriaKindOptions() {
 
 export function getCriteriaGroupOptions() {
   return CRITERIA_GROUP_OPTIONS;
+}
+
+export function buildSelectionCriteriaRowSchema() {
+  return [
+    field("group", "Группа", "select", { options: SELECTION_CRITERIA_GROUP_OPTIONS }),
+    field("title", "Критерий / требование", "text"),
+    field("weightPercent", "Вес, %", "number"),
+    field("coverageStatus", "Закрытие", "select", { options: SELECTION_CRITERIA_COVERAGE_OPTIONS }),
+    field("coverageNote", "Как закрываем", "textarea"),
+    field("sourceExcerpt", "Источник / выдержка", "textarea")
+  ];
+}
+
+export function getSelectionCriteriaGroupOptions() {
+  return SELECTION_CRITERIA_GROUP_OPTIONS;
+}
+
+export function getSelectionCriteriaCoverageOptions() {
+  return SELECTION_CRITERIA_COVERAGE_OPTIONS;
+}
+
+export function normalizeSelectionCriteriaRows(input, options = {}) {
+  const source = Array.isArray(input)
+    ? input
+    : Array.isArray(input?.rows)
+      ? input.rows
+      : [];
+  const rows = [];
+
+  for (const [index, row] of source.entries()) {
+    const normalized = normalizeSelectionCriteriaRow(row, index, options);
+
+    if (normalized) {
+      rows.push(normalized);
+    }
+  }
+
+  return rows
+    .sort((left, right) => left.order - right.order)
+    .map((row, index) => ({ ...row, order: index + 1 }));
 }
 
 export function normalizeCriteriaRows(input) {
@@ -254,6 +297,98 @@ function normalizeCriteriaRow(row, fallbackGroup = "nonPrice") {
     kind,
     note
   };
+}
+
+function normalizeSelectionCriteriaRow(row, index, options) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return null;
+  }
+
+  const title = String(row.title ?? row.name ?? row.label ?? "").trim();
+  const coverageNote = String(row.coverageNote ?? row.note ?? row.description ?? "").trim();
+  const sourceExcerpt = String(row.sourceExcerpt ?? row.source ?? row.sourceText ?? "").trim();
+  const weightPercent = normalizeWeightPercent(row.weightPercent ?? row.weight ?? row.weightPct);
+  const hasContent = Boolean(title || coverageNote || sourceExcerpt || weightPercent !== null);
+
+  if (!hasContent) {
+    return null;
+  }
+
+  const coverageStatus = normalizeCoverageStatus(row.coverageStatus ?? row.coverage ?? row.status);
+  const group = normalizeSelectionCriteriaGroup(row.group ?? row.type ?? row.kind);
+
+  if (options.requireCoverage && !coverageStatus) {
+    const error = new Error("selection_criteria_coverage_required");
+    error.code = "selection_criteria_coverage_required";
+    throw error;
+  }
+
+  return {
+    order: normalizeOrder(row.order, index),
+    group,
+    title,
+    weightPercent: group === "requirement" ? null : weightPercent,
+    coverageStatus: coverageStatus || "partial",
+    coverageNote,
+    sourceExcerpt
+  };
+}
+
+function normalizeOrder(value, index) {
+  const order = Number(value);
+  return Number.isFinite(order) && order > 0 ? order : index + 1;
+}
+
+function normalizeWeightPercent(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const numeric = Number(String(value).replace("%", "").replace(",", ".").trim());
+
+  if (!Number.isFinite(numeric)) {
+    return null;
+  }
+
+  return Math.max(0, Math.min(100, numeric));
+}
+
+function normalizeSelectionCriteriaGroup(value) {
+  const normalized = String(value ?? "").trim();
+  const lowered = normalized.toLowerCase().replace(/[-_\s]+/g, "");
+
+  if (["price", "ценовой", "ценовойкритерий", "ценовые"].includes(lowered)) {
+    return "price";
+  }
+
+  if (["nonprice", "non_price", "неценовой", "неценовойкритерий", "неценовые"].includes(lowered)) {
+    return "nonPrice";
+  }
+
+  if (["requirement", "requirements", "hardrequirements", "требование", "дополнительноетребование", "требования"].includes(lowered)) {
+    return "requirement";
+  }
+
+  return "nonPrice";
+}
+
+function normalizeCoverageStatus(value) {
+  const normalized = String(value ?? "").trim();
+  const lowered = normalized.toLowerCase().replace(/[-_\s]+/g, "");
+
+  if (["full", "yes", "closed", "полностью", "полностьюзакрываем", "закрываем"].includes(lowered)) {
+    return "full";
+  }
+
+  if (["partial", "partly", "частично", "частичнозакрываем"].includes(lowered)) {
+    return "partial";
+  }
+
+  if (["none", "no", "notcovered", "незакрываем", "незакрыто", "нет"].includes(lowered)) {
+    return "none";
+  }
+
+  return "";
 }
 
 function getDefaultCriteriaKind(group) {

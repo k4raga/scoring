@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { extractArchiveMetadata, buildSafeSlug } from "./upload-metadata.js";
 import { buildProjectFolderParts, buildRecordId } from "./data-store.js";
-import { buildLegacyCriteriaGroups } from "./record-schema.js";
+import { buildLegacyCriteriaGroups, normalizeSelectionCriteriaRows } from "./record-schema.js";
 import { getStorageProjectsRoot } from "./paths.js";
 import { repairTextEncoding } from "./text-repair.js";
 
@@ -83,6 +83,7 @@ export function buildUploadedRecord(ingest, analysis = null) {
     summary: `Архив ${ingest.archiveName} загружен. Анализ выполняется внешним сервисом.`,
     criteriaRows: [],
     criteria: buildLegacyCriteriaGroups([]),
+    selectionCriteriaRows: normalizeSelectionCriteriaRows(patch.selectionCriteriaRows || patch.selectionCriteria),
     documents: [
       {
         label: "Архив проекта",
@@ -114,9 +115,9 @@ export function mergeUploadedRecord(existingRecord, uploadedRecord) {
   const existingCodexRun = existingWorkflow.codexRun || {};
   const uploadedCodexRun = uploadedWorkflow.codexRun || {};
   const analysis = uploadedRecord.analysis || existingRecord.analysis || null;
-  const existingCriteriaRows = normalizeCriteriaRowsLike(existingRecord.criteriaRows || existingRecord.criteria);
-  const uploadedCriteriaRows = normalizeCriteriaRowsLike(uploadedRecord.criteriaRows || uploadedRecord.criteria);
-  const criteriaRows = existingCriteriaRows.length ? existingCriteriaRows : uploadedCriteriaRows;
+  const existingSelectionCriteriaRows = normalizeSelectionCriteriaRows(existingRecord.selectionCriteriaRows || existingRecord.selectionCriteria);
+  const uploadedSelectionCriteriaRows = normalizeSelectionCriteriaRows(uploadedRecord.selectionCriteriaRows || uploadedRecord.selectionCriteria);
+  const selectionCriteriaRows = existingSelectionCriteriaRows.length ? existingSelectionCriteriaRows : uploadedSelectionCriteriaRows;
 
   return {
     ...existingRecord,
@@ -155,8 +156,9 @@ export function mergeUploadedRecord(existingRecord, uploadedRecord) {
     technicalSpecificationUrl:
       existingRecord.technicalSpecificationUrl || uploadedRecord.technicalSpecificationUrl,
     summary: existingRecord.summary || uploadedRecord.summary,
-    criteriaRows,
-    criteria: buildLegacyCriteriaGroups(criteriaRows),
+    criteriaRows: [],
+    criteria: buildLegacyCriteriaGroups([]),
+    selectionCriteriaRows,
     documents: [...existingDocuments, ...(uploadedRecord.documents || [])],
     analysis,
     workflow: {
@@ -212,54 +214,4 @@ function toUrlPath(value) {
     .filter(Boolean)
     .map((segment) => encodeURIComponent(segment))
     .join("/");
-}
-
-function normalizeCriteriaRowsLike(input) {
-  if (!input) {
-    return [];
-  }
-
-  if (Array.isArray(input)) {
-    return input
-      .map((row) => {
-        if (typeof row === "string") {
-          return { group: "nonPrice", title: row, kind: "" };
-        }
-
-        if (!row || typeof row !== "object") {
-          return null;
-        }
-
-        return {
-          ...row,
-          group: normalizeGroupKey(row.group)
-        };
-      })
-      .filter(Boolean);
-  }
-
-  if (typeof input === "object") {
-    return [
-      ...(Array.isArray(input.price)
-        ? input.price.map((item) => ({ group: "price", title: item, kind: "" }))
-        : []),
-      ...(Array.isArray(input.nonPrice)
-        ? input.nonPrice.map((item) => ({ group: "nonPrice", title: item, kind: "" }))
-        : []),
-      ...(Array.isArray(input.hardRequirements)
-        ? input.hardRequirements.map((item) => ({ group: "hardRequirements", title: item, kind: "" }))
-        : [])
-    ];
-  }
-
-  return [];
-}
-
-function normalizeGroupKey(value) {
-  const group = String(value || "").trim();
-  if (group === "price" || group === "nonPrice" || group === "hardRequirements") {
-    return group;
-  }
-
-  return "nonPrice";
 }
