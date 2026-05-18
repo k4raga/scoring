@@ -1,5 +1,6 @@
 import path from "node:path";
 import crypto from "node:crypto";
+import { getDifyProviderDescriptor } from "./dify-analysis.js";
 import { extractArchiveMetadata } from "./upload-metadata.js";
 import { repairTextEncoding } from "./text-repair.js";
 
@@ -23,7 +24,10 @@ const PROVIDERS = [
 ];
 
 export function getAiProviders() {
-  return PROVIDERS.map((provider) => ({ ...provider }));
+  return [
+    ...PROVIDERS.map((provider) => ({ ...provider })),
+    getDifyProviderDescriptor()
+  ];
 }
 
 export function analyzeArchivePackage({

@@ -23,6 +23,7 @@ import {
   saveRecords
 } from "./data-store.js";
 import { analyzeArchivePackage, getAiProviders } from "./ai-analysis.js";
+import { runDifyAnalysisPass } from "./dify-analysis.js";
 import { requestExternalAnalysis } from "./external-analysis-client.js";
 import { buildUploadedRecord, ingestArchiveUpload, mergeUploadedRecord } from "./record-ingest.js";
 import { getProjectRoot, getStorageAssetsRoot, getStorageProjectsRoot } from "./paths.js";
@@ -394,6 +395,10 @@ if (localAnalysisAdapterEnabled) {
   });
 }
 
+app.post("/api/analysis-jobs/:jobId/run-dify-adapter", (request, response) => {
+  handleDifyAnalysisAdapterRun(request, response);
+});
+
 app.post("/api/ai/analyze-archive", upload.single("archive"), (request, response) => {
   if (!request.file) {
     response.status(400).json({ error: "archive_required" });
@@ -710,6 +715,42 @@ function handleLocalAnalysisAdapterRun(request, response) {
   }
 }
 
+async function handleDifyAnalysisAdapterRun(request, response) {
+  const requestedBy = normalizeOptionalText(request.body?.requestedBy) || "dify_adapter_endpoint";
+
+  try {
+    const executed = await runDifyAnalysisAdapterJob({
+      jobId: request.params.jobId,
+      requestedBy
+    });
+
+    response.json({
+      executed: true,
+      job: executed.job,
+      record: executed.record,
+      adapter: executed.adapter
+    });
+  } catch (error) {
+    const payload = {
+      error: normalizeOptionalText(error?.code) || "dify_adapter_execution_failed"
+    };
+
+    if (normalizeOptionalText(error?.message)) {
+      payload.message = normalizeOptionalText(error.message);
+    }
+
+    if (error?.details !== undefined) {
+      payload.details = error.details;
+    }
+
+    if (error?.job) {
+      payload.job = error.job;
+    }
+
+    response.status(Number(error?.httpStatus) || 500).json(payload);
+  }
+}
+
 function runLocalAnalysisAdapterJob({ jobId, requestedBy }) {
   const currentJob = getAnalysisJobById(jobId);
 
@@ -800,6 +841,115 @@ function runLocalAnalysisAdapterJob({ jobId, requestedBy }) {
             analysisMetadata: failedMetadata,
             fields: {},
             recordPatch: {}
+          }
+        },
+        defaultStatus: "failed",
+        finalResult: true
+      });
+      failedJob = failed.job;
+    } catch (_updateError) {
+      failedJob = getAnalysisJobById(jobId);
+    }
+
+    const wrappedError = createHttpError(
+      Number(error?.httpStatus) || 500,
+      failedError.code,
+      failedError.message
+    );
+    wrappedError.details = failedError.details;
+    wrappedError.job = failedJob;
+    throw wrappedError;
+  }
+}
+
+async function runDifyAnalysisAdapterJob({ jobId, requestedBy }) {
+  const currentJob = getAnalysisJobById(jobId);
+
+  if (!currentJob) {
+    throw createHttpError(404, "analysis_job_not_found");
+  }
+
+  if (currentJob.status === "running") {
+    throw createHttpError(409, "analysis_job_already_running");
+  }
+
+  const records = loadRecords();
+  const record = currentJob.recordId ? getRecordById(records, currentJob.recordId) : null;
+
+  if (!record) {
+    throw createHttpError(404, currentJob.recordId ? "record_not_found_for_job" : "job_record_binding_required");
+  }
+
+  applyAnalysisJobContractUpdate({
+    jobId,
+    body: {
+      status: "running",
+      metadata: {
+        dify: {
+          state: "running",
+          requestedBy,
+          startedAt: new Date().toISOString()
+        }
+      }
+    },
+    defaultStatus: "running",
+    finalResult: false
+  });
+
+  try {
+    const adapterPass = await runDifyAnalysisPass({
+      job: getAnalysisJobById(jobId),
+      record
+    });
+    const completed = applyAnalysisJobContractUpdate({
+      jobId,
+      body: {
+        status: "completed",
+        warnings: adapterPass.warnings,
+        result: adapterPass.result,
+        metadata: {
+          dify: {
+            state: "completed",
+            requestedBy,
+            finishedAt: new Date().toISOString()
+          }
+        }
+      },
+      defaultStatus: "completed",
+      finalResult: true
+    });
+
+    return {
+      ...completed,
+      adapter: adapterPass.adapter
+    };
+  } catch (error) {
+    const failedMetadata = {
+      dify: {
+        state: "failed",
+        requestedBy,
+        failedAt: new Date().toISOString()
+      }
+    };
+    const failedError = {
+      code: normalizeOptionalText(error?.code) || "dify_adapter_execution_failed",
+      message: normalizeOptionalText(error?.message) || "dify_adapter_execution_failed",
+      details: error?.details ?? null
+    };
+    let failedJob = null;
+
+    try {
+      const failed = applyAnalysisJobContractUpdate({
+        jobId,
+        body: {
+          status: "failed",
+          error: failedError,
+          result: {
+            analysisMetadata: failedMetadata,
+            metadata: failedMetadata,
+            fields: {},
+            recordPatch: {},
+            warnings: [failedError.code]
           }
         },
         defaultStatus: "failed",

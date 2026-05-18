@@ -1,6 +1,15 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { createRecord, deleteRecord, fetchRecord, saveRecord } from "../api.js";
+import {
+  createAnalysisJob,
+  createRecord,
+  deleteRecord,
+  fetchAiProviders,
+  fetchRecord,
+  fetchRecordAnalysisJobs,
+  runDifyAnalysisJob,
+  saveRecord
+} from "../api.js";
 import { CalendarIcon, LogoMark, SearchIcon } from "../ui/icons.jsx";
 import ProjectCreateButton from "../ui/ProjectCreateButton.jsx";
 import {
@@ -69,6 +78,10 @@ export default function DetailPage() {
   const [savedForm, setSavedForm] = useState(createEmptyForm());
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveMessage, setSaveMessage] = useState("");
+  const [aiProviders, setAiProviders] = useState([]);
+  const [analysisJobs, setAnalysisJobs] = useState([]);
+  const [difyStatus, setDifyStatus] = useState("idle");
+  const [difyMessage, setDifyMessage] = useState("");
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -153,6 +166,41 @@ export default function DetailPage() {
   }, [recordId]);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadAnalysisContext() {
+      try {
+        const [providersPayload, jobsPayload] = await Promise.all([
+          fetchAiProviders(),
+          fetchRecordAnalysisJobs(recordId)
+        ]);
+
+        if (!active) {
+          return;
+        }
+
+        setAiProviders(Array.isArray(providersPayload?.providers) ? providersPayload.providers : []);
+        setAnalysisJobs(Array.isArray(jobsPayload?.jobs) ? jobsPayload.jobs : []);
+      } catch (_error) {
+        if (!active) {
+          return;
+        }
+
+        setAiProviders([]);
+        setAnalysisJobs([]);
+      }
+    }
+
+    if (recordId) {
+      loadAnalysisContext();
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [recordId]);
+
+  useEffect(() => {
     if (saveStatus !== "success" || !saveMessage) {
       return undefined;
     }
@@ -172,6 +220,9 @@ export default function DetailPage() {
   const searchTargets = useMemo(() => buildSearchTargets(record, form), [form, record]);
   const searchMatches = useMemo(() => filterSearchTargets(searchTargets, searchQuery), [searchQuery, searchTargets]);
   const documentBlocks = useMemo(() => buildEditableDocumentBlocks(record, form.documentWiki), [form.documentWiki, record]);
+  const difyProvider = useMemo(() => aiProviders.find((provider) => provider.id === "dify") || null, [aiProviders]);
+  const difyJobs = useMemo(() => analysisJobs.filter((job) => job.providerId === "dify"), [analysisJobs]);
+  const latestDifyJob = difyJobs[0] || null;
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -340,6 +391,63 @@ export default function DetailPage() {
     setForm(savedForm);
     setSaveStatus("idle");
     setSaveMessage("");
+  }
+
+  async function refreshAnalysisContext() {
+    const [providersPayload, jobsPayload] = await Promise.all([
+      fetchAiProviders(),
+      fetchRecordAnalysisJobs(recordId)
+    ]);
+
+    setAiProviders(Array.isArray(providersPayload?.providers) ? providersPayload.providers : []);
+    setAnalysisJobs(Array.isArray(jobsPayload?.jobs) ? jobsPayload.jobs : []);
+  }
+
+  async function handleDifyRun() {
+    if (dirty) {
+      setDifyStatus("error");
+      setDifyMessage("Сначала сохраните изменения карточки.");
+      return;
+    }
+
+    setDifyStatus("running");
+    setDifyMessage("Запускаем Dify AI-pass.");
+
+    try {
+      const jobPayload = await createAnalysisJob({
+        recordId,
+        providerId: "dify",
+        requestedBy: "detail_page",
+        metadata: {
+          source: "detail_page"
+        }
+      });
+      const jobId = jobPayload?.job?.id;
+
+      if (!jobId) {
+        throw new Error("analysis_job_id_missing");
+      }
+
+      const runPayload = await runDifyAnalysisJob(jobId);
+      const nextRecord = runPayload?.record || (await fetchRecord(recordId));
+      const nextForm = buildFormState(nextRecord);
+
+      setRecord(nextRecord);
+      setForm(nextForm);
+      setSavedForm(nextForm);
+      setDifyStatus("success");
+      setDifyMessage("Dify AI-pass завершен.");
+      await refreshAnalysisContext();
+    } catch (difyError) {
+      setDifyStatus("error");
+      setDifyMessage(difyError instanceof Error ? difyError.message : "Dify AI-pass не выполнен.");
+
+      try {
+        await refreshAnalysisContext();
+      } catch (_refreshError) {
+        // ignore refresh failure after the primary error
+      }
+    }
   }
 
   function openProjectModal() {
@@ -787,6 +895,14 @@ export default function DetailPage() {
             </section>
 
             <AnalysisStageCard analysis={record?.workflow?.analysis} />
+            <DifyAnalysisCard
+              disabled={status !== "success" || difyStatus === "running"}
+              job={latestDifyJob}
+              message={difyMessage}
+              onRun={handleDifyRun}
+              provider={difyProvider}
+              status={difyStatus}
+            />
 
             <section className="detail-side-card" id="section-documents">
               <h3>Документы и ссылки</h3>
@@ -993,6 +1109,50 @@ function AnalysisStageCard({ analysis }) {
           ))}
         </ol>
       ) : null}
+    </section>
+  );
+}
+
+function DifyAnalysisCard({ disabled, job, message, onRun, provider, status }) {
+  const providerStatus = String(provider?.status || "not_configured").trim();
+  const jobStatus = String(job?.status || "").trim();
+  const warnings = getDifyJobWarnings(job);
+  const error = getDifyJobError(job);
+  const isRunning = status === "running" || jobStatus === "running";
+  const isProviderConfigured = providerStatus === "configured";
+
+  return (
+    <section className="detail-side-card detail-analysis-card" id="section-dify-analysis">
+      <h3>Dify AI-pass</h3>
+      <div className="detail-analysis-status">{getProviderStatusLabel(providerStatus)}</div>
+      {jobStatus ? (
+        <div className="detail-analysis-job">
+          <strong>{getAnalysisStatusLabel(jobStatus)}</strong>
+          <small>{formatAnalysisJobUpdatedAt(job?.updatedAt || job?.createdAt)}</small>
+        </div>
+      ) : (
+        <div className="detail-analysis-job">
+          <strong>Запусков пока нет</strong>
+          <small>AI-pass заполнит карточку и критерии по MD/json документации.</small>
+        </div>
+      )}
+      {warnings.length ? (
+        <ul className="detail-analysis-warnings">
+          {warnings.slice(0, 4).map((warning, index) => (
+            <li key={`${warning}-${index}`}>{warning}</li>
+          ))}
+        </ul>
+      ) : null}
+      {error ? <div className="detail-analysis-error">{error}</div> : null}
+      {message ? <div className={`detail-analysis-message is-${status}`.trim()}>{message}</div> : null}
+      <button
+        className="section-link detail-dify-run-button"
+        disabled={disabled || isRunning || !isProviderConfigured}
+        onClick={onRun}
+        type="button"
+      >
+        {isRunning ? "AI-pass выполняется..." : "Запустить AI-pass"}
+      </button>
     </section>
   );
 }
@@ -1443,6 +1603,55 @@ function getAnalysisStatusLabel(status) {
   };
 
   return labels[status] || status;
+}
+
+function getProviderStatusLabel(status) {
+  const labels = {
+    active: "Активен",
+    configured: "Настроен",
+    failed: "Ошибка настройки",
+    not_configured: "Не настроен",
+    planned: "Запланирован"
+  };
+
+  return labels[status] || status || "Не настроен";
+}
+
+function getDifyJobWarnings(job) {
+  const resultWarnings = Array.isArray(job?.result?.warnings) ? job.result.warnings : [];
+  const payloadWarnings = Array.isArray(job?.result?.payload?.warnings) ? job.result.payload.warnings : [];
+  return [...new Set([...resultWarnings, ...payloadWarnings].map((warning) => String(warning || "").trim()).filter(Boolean))];
+}
+
+function getDifyJobError(job) {
+  if (!job?.error) {
+    return "";
+  }
+
+  if (typeof job.error === "string") {
+    return job.error;
+  }
+
+  return String(job.error.message || job.error.code || "").trim();
+}
+
+function formatAnalysisJobUpdatedAt(value) {
+  if (!value) {
+    return "";
+  }
+
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return String(value);
+  }
+
+  return parsed.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function getAnalysisStageLabel(name) {

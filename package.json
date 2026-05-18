@@ -16,6 +16,8 @@
     "smoke": "node scripts/smoke.mjs",
     "smoke:extractor": "node scripts/smoke-analysis.mjs",
     "smoke:analysis": "node scripts/smoke-analysis.mjs",
+    "test:dify": "node scripts/test-dify-analysis.mjs",
+    "smoke:dify": "node scripts/smoke-dify-analysis.mjs",
     "openspec": "openspec",
     "openspec:list": "openspec list",
     "openspec:specs": "openspec list --specs",

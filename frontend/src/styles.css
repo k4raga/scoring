@@ -1985,6 +1985,44 @@ svg {
   line-height: 1.35;
 }
 
+.detail-analysis-job {
+  display: grid;
+  gap: 3px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.detail-analysis-job small,
+.detail-analysis-message,
+.detail-analysis-error,
+.detail-analysis-warnings {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.detail-analysis-error,
+.detail-analysis-message.is-error {
+  color: #b42318;
+}
+
+.detail-analysis-message.is-success {
+  color: #187347;
+}
+
+.detail-analysis-warnings {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.detail-dify-run-button {
+  width: 100%;
+  justify-content: center;
+}
+
 .detail-doc-list,
 .detail-uploaded-doc-list {
   display: grid;

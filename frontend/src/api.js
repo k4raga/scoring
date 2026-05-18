@@ -61,6 +61,14 @@ export function fetchRecord(recordId) {
   return request(`/api/records/${recordId}`);
 }
 
+export function fetchAiProviders() {
+  return request("/api/ai/providers");
+}
+
+export function fetchRecordAnalysisJobs(recordId) {
+  return request(`/api/records/${encodeURIComponent(recordId)}/analysis-jobs`);
+}
+
 export function fetchDocumentRecordsIndex() {
   return request("/api/document-records");
 }
@@ -100,5 +108,27 @@ export function saveRecord(recordId, payload) {
 export function deleteRecord(recordId) {
   return request(`/api/records/${recordId}`, {
     method: "DELETE"
+  });
+}
+
+export function createAnalysisJob(payload) {
+  return request("/api/analysis-jobs", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+export function runDifyAnalysisJob(jobId) {
+  return request(`/api/analysis-jobs/${encodeURIComponent(jobId)}/run-dify-adapter`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      requestedBy: "detail_page"
+    })
   });
 }

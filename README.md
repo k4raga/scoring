@@ -58,6 +58,7 @@ Backend принимает архив проекта, сохраняет его 
 - `POST /api/records`
 - `POST /api/ingest/archive`
 - `POST /api/ai/analyze-archive`
+- `POST /api/analysis-jobs/:jobId/run-dify-adapter`
 
 ### Analysis jobs
 
@@ -255,6 +256,32 @@ POST /api/analysis-jobs/:jobId/run-local-adapter
 1, true, yes, on
 ```
 
+### Dify AI-pass
+
+Dify подключается только на backend. Frontend не получает Dify API key и не вызывает Dify напрямую.
+
+Основные переменные:
+
+```text
+SCORING_DIFY_API_BASE_URL=https://<dify-host>/v1
+SCORING_DIFY_API_KEY=<secret>
+SCORING_DIFY_API_PATH=/workflows/run
+SCORING_DIFY_PAYLOAD_INPUT_KEY=scoring_payload
+SCORING_DIFY_RESPONSE_MODE=blocking
+SCORING_DIFY_TIMEOUT_MS=95000
+```
+
+Технические guardrails payload:
+
+```text
+SCORING_DIFY_MAX_DOCUMENTS=40
+SCORING_DIFY_MAX_DOCUMENT_CHARS=120000
+SCORING_DIFY_MAX_JSON_ARTIFACT_CHARS=80000
+SCORING_DIFY_MAX_PAYLOAD_CHARS=650000
+```
+
+Для локального разбора можно включить `SCORING_DIFY_DEBUG_PAYLOAD=1`; в production этот режим по умолчанию не используется.
+
 ## API-обзор
 
 ### Системные endpoints
@@ -293,6 +320,7 @@ GET   /api/analysis-jobs/:jobId
 GET   /api/records/:recordId/analysis-jobs
 PATCH /api/analysis-jobs/:jobId/field-patch
 POST  /api/analysis-jobs/:jobId/result
+POST  /api/analysis-jobs/:jobId/run-dify-adapter
 POST  /api/ai/analyze-archive
 ```
 
