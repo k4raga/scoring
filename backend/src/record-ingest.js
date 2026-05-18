@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { extractArchiveMetadata, buildSafeSlug } from "./upload-metadata.js";
 import { buildProjectFolderParts, buildRecordId } from "./data-store.js";
-import { buildLegacyCriteriaGroups, normalizeSelectionCriteriaRows } from "./record-schema.js";
+import { buildLegacyCriteriaGroups, normalizePreassessment, normalizeSelectionCriteriaRows } from "./record-schema.js";
 import { getStorageProjectsRoot } from "./paths.js";
 import { repairTextEncoding } from "./text-repair.js";
 
@@ -84,6 +84,7 @@ export function buildUploadedRecord(ingest, analysis = null) {
     criteriaRows: [],
     criteria: buildLegacyCriteriaGroups([]),
     selectionCriteriaRows: normalizeSelectionCriteriaRows(patch.selectionCriteriaRows || patch.selectionCriteria),
+    preassessment: normalizePreassessment(patch.preassessment),
     documents: [
       {
         label: "Архив проекта",
@@ -118,6 +119,9 @@ export function mergeUploadedRecord(existingRecord, uploadedRecord) {
   const existingSelectionCriteriaRows = normalizeSelectionCriteriaRows(existingRecord.selectionCriteriaRows || existingRecord.selectionCriteria);
   const uploadedSelectionCriteriaRows = normalizeSelectionCriteriaRows(uploadedRecord.selectionCriteriaRows || uploadedRecord.selectionCriteria);
   const selectionCriteriaRows = existingSelectionCriteriaRows.length ? existingSelectionCriteriaRows : uploadedSelectionCriteriaRows;
+  const existingPreassessment = normalizePreassessment(existingRecord.preassessment);
+  const uploadedPreassessment = normalizePreassessment(uploadedRecord.preassessment);
+  const preassessment = hasMeaningfulPreassessment(existingPreassessment) ? existingPreassessment : uploadedPreassessment;
 
   return {
     ...existingRecord,
@@ -159,6 +163,7 @@ export function mergeUploadedRecord(existingRecord, uploadedRecord) {
     criteriaRows: [],
     criteria: buildLegacyCriteriaGroups([]),
     selectionCriteriaRows,
+    preassessment,
     documents: [...existingDocuments, ...(uploadedRecord.documents || [])],
     analysis,
     workflow: {
@@ -174,6 +179,16 @@ export function mergeUploadedRecord(existingRecord, uploadedRecord) {
       }
     }
   };
+}
+
+function hasMeaningfulPreassessment(preassessment) {
+  return Boolean(
+    preassessment.riskRows.length ||
+    preassessment.riskBaseUrl ||
+    preassessment.summaryDecision ||
+    preassessment.alexanderDecision ||
+    preassessment.estimateFileUrl
+  );
 }
 
 function applyMetadataOverrides(metadata, title) {

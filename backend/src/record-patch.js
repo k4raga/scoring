@@ -1,4 +1,4 @@
-import { normalizeCriteriaRows, normalizeSelectionCriteriaRows } from "./record-schema.js";
+import { normalizeCriteriaRows, normalizePreassessment, normalizeSelectionCriteriaRows } from "./record-schema.js";
 
 export function applyRecordPatch(existingRecord, patch) {
   const hasOwn = (key) => Object.prototype.hasOwnProperty.call(patch, key);
@@ -14,6 +14,7 @@ export function applyRecordPatch(existingRecord, patch) {
   const selectionCriteriaRows = selectionCriteriaSource !== undefined
     ? normalizeSelectionCriteriaRows(selectionCriteriaSource, { requireCoverage: true })
     : undefined;
+  const preassessment = hasOwn("preassessment") ? normalizePreassessment(patch.preassessment) : undefined;
   const nextRecord = {
     ...existingRecord,
     projectTitle: patch.projectTitle ?? existingRecord.projectTitle,
@@ -45,6 +46,7 @@ export function applyRecordPatch(existingRecord, patch) {
     technicalSpecificationUrl: patch.technicalSpecificationUrl ?? existingRecord.technicalSpecificationUrl,
     criteriaRows: criteriaRows ?? existingRecord.criteriaRows,
     selectionCriteriaRows: selectionCriteriaRows ?? existingRecord.selectionCriteriaRows,
+    preassessment: preassessment ?? existingRecord.preassessment,
     documents: Array.isArray(patch.documents) ? patch.documents : existingRecord.documents,
     documentWiki: patch.documentWiki && typeof patch.documentWiki === "object" && !Array.isArray(patch.documentWiki)
       ? patch.documentWiki

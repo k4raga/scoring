@@ -6,6 +6,7 @@ import {
   buildEditorSchema,
   buildLegacyCriteriaGroups,
   normalizeCriteriaRows,
+  normalizePreassessment,
   normalizeSelectionCriteriaRows,
   normalizePurchaseBy,
   normalizeYesNo
@@ -27,6 +28,7 @@ function normalizeRecord(record) {
   const documentWiki = normalizeDocumentWikiConfig(record.documentWiki);
   const criteriaRows = normalizeCriteriaRows(record.criteriaRows ?? record.criteria);
   const selectionCriteriaRows = normalizeSelectionCriteriaRows(record.selectionCriteriaRows ?? record.selectionCriteria);
+  const preassessment = normalizePreassessment(record.preassessment);
   const uploadSummary = normalizeUploadSummary(record.summary, archiveDocument?.fileName);
   const notes = normalizeDisplayText(normalizeUploadSummary(record.notes, archiveDocument?.fileName)) || uploadSummary;
   const summary = uploadSummary || notes || "Описание пока не заполнено.";
@@ -81,6 +83,7 @@ function normalizeRecord(record) {
     criteriaRows,
     criteria: buildLegacyCriteriaGroups(criteriaRows),
     selectionCriteriaRows,
+    preassessment,
     documents,
     documentArtifacts,
     documentWiki,

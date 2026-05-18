@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getLocalAnalysisWorkspaceRoot, getProjectRoot } from "./paths.js";
-import { normalizeSelectionCriteriaRows } from "./record-schema.js";
+import { normalizePreassessment, normalizeSelectionCriteriaRows } from "./record-schema.js";
 
 const CONTRACT_VERSION = "dify-ai-pass.v1";
 const DEFAULT_DIFY_API_PATH = "/workflows/run";
@@ -67,7 +67,8 @@ const ALLOWED_RECORD_PATCH_FIELDS = new Set([
   "creative",
   "notes",
   "summary",
-  "selectionCriteriaRows"
+  "selectionCriteriaRows",
+  "preassessment"
 ]);
 const FORBIDDEN_KEY_PATTERNS = [
   /api[_-]?key/iu,
@@ -343,6 +344,11 @@ export function normalizeDifyRecordPatch(patch) {
     }
 
     if (key === "selectionCriteriaRows") {
+      continue;
+    }
+
+    if (key === "preassessment") {
+      result[key] = normalizePreassessment(value);
       continue;
     }
 
@@ -641,6 +647,7 @@ function buildDifyInstructions() {
     expectedOutput: {
       recordPatch: "object with allowed scoring card fields only",
       selectionCriteriaRows: "array of rows: group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt",
+      preassessment: "recordPatch.preassessment object with riskRows, riskBaseUrl, summaryDecision, alexanderDecision, estimateFileUrl",
       documentFindings: "array of evidence: field/target, documentId, quote/excerpt, reason/note, confidence",
       warnings: "array of warning strings",
       metadata: "object without secrets or links"
@@ -649,6 +656,11 @@ function buildDifyInstructions() {
     selectionCriteriaEnums: {
       group: ["price", "nonPrice", "requirement"],
       coverageStatus: ["full", "partial", "none"]
+    },
+    preassessmentEnums: {
+      criticality: ["unknown", "critical", "notCritical"],
+      summaryDecision: ["estimate", "decline"],
+      alexanderDecision: ["estimate", "decline"]
     }
   };
 }

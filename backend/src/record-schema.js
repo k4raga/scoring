@@ -21,6 +21,17 @@ const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
   { value: "none", label: "Не закрываем" }
 ];
 
+const PREASSESSMENT_CRITICALITY_OPTIONS = [
+  { value: "unknown", label: "Не указано" },
+  { value: "critical", label: "Критично" },
+  { value: "notCritical", label: "Не критично" }
+];
+
+const PREASSESSMENT_SUMMARY_DECISION_OPTIONS = [
+  { value: "estimate", label: "Оценка" },
+  { value: "decline", label: "Не участвуем" }
+];
+
 const CRITERIA_KIND_OPTIONS = [
   { value: "основной", label: "основной" },
   { value: "критерий", label: "критерий" },
@@ -100,7 +111,8 @@ export function buildEditorSchema(record) {
       fields: section.fields.map((item) => withValue(item, record))
     })),
     criteriaRowSchema: CRITERIA_ROW_SCHEMA,
-    selectionCriteriaRowSchema: buildSelectionCriteriaRowSchema()
+    selectionCriteriaRowSchema: buildSelectionCriteriaRowSchema(),
+    preassessmentRiskRowSchema: buildPreassessmentRiskRowSchema()
   };
 }
 
@@ -139,6 +151,24 @@ export function getSelectionCriteriaCoverageOptions() {
   return SELECTION_CRITERIA_COVERAGE_OPTIONS;
 }
 
+export function buildPreassessmentRiskRowSchema() {
+  return [
+    field("parameter", "Параметр", "text"),
+    field("managerComment", "Комментарий менеджера", "textarea"),
+    field("criticality", "Критично/Не критично", "select", { options: PREASSESSMENT_CRITICALITY_OPTIONS }),
+    field("riskBaseRef", "Ссылка на риск", "text"),
+    field("sourceKey", "Ключ источника", "text")
+  ];
+}
+
+export function getPreassessmentCriticalityOptions() {
+  return PREASSESSMENT_CRITICALITY_OPTIONS;
+}
+
+export function getPreassessmentSummaryDecisionOptions() {
+  return PREASSESSMENT_SUMMARY_DECISION_OPTIONS;
+}
+
 export function normalizeSelectionCriteriaRows(input, options = {}) {
   const source = Array.isArray(input)
     ? input
@@ -149,6 +179,39 @@ export function normalizeSelectionCriteriaRows(input, options = {}) {
 
   for (const [index, row] of source.entries()) {
     const normalized = normalizeSelectionCriteriaRow(row, index, options);
+
+    if (normalized) {
+      rows.push(normalized);
+    }
+  }
+
+  return rows
+    .sort((left, right) => left.order - right.order)
+    .map((row, index) => ({ ...row, order: index + 1 }));
+}
+
+export function normalizePreassessment(input) {
+  const source = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+
+  return {
+    riskRows: normalizePreassessmentRiskRows(source.riskRows ?? source.rows ?? source.risks),
+    riskBaseUrl: normalizeTextValue(source.riskBaseUrl ?? source.riskBaseHref ?? source.riskBaseLink),
+    summaryDecision: normalizePreassessmentSummaryDecision(source.summaryDecision ?? source.decision ?? source.result),
+    alexanderDecision: normalizePreassessmentSummaryDecision(source.alexanderDecision ?? source.responsibleDecision ?? source.alexander),
+    estimateFileUrl: normalizeTextValue(source.estimateFileUrl ?? source.estimateFileHref ?? source.estimateFile)
+  };
+}
+
+export function normalizePreassessmentRiskRows(input) {
+  const source = Array.isArray(input)
+    ? input
+    : Array.isArray(input?.rows)
+      ? input.rows
+      : [];
+  const rows = [];
+
+  for (const [index, row] of source.entries()) {
+    const normalized = normalizePreassessmentRiskRow(row, index);
 
     if (normalized) {
       rows.push(normalized);
@@ -334,6 +397,32 @@ function normalizeSelectionCriteriaRow(row, index, options) {
   };
 }
 
+function normalizePreassessmentRiskRow(row, index) {
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return null;
+  }
+
+  const parameter = normalizeTextValue(row.parameter ?? row.title ?? row.name ?? row.label);
+  const managerComment = normalizeTextValue(row.managerComment ?? row.comment ?? row.note ?? row.notes ?? row.description);
+  const criticality = normalizePreassessmentCriticality(row.criticality ?? row.status ?? row.isCritical);
+  const riskBaseRef = normalizeTextValue(row.riskBaseRef ?? row.riskBaseId ?? row.riskRef);
+  const sourceKey = normalizeTextValue(row.sourceKey ?? row.source ?? row.sourceId);
+  const hasContent = Boolean(parameter || managerComment || riskBaseRef || sourceKey || criticality !== "unknown");
+
+  if (!hasContent) {
+    return null;
+  }
+
+  return {
+    order: normalizeOrder(row.order, index),
+    parameter,
+    managerComment,
+    criticality,
+    riskBaseRef,
+    sourceKey
+  };
+}
+
 function normalizeOrder(value, index) {
   const order = Number(value);
   return Number.isFinite(order) && order > 0 ? order : index + 1;
@@ -389,6 +478,48 @@ function normalizeCoverageStatus(value) {
   }
 
   return "";
+}
+
+function normalizePreassessmentCriticality(value) {
+  if (value === true) {
+    return "critical";
+  }
+
+  if (value === false) {
+    return "notCritical";
+  }
+
+  const normalized = String(value ?? "").trim();
+  const lowered = normalized.toLowerCase().replace(/[-_\s]+/g, "");
+
+  if (["critical", "crit", "yes", "критично", "критичный", "критическая"].includes(lowered)) {
+    return "critical";
+  }
+
+  if (["notcritical", "noncritical", "no", "некритично", "некритичный", "некритическая"].includes(lowered)) {
+    return "notCritical";
+  }
+
+  return "unknown";
+}
+
+function normalizePreassessmentSummaryDecision(value) {
+  const normalized = String(value ?? "").trim();
+  const lowered = normalized.toLowerCase().replace(/[-_\s]+/g, "");
+
+  if (["estimate", "evaluation", "оценка", "беремвоценку", "берёмвоценку", "оставитьвоценке", "оставитьвоценку"].includes(lowered)) {
+    return "estimate";
+  }
+
+  if (["decline", "nobid", "no", "неучаствуем", "неучастие", "отказ", "отказаться", "отказотучастия"].includes(lowered)) {
+    return "decline";
+  }
+
+  return "";
+}
+
+function normalizeTextValue(value) {
+  return String(value ?? "").trim();
 }
 
 function getDefaultCriteriaKind(group) {

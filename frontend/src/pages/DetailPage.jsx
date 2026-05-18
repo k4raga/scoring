@@ -34,6 +34,7 @@ const MONTHS = [
 
 const HEADER_SUBTITLE = "Утром - деньги, вечером - стулья";
 const SEARCH_PLACEHOLDER = "Поиск по полям и документам";
+const RISK_BASE_URL = "https://docs.google.com/spreadsheets/d/1vRWazbT1FUDv6o4Sq208-_pC7cdxptJBy2PoZyc27sY/edit?gid=423778694#gid=423778694";
 const STAGE_OPTIONS = getCanonicalStageOptions();
 const STAGE_SELECT_OPTIONS = STAGE_OPTIONS.map((option) => ({ value: option.label, label: option.label }));
 const PURCHASE_BY_UNKNOWN = "Нет информации";
@@ -54,6 +55,16 @@ const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
   { value: "full", label: "Полностью закрываем" },
   { value: "partial", label: "Частично закрываем" },
   { value: "none", label: "Не закрываем" }
+];
+const PREASSESSMENT_CRITICALITY_OPTIONS = [
+  { value: "unknown", label: "Не указано" },
+  { value: "critical", label: "Критично" },
+  { value: "notCritical", label: "Не критично" }
+];
+const PREASSESSMENT_SUMMARY_DECISION_OPTIONS = [
+  { value: "", label: "Не выбрано" },
+  { value: "estimate", label: "Оценка" },
+  { value: "decline", label: "Не участвуем" }
 ];
 
 export default function DetailPage() {
@@ -261,6 +272,61 @@ export default function DetailPage() {
       selectionCriteriaRows: current.selectionCriteriaRows
         .filter((row) => row.rowId !== rowId)
         .map((row, index) => ({ ...row, order: index + 1 }))
+    }));
+    setSaveStatus("idle");
+    setSaveMessage("");
+  }
+
+  function updatePreassessmentField(key, value) {
+    setForm((current) => ({
+      ...current,
+      preassessment: {
+        ...current.preassessment,
+        [key]: value
+      }
+    }));
+    setSaveStatus("idle");
+    setSaveMessage("");
+  }
+
+  function updatePreassessmentRiskRow(rowId, key, value) {
+    setForm((current) => ({
+      ...current,
+      preassessment: {
+        ...current.preassessment,
+        riskRows: current.preassessment.riskRows.map((row) =>
+          row.rowId === rowId ? { ...row, [key]: value } : row
+        )
+      }
+    }));
+    setSaveStatus("idle");
+    setSaveMessage("");
+  }
+
+  function addPreassessmentRiskRow() {
+    setForm((current) => ({
+      ...current,
+      preassessment: {
+        ...current.preassessment,
+        riskRows: [
+          ...current.preassessment.riskRows,
+          createPreassessmentRiskRow({ order: current.preassessment.riskRows.length + 1 })
+        ]
+      }
+    }));
+    setSaveStatus("idle");
+    setSaveMessage("");
+  }
+
+  function removePreassessmentRiskRow(rowId) {
+    setForm((current) => ({
+      ...current,
+      preassessment: {
+        ...current.preassessment,
+        riskRows: current.preassessment.riskRows
+          .filter((row) => row.rowId !== rowId)
+          .map((row, index) => ({ ...row, order: index + 1 }))
+      }
     }));
     setSaveStatus("idle");
     setSaveMessage("");
@@ -882,6 +948,14 @@ export default function DetailPage() {
               onUpdate={updateSelectionCriteriaRow}
               rows={form.selectionCriteriaRows}
             />
+
+            <PreassessmentSection
+              onAdd={addPreassessmentRiskRow}
+              onFieldChange={updatePreassessmentField}
+              onRemove={removePreassessmentRiskRow}
+              onRowUpdate={updatePreassessmentRiskRow}
+              preassessment={form.preassessment}
+            />
           </div>
 
           <aside className="detail-side" id="project-docs">
@@ -1154,6 +1228,124 @@ function DifyAnalysisCard({ disabled, job, message, onRun, provider, status }) {
         {isRunning ? "AI-pass выполняется..." : "Запустить AI-pass"}
       </button>
     </section>
+  );
+}
+
+function PreassessmentSection({ onAdd, onFieldChange, onRemove, onRowUpdate, preassessment }) {
+  const riskRows = preassessment.riskRows || [];
+
+  return (
+    <section className="detail-section detail-selection-criteria-section detail-preassessment-section" id="section-preassessment">
+      <div className="detail-section-head detail-criteria-head detail-preassessment-head">
+        <div>
+          <h2>Предоценка</h2>
+          <a className="detail-preassessment-base-link" href={RISK_BASE_URL} rel="noreferrer" target="_blank">
+            База рисков
+          </a>
+        </div>
+        <button className="section-link detail-add-criteria-button" onClick={onAdd} type="button">
+          Добавить риск
+        </button>
+      </div>
+
+      {riskRows.length ? (
+        <div className="detail-selection-criteria-list detail-preassessment-list">
+          {riskRows.map((row) => (
+            <PreassessmentRiskRow
+              key={row.rowId}
+              onRemove={onRemove}
+              onUpdate={onRowUpdate}
+              row={row}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="detail-criteria-empty detail-selection-criteria-empty">
+          Строки предоценки пока не заполнены.
+        </div>
+      )}
+
+      <div className="detail-selection-criteria-row detail-preassessment-summary">
+        <div className="detail-field-card detail-preassessment-summary-row">
+          <span className="detail-field-label">Решение по итогам предоценки</span>
+          <CustomSelect
+            onChange={(value) => onFieldChange("summaryDecision", value)}
+            options={PREASSESSMENT_SUMMARY_DECISION_OPTIONS}
+            value={preassessment.summaryDecision}
+          />
+        </div>
+        <div className="detail-field-card detail-preassessment-summary-row">
+          <span className="detail-field-label">Решение Александра</span>
+          <CustomSelect
+            onChange={(value) => onFieldChange("alexanderDecision", value)}
+            options={PREASSESSMENT_SUMMARY_DECISION_OPTIONS}
+            value={preassessment.alexanderDecision}
+          />
+        </div>
+        <label className="detail-field-card detail-preassessment-summary-row">
+          <span className="detail-field-label">Файл оценки</span>
+          <input
+            className="detail-control"
+            onChange={(event) => onFieldChange("estimateFileUrl", event.target.value)}
+            placeholder="https://..."
+            type="url"
+            value={preassessment.estimateFileUrl}
+          />
+        </label>
+      </div>
+    </section>
+  );
+}
+
+function PreassessmentRiskRow({ onRemove, onUpdate, row }) {
+  const isIncomplete = row.criticality === "unknown";
+
+  return (
+    <article className={`detail-selection-criteria-row detail-preassessment-row ${isIncomplete ? "is-incomplete" : ""}`.trim()}>
+      <div className="detail-selection-criteria-row-top">
+        <span className="detail-selection-criteria-order">#{row.order}</span>
+        <button className="detail-remove-button" onClick={() => onRemove(row.rowId)} type="button">
+          Удалить
+        </button>
+      </div>
+
+      <div className="detail-selection-criteria-grid detail-preassessment-grid">
+        <div className="detail-field-card detail-selection-criteria-controls detail-preassessment-controls">
+          <label className="detail-selection-criteria-control">
+            <span className="detail-field-label">Параметр</span>
+            <input
+              className="detail-control"
+              onChange={(event) => onUpdate(row.rowId, "parameter", event.target.value)}
+              placeholder="Например: Битрикс24"
+              type="text"
+              value={row.parameter}
+            />
+          </label>
+
+          <div className="detail-selection-criteria-control">
+            <span className="detail-field-label">Критичность</span>
+            <CustomSelect
+              onChange={(value) => onUpdate(row.rowId, "criticality", value)}
+              options={PREASSESSMENT_CRITICALITY_OPTIONS}
+              value={row.criticality}
+            />
+          </div>
+        </div>
+
+        <div className="detail-field-card detail-selection-criteria-body detail-preassessment-body">
+          <label className="detail-selection-criteria-control">
+            <span className="detail-field-label">Комментарий менеджера</span>
+            <textarea
+              className="detail-control detail-control-textarea"
+              onChange={(event) => onUpdate(row.rowId, "managerComment", event.target.value)}
+              placeholder="Комментарий менеджера или предложение по обходу риска"
+              rows="3"
+              value={row.managerComment}
+            />
+          </label>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -2099,6 +2291,7 @@ function createEmptyForm() {
     notes: "",
     stage: "",
     selectionCriteriaRows: [],
+    preassessment: createEmptyPreassessment(),
     documentWiki: createEmptyDocumentWiki()
   };
 }
@@ -2133,6 +2326,7 @@ function buildFormState(record) {
     selectionCriteriaRows: (record?.selectionCriteriaRows || []).map((row, index) =>
       createSelectionCriteriaRow(row, index)
     ),
+    preassessment: createPreassessmentState(record?.preassessment),
     documentWiki: normalizeDocumentWikiConfig(record?.documentWiki)
   };
 }
@@ -2152,6 +2346,42 @@ function createSelectionCriteriaRow(row = {}, index = 0) {
   };
 }
 
+function createEmptyPreassessment() {
+  return {
+    riskRows: [],
+    riskBaseUrl: "",
+    summaryDecision: "",
+    alexanderDecision: "",
+    estimateFileUrl: ""
+  };
+}
+
+function createPreassessmentState(value) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+
+  return {
+    riskRows: (Array.isArray(source.riskRows) ? source.riskRows : []).map((row, index) =>
+      createPreassessmentRiskRow(row, index)
+    ),
+    riskBaseUrl: String(source.riskBaseUrl || ""),
+    summaryDecision: normalizePreassessmentSummaryDecisionValue(source.summaryDecision),
+    alexanderDecision: normalizePreassessmentSummaryDecisionValue(source.alexanderDecision),
+    estimateFileUrl: String(source.estimateFileUrl || "")
+  };
+}
+
+function createPreassessmentRiskRow(row = {}, index = 0) {
+  return {
+    rowId: createRowId(),
+    order: Number.isFinite(Number(row.order)) ? Number(row.order) : index + 1,
+    parameter: String(row.parameter || ""),
+    managerComment: String(row.managerComment || ""),
+    criticality: normalizePreassessmentCriticalityValue(row.criticality),
+    riskBaseRef: String(row.riskBaseRef || ""),
+    sourceKey: String(row.sourceKey || "")
+  };
+}
+
 function createRowId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -2168,6 +2398,7 @@ function serializeForm(form) {
       coverageNote,
       sourceExcerpt
     })),
+    preassessment: serializePreassessment(form.preassessment),
     documentWiki: normalizeDocumentWikiConfig(form.documentWiki)
   });
 }
@@ -2200,6 +2431,7 @@ function buildSavePayload(form) {
     notes: form.notes,
     stage: form.stage,
     documentWiki: normalizeDocumentWikiConfig(form.documentWiki),
+    preassessment: serializePreassessment(form.preassessment),
     selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
       order: index + 1,
       group,
@@ -2209,6 +2441,25 @@ function buildSavePayload(form) {
       coverageNote,
       sourceExcerpt
     }))
+  };
+}
+
+function serializePreassessment(preassessment) {
+  const source = createPreassessmentState(preassessment);
+
+  return {
+    riskRows: source.riskRows.map(({ parameter, managerComment, criticality, riskBaseRef, sourceKey }, index) => ({
+      order: index + 1,
+      parameter,
+      managerComment,
+      criticality,
+      riskBaseRef,
+      sourceKey
+    })),
+    riskBaseUrl: source.riskBaseUrl,
+    summaryDecision: source.summaryDecision,
+    alexanderDecision: source.alexanderDecision,
+    estimateFileUrl: source.estimateFileUrl
   };
 }
 
@@ -2621,6 +2872,26 @@ function normalizeSelectionCriteriaCoverageValue(value) {
   return SELECTION_CRITERIA_COVERAGE_OPTIONS.some((option) => option.value === normalized) ? normalized : "";
 }
 
+function normalizePreassessmentCriticalityValue(value) {
+  const normalized = String(value || "").trim();
+  return PREASSESSMENT_CRITICALITY_OPTIONS.some((option) => option.value === normalized) ? normalized : "unknown";
+}
+
+function normalizePreassessmentSummaryDecisionValue(value) {
+  const normalized = String(value || "").trim();
+  const lowered = normalized.toLowerCase().replace(/[-_\s]+/g, "");
+
+  if (["estimate", "evaluation", "оценка", "беремвоценку", "берёмвоценку", "оставитьвоценке", "оставитьвоценку"].includes(lowered)) {
+    return "estimate";
+  }
+
+  if (["decline", "nobid", "no", "неучаствуем", "неучастие", "отказ", "отказаться", "отказотучастия"].includes(lowered)) {
+    return "decline";
+  }
+
+  return "";
+}
+
 function normalizeWeightPercentValue(value) {
   if (value === "" || value === null || value === undefined) {
     return null;
@@ -2653,10 +2924,21 @@ function buildSearchTargets(record, form) {
   const criteriaText = form.selectionCriteriaRows
     .map((row) => [row.title, row.coverageNote, row.sourceExcerpt, row.coverageStatus, row.weightPercent].join(" "))
     .join(" ");
+  const preassessmentText = [
+    RISK_BASE_URL,
+    form.preassessment.riskBaseUrl,
+    form.preassessment.summaryDecision,
+    form.preassessment.alexanderDecision,
+    form.preassessment.estimateFileUrl,
+    ...form.preassessment.riskRows.map((row) =>
+      [row.parameter, row.managerComment, row.criticality, row.riskBaseRef, row.sourceKey].join(" ")
+    )
+  ].join(" ");
   const targets = [
     { id: "section-general", label: "Общая информация", group: "Секция", value: [form.customer, form.title, form.shortTitle, form.nmc, form.purchaseBy].join(" ") },
     { id: "section-amounts", label: "Информация по суммам", group: "Секция", value: [form.platformPayment, form.applicationSecurity, form.contractSecurity].join(" ") },
     { id: "section-tender", label: "Информация по тендеру", group: "Секция", value: [form.overallExecutionTerm, form.contractTerm, form.retrade, form.antiDumpingMeasures, form.notes].join(" ") },
+    { id: "section-preassessment", label: "Предоценка", group: "Секция", value: preassessmentText },
     { id: "section-selection-criteria", label: "Критерии выбора", group: "Секция", value: criteriaText },
     { id: "section-stage", label: "Этап проекта", group: "Правая колонка", value: form.stage },
     { id: "section-documents", label: "Документы и ссылки", group: "Правая колонка", value: `${buildDocItems(form).map((item) => item.value).join(" ")} ${wikiBlocks.map((block) => `${block.title} ${block.subtitle} ${block.href} ${block.body}`).join(" ")}` }
