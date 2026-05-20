@@ -10,7 +10,7 @@
     "platform": "Bidzaar / РосТендер",
     "sourceUrl": "https://rostender.info/region/krasnodarskij-kraj/91648071-tender-razrabotka-mnogostranichnogo-sajta",
     "status": "Кодинг подготовлен",
-    "stage": "Готов к handoff",
+    "stage": "Подано",
     "priceStatus": "Начальная цена не указана",
     "executionWindow": "Апрель — июль 2026",
     "summary": "Многостраничный сайт с региональными поддоменами, интернет-магазином, корзиной, онлайн-оплатой, личным кабинетом, формами и административной частью.",
@@ -67,8 +67,8 @@
     "contractSecurity": "",
     "overallExecutionTerm": "Апрель — июль 2026",
     "contractTerm": "",
-    "retrade": "",
-    "antiDumpingMeasures": "",
+    "retrade": "Нет",
+    "antiDumpingMeasures": "Нет",
     "notes": "Многостраничный сайт с адаптивной версткой, дизайн-концепцией, каталогом, пресс-центром, формами обратной связи, картой объектов и интеграциями.",
     "creative": false,
     "requirementsDocumentUrl": "/assets/docs/coding-cemros-block-ru-v2.xlsx",
@@ -77,7 +77,38 @@
     "criteriaRows": [],
     "description": "",
     "contractor": "",
-    "projectTitle": "Разработка многостраничного сайта бренда ЦЕМРОС БЛОК"
+    "projectTitle": "Разработка многостраничного сайта бренда ЦЕМРОС БЛОК",
+    "creativeLinkUrl": "",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [
+        {
+          "order": 1,
+          "parameter": "123",
+          "managerComment": "123",
+          "criticality": "critical",
+          "riskBaseRef": "",
+          "sourceKey": ""
+        },
+        {
+          "order": 2,
+          "parameter": "123",
+          "managerComment": "123",
+          "criticality": "notCritical",
+          "riskBaseRef": "",
+          "sourceKey": ""
+        }
+      ],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "demo-brand-portal-2026-04-18",
@@ -165,7 +196,20 @@
     ],
     "description": "",
     "contractor": "",
-    "projectTitle": "Демо: Корпоративный портал бренда для дилерской сети"
+    "projectTitle": "Демо: Корпоративный портал бренда для дилерской сети",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "demo-retail-catalog-2026-05-03",
@@ -246,7 +290,20 @@
     ],
     "description": "",
     "contractor": "",
-    "projectTitle": "Демо: B2B-каталог и личный кабинет для оптовых клиентов"
+    "projectTitle": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "demo-landing-2025-12-11",
@@ -327,7 +384,20 @@
     ],
     "description": "",
     "contractor": "",
-    "projectTitle": "Демо: Промо-лендинг для новой линейки продукта"
+    "projectTitle": "Демо: Промо-лендинг для новой линейки продукта",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-16-razrabotka-mnogostranichnogo-sajta",
@@ -389,7 +459,20 @@
     "criteriaRows": [],
     "description": "",
     "contractor": "",
-    "projectTitle": "Razrabotka mnogostranichnogo sajta"
+    "projectTitle": "Razrabotka mnogostranichnogo sajta",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-17-ð-ð3-4ð3ð3-4ð2ð3-4n-ð-n-ð3-4ðμðon-117-docx-2",
@@ -451,7 +534,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "Договор Проект 117.docx (2)"
+    "projectTitle": "Договор Проект 117.docx (2)",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-17-1123",
@@ -513,7 +609,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "1123"
+    "projectTitle": "1123",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-20-123",
@@ -672,7 +781,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "123"
+    "projectTitle": "123",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-20-554",
@@ -831,7 +953,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "554"
+    "projectTitle": "554",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-20-5454",
@@ -990,7 +1125,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "5454"
+    "projectTitle": "5454",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-22-демо-b2b-каталог-и-личныи-кабинет-для-оптовых-клиентов",
@@ -1149,7 +1297,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "Демо: B2B-каталог и личный кабинет для оптовых клиентов"
+    "projectTitle": "Демо: B2B-каталог и личный кабинет для оптовых клиентов",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-22-тест",
@@ -1308,7 +1469,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "Тест"
+    "projectTitle": "Тест",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-25-тест",
@@ -1467,7 +1641,20 @@
     },
     "description": "",
     "contractor": "",
-    "projectTitle": "Тест"
+    "projectTitle": "Тест",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-25-сетевая-компания",
@@ -1724,7 +1911,20 @@
     "analysis": null,
     "description": "",
     "contractor": "",
-    "projectTitle": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»"
+    "projectTitle": "Выполнение работ по разработке информационной системы «Экосистема искусственного интеллекта»",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-26-тест2",
@@ -1981,7 +2181,20 @@
     "analysis": null,
     "description": "",
     "contractor": "",
-    "projectTitle": "Разработка ЛК для ЮЛ"
+    "projectTitle": "Разработка ЛК для ЮЛ",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-26-тест3",
@@ -2238,7 +2451,20 @@
     "analysis": null,
     "description": "",
     "contractor": "",
-    "projectTitle": "Тест3"
+    "projectTitle": "Тест3",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-26-тест4",
@@ -2495,7 +2721,20 @@
     },
     "analysis": null,
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-04-29-тест6",
@@ -2753,7 +2992,20 @@
     "analysis": null,
     "description": "",
     "contractor": "",
-    "creativeLinkUrl": ""
+    "creativeLinkUrl": "",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   },
   {
     "id": "2026-05-06-тест7",
@@ -3269,6 +3521,19 @@
     },
     "analysis": null,
     "description": "",
-    "contractor": ""
+    "contractor": "",
+    "selectionCriteriaRows": [],
+    "preassessment": {
+      "riskRows": [],
+      "riskBaseUrl": "",
+      "summaryDecision": "",
+      "alexanderDecision": "",
+      "estimateFileUrl": ""
+    },
+    "documentWiki": {
+      "version": 1,
+      "overrides": {},
+      "manualBlocks": []
+    }
   }
 ]
