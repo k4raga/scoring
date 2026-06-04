@@ -5,6 +5,7 @@ import mimetypes
 import os
 import re
 import shutil
+import subprocess
 import uuid
 import zipfile
 from datetime import datetime, timedelta, timezone
@@ -465,7 +466,7 @@ def normalize_markdown_body(text: str, item: dict, extracted: dict | None = None
         bullet = re.match(r"^[•●▪–—-]\s+(.+)$", line)
         if bullet:
             while index < len(lines):
-                current_bullet = re.match(r"^[•●▪–—-]\s+(.+)$", lines[index])
+                current_bullet = re.match(r"^[•●▪–—-]\s+(.+)$", clean_document_line(lines[index]))
                 if not current_bullet:
                     break
                 blocks.append(f"- {clean_document_line(current_bullet.group(1)).strip()}")
@@ -612,6 +613,9 @@ def extract_text(path: Path) -> dict:
     try:
         if suffix == ".docx":
             return successful_extraction(extract_docx_text(path), "docx_xml")
+
+        if suffix == ".doc":
+            return successful_extraction(extract_doc_text(path), "antiword_doc")
 
         if suffix == ".xlsx":
             return successful_extraction(extract_xlsx_text(path), "xlsx_xml")
@@ -1019,6 +1023,25 @@ def extract_docx_text(path: Path) -> str:
                 blocks.extend(table_lines)
 
     return "\n".join(blocks)
+
+
+def extract_doc_text(path: Path) -> str:
+    antiword_path = os.environ.get("SCORING_ANTIWORD_PATH") or "antiword"
+    completed = subprocess.run(
+        [antiword_path, "-m", "UTF-8", str(path)],
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+        check=False,
+    )
+
+    text = (completed.stdout or "").strip()
+    if completed.returncode != 0 and not text:
+        message = (completed.stderr or "").strip() or f"antiword exited with {completed.returncode}"
+        raise RuntimeError(message)
+
+    return text
 
 
 def extract_docx_paragraph_text(paragraph: ET.Element, ns: str) -> str:

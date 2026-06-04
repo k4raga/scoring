@@ -1,4 +1,10 @@
-import { normalizeCriteriaRows, normalizePreassessment, normalizeSelectionCriteriaRows } from "./record-schema.js";
+import {
+  normalizeCriteriaRows,
+  normalizePreassessment,
+  normalizeProcurementStage,
+  normalizeSelectionCriteriaRows,
+  normalizeShortTitle
+} from "./record-schema.js";
 
 export function applyRecordPatch(existingRecord, patch) {
   const hasOwn = (key) => Object.prototype.hasOwnProperty.call(patch, key);
@@ -20,7 +26,10 @@ export function applyRecordPatch(existingRecord, patch) {
     projectTitle: patch.projectTitle ?? existingRecord.projectTitle,
     customer: patch.customer ?? existingRecord.customer,
     title: patch.title ?? existingRecord.title,
-    shortTitle: patch.shortTitle ?? existingRecord.shortTitle,
+    shortTitle: hasOwn("shortTitle") ? normalizeShortTitle(patch.shortTitle) : existingRecord.shortTitle,
+    procurementStage: hasOwn("procurementStage")
+      ? normalizeProcurementStage(patch.procurementStage)
+      : existingRecord.procurementStage,
     sourceUrl: patch.sourceUrl ?? existingRecord.sourceUrl,
     etpUrl: patch.etpUrl ?? existingRecord.etpUrl,
     documentsFolderHref: patch.documentsFolderHref ?? existingRecord.documentsFolderHref,

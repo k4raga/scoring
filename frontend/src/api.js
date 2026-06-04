@@ -3,15 +3,21 @@ async function request(url, options) {
 
   if (!response.ok) {
     let message = `Request failed: ${response.status}`;
+    let errorPayload = null;
 
     try {
-      const errorPayload = await response.json();
+      errorPayload = await response.json();
       message = errorPayload.error || message;
     } catch {
       // ignore non-json errors
     }
 
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    error.payload = errorPayload;
+    error.details = errorPayload?.details;
+    error.job = errorPayload?.job;
+    throw error;
   }
 
   const contentType = response.headers.get("content-type") || "";
@@ -67,6 +73,10 @@ export function fetchAiProviders() {
 
 export function fetchRecordAnalysisJobs(recordId) {
   return request(`/api/records/${encodeURIComponent(recordId)}/analysis-jobs`);
+}
+
+export function fetchAnalysisJob(jobId) {
+  return request(`/api/analysis-jobs/${encodeURIComponent(jobId)}`);
 }
 
 export function fetchDocumentRecordsIndex() {

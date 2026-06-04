@@ -124,6 +124,19 @@ class ExtractorServiceTests(unittest.TestCase):
         self.assertIn("### 2.1 Постановка задачи", md)
         self.assertIn("| Термин | Определение |", md)
 
+    def test_extract_text_routes_legacy_doc_through_antiword(self):
+        original_extract_doc_text = server.extract_doc_text
+        server.extract_doc_text = lambda _path: "ЗАКУПОЧНАЯ ДОКУМЕНТАЦИЯ"
+
+        try:
+            result = server.extract_text(Path("legacy.doc"))
+        finally:
+            server.extract_doc_text = original_extract_doc_text
+
+        self.assertEqual(result["status"], "extracted")
+        self.assertEqual(result["extraction"]["method"], "antiword_doc")
+        self.assertIn("ЗАКУПОЧНАЯ ДОКУМЕНТАЦИЯ", result["text"])
+
     def test_build_md_document_normalizes_human_readable_structure(self):
         md = server.build_md_document(
             "doc-001",
@@ -153,6 +166,22 @@ class ExtractorServiceTests(unittest.TestCase):
         self.assertIn("- выполнить аудит", md)
         self.assertIn("| Этап | Срок | Результат |", md)
         self.assertIn("| --- | --- | --- |", md)
+
+    def test_normalize_markdown_body_advances_on_cleaned_dash_bullet(self):
+        md = server.normalize_markdown_body(
+            "\n".join(
+                [
+                    "1. Общие положения",
+                    "---- Форма акта согласована ------",
+                    "2. Следующий раздел",
+                ]
+            ),
+            {"name": "contract.docx", "relativePath": "contract.docx"},
+            {"extraction": {"method": "docx_xml", "quality": "full"}},
+        )
+
+        self.assertIn("Форма акта согласована", md)
+        self.assertIn("### 2 Следующий раздел", md)
 
     def test_extract_archive_generates_static_knowledge_html_with_source_links_and_fallback(self):
         original_runs_root = server.RUNS_ROOT

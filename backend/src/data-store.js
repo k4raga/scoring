@@ -7,6 +7,7 @@ import {
   buildLegacyCriteriaGroups,
   normalizeCriteriaRows,
   normalizePreassessment,
+  normalizeProcurementStage,
   normalizeSelectionCriteriaRows,
   normalizePurchaseBy,
   normalizeYesNo
@@ -52,6 +53,7 @@ function normalizeRecord(record) {
     projectTitle: normalizeDisplayText(record.projectTitle) || normalizeDisplayText(record.title),
     title: normalizeDisplayText(record.title),
     shortTitle: normalizeDisplayText(record.shortTitle) || normalizeDisplayText(record.title),
+    procurementStage: normalizeProcurementStage(record.procurementStage),
     customer: normalizeDisplayText(record.customer),
     region: normalizeDisplayText(record.region),
     platform: normalizeDisplayText(record.platform),
@@ -146,6 +148,7 @@ function toCardSummary(record) {
     projectTitle: record.projectTitle,
     title: record.title,
     shortTitle: record.shortTitle,
+    procurementStage: record.procurementStage,
     summary: record.summary,
     description: record.description,
     customer: record.customer,
@@ -399,6 +402,7 @@ function buildExcelSections(record) {
         row("Заказчик", record.customer || "-"),
         row("Предмет закупки", record.title || "-"),
         row("Предмет кратко", record.shortTitle || "-"),
+        row("Какой этап", record.procurementStage || "-"),
         row("Ссылка на извещение", record.sourceUrl || "-"),
         row("Ссылка на ЭТП", record.etpUrl || "-"),
         row("Папка с документами на рассмотрение", record.documentsFolderHref || "-"),
@@ -420,7 +424,7 @@ function buildExcelSections(record) {
       id: "tender",
       title: "Информация по тендеру",
       rows: [
-        row("Этап", record.stage || "-"),
+        row("Этап проекта", record.stage || "-"),
         row("Закупка по", record.purchaseBy || record.platform || "-"),
         row("Общий срок выполнения работ", record.overallExecutionTerm || record.executionWindow || "-"),
         row("Срок договора", record.contractTerm || "-"),
@@ -533,7 +537,7 @@ function normalizeText(value) {
 function normalizeDisplayText(value) {
   const text = normalizeText(value);
 
-  if (!text) {
+  if (!text || text.toLocaleLowerCase("ru-RU") === "не заполнено") {
     return "";
   }
 

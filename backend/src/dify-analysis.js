@@ -25,12 +25,12 @@ const RECORD_PAYLOAD_FIELDS = [
   "customer",
   "title",
   "shortTitle",
+  "procurementStage",
   "sourceUrl",
   "etpUrl",
   "publishedAt",
   "deadlineAt",
   "nmc",
-  "stage",
   "purchaseBy",
   "platform",
   "platformPayment",
@@ -55,7 +55,7 @@ const ALLOWED_RECORD_PATCH_FIELDS = new Set([
   "shortTitle",
   "deadlineAt",
   "nmc",
-  "stage",
+  "procurementStage",
   "purchaseBy",
   "platformPayment",
   "applicationSecurity",
@@ -162,10 +162,15 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
     fetchImpl
   });
   const normalized = normalizeDifyWorkflowResponse(difyResponse.payload);
+  const reconciledFindings = reconcileDocumentFindingsWithPayload(
+    normalized.documentFindings,
+    payloadBuild.payload.documents
+  );
   const durationMs = Date.now() - startedAt;
   const warnings = uniqueStrings([
     ...payloadBuild.warnings,
-    ...normalized.warnings
+    ...normalized.warnings,
+    ...reconciledFindings.warnings
   ]);
   const metadata = {
     ...(isObject(normalized.metadata) ? normalized.metadata : {}),
@@ -185,10 +190,14 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
     payloadSummary: payloadBuild.summary,
     responseDiagnostics: normalized.diagnostics
   };
+  const selectionCriteriaRows = mergeSelectionCriteriaRowsWithExisting(
+    normalized.selectionCriteriaRows,
+    record.selectionCriteriaRows
+  );
   const recordPatch = { ...normalized.recordPatch };
 
-  if (normalized.selectionCriteriaRows.length) {
-    recordPatch.selectionCriteriaRows = normalized.selectionCriteriaRows;
+  if (selectionCriteriaRows.length) {
+    recordPatch.selectionCriteriaRows = selectionCriteriaRows;
   }
 
   return {
@@ -198,8 +207,8 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
       metadata,
       fields: {},
       recordPatch,
-      selectionCriteriaRows: normalized.selectionCriteriaRows,
-      documentFindings: normalized.documentFindings,
+      selectionCriteriaRows,
+      documentFindings: reconciledFindings.documentFindings,
       warnings
     },
     adapter: {
@@ -210,6 +219,90 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
       warnings
     }
   };
+}
+
+function mergeSelectionCriteriaRowsWithExisting(nextRows, existingRows) {
+  const normalizedNextRows = normalizeSelectionCriteriaRows(nextRows, { requireCoverage: true });
+  const normalizedExistingRows = normalizeSelectionCriteriaRows(existingRows, { requireCoverage: true });
+
+  if (!normalizedNextRows.length || !normalizedExistingRows.length) {
+    return normalizedNextRows;
+  }
+
+  return normalizedNextRows.map((nextRow) => {
+    const existingRow = findMatchingSelectionCriteriaRow(nextRow, normalizedExistingRows);
+
+    if (!existingRow) {
+      return nextRow;
+    }
+
+    return {
+      ...nextRow,
+      order: existingRow.order || nextRow.order,
+      title: existingRow.title || nextRow.title,
+      coverageStatus: existingRow.coverageStatus || nextRow.coverageStatus,
+      coverageNote: existingRow.coverageNote || nextRow.coverageNote
+    };
+  });
+}
+
+function findMatchingSelectionCriteriaRow(row, existingRows) {
+  const normalizedTitle = normalizeCriteriaMatchText(row.title);
+
+  return existingRows.find((existingRow) => {
+    const existingTitle = normalizeCriteriaMatchText(existingRow.title);
+
+    if (normalizedTitle && existingTitle && normalizedTitle === existingTitle) {
+      return true;
+    }
+
+    if (row.group === existingRow.group && row.order === existingRow.order) {
+      return true;
+    }
+
+    return getSelectionCriteriaSignature(row) === getSelectionCriteriaSignature(existingRow);
+  }) || null;
+}
+
+function getSelectionCriteriaSignature(row) {
+  const haystack = normalizeCriteriaMatchText([
+    row.title,
+    row.coverageNote,
+    row.sourceExcerpt
+  ].filter(Boolean).join(" "));
+
+  if (!haystack) {
+    return "";
+  }
+
+  if (haystack.includes("фстэк")) {
+    return "license-fstek";
+  }
+
+  if (haystack.includes("фсб") || haystack.includes("криптографическ")) {
+    return "license-fsb";
+  }
+
+  if (haystack.includes("команда") || haystack.includes("15тиспециалист") || haystack.includes("трудовыхресурс")) {
+    return "team";
+  }
+
+  if (haystack.includes("опыт") || haystack.includes("25000000") || haystack.includes("3мядоговор")) {
+    return "experience";
+  }
+
+  if (haystack.includes("единственнымкритериемявляетсяцена") || haystack.includes("наименьшуюцену")) {
+    return "price";
+  }
+
+  return "";
+}
+
+function normalizeCriteriaMatchText(value) {
+  return normalizeOptionalText(value)
+    .toLocaleLowerCase("ru-RU")
+    .replace(/ё/g, "е")
+    .replace(/[^\p{L}\p{N}]+/gu, "");
 }
 
 export function buildDifyPayload({ record, job = {}, config = getDifyConfig() } = {}) {
@@ -381,7 +474,7 @@ async function requestDifyWorkflow({ config, payload, user, fetchImpl }) {
       }),
       signal: controller.signal
     });
-    const responsePayload = await readJsonResponse(response);
+    const responsePayload = await readDifyResponsePayload(response, config);
 
     if (!response.ok) {
       throw createDifyError("dify_api_request_failed", normalizeDifyApiError(response, responsePayload), {
@@ -642,25 +735,304 @@ function buildPayloadSummary(payload, warnings) {
   };
 }
 
-function buildDifyInstructions() {
+export function buildDifyInstructions() {
+  const tenderInfoFields = [
+    "customer",
+    "projectTitle",
+    "title",
+    "shortTitle",
+    "procurementStage",
+    "deadlineAt",
+    "nmc",
+    "purchaseBy",
+    "platformPayment",
+    "applicationSecurity",
+    "contractSecurity",
+    "overallExecutionTerm",
+    "contractTerm",
+    "retrade",
+    "antiDumpingMeasures",
+    "creative",
+    "notes",
+    "summary"
+  ];
+
   return {
+    objective: "Extract procurement/scoring data in two blocks only: tenderInfo and selectionCriteria. Use only supplied Markdown/json documents as evidence. Omit unsupported or unsupported-by-evidence fields.",
     expectedOutput: {
-      recordPatch: "object with allowed scoring card fields only",
-      selectionCriteriaRows: "array of rows: group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt",
-      preassessment: "recordPatch.preassessment object with riskRows, riskBaseUrl, summaryDecision, alexanderDecision, estimateFileUrl",
+      recordPatch: "object with tender information fields only",
+      selectionCriteriaRows: "array of evaluation criteria and mandatory bidder/contractor requirements: group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt",
       documentFindings: "array of evidence: field/target, documentId, quote/excerpt, reason/note, confidence",
       warnings: "array of warning strings",
       metadata: "object without secrets or links"
     },
-    allowedPatchFields: [...ALLOWED_RECORD_PATCH_FIELDS],
+    allowedPatchFields: [...ALLOWED_RECORD_PATCH_FIELDS].filter((field) => field !== "preassessment"),
+    disabledPatchFields: ["preassessment", "stage"],
+    extractionBlocks: [
+      {
+        id: "tenderInfo",
+        label: "Общая информация по тендеру",
+        output: "recordPatch + documentFindings for recordPatch fields",
+        fields: tenderInfoFields,
+        rules: [
+          "Return only recordPatch fields and related documentFindings.",
+          "Do not return selectionCriteriaRows from this block.",
+          "Do not return preassessment or riskRows."
+        ]
+      },
+      {
+        id: "selectionCriteria",
+        label: "Критерии выбора",
+        output: "selectionCriteriaRows + documentFindings for every criteria row",
+        fields: ["selectionCriteriaRows"],
+        rules: [
+          "Return only selectionCriteriaRows and related documentFindings.",
+          "Do not return tender recordPatch fields from this block.",
+          "Do not return preassessment or riskRows."
+        ]
+      }
+    ],
+    strictRules: [
+      "Return only JSON. Do not wrap JSON in markdown fences and do not add prose.",
+      "Do not invent values. If a value is not found in documents, omit the field.",
+      "Do not include unsupported fields such as contractPrice, price, href, url, path, documents, workflow or documentArtifacts.",
+      "Do not include preassessment, riskRows, riskBaseUrl, summaryDecision, alexanderDecision or estimateFileUrl in the current workflow.",
+      "Do not write procurement kind/stage into recordPatch.stage; stage is an internal scoring project workflow field. Use recordPatch.procurementStage for the tender/procurement stage.",
+      "Do not copy document links, local paths, API URLs, local development URLs or machine-local references into recordPatch, metadata or findings.",
+      "Prefer exact quotes from source documents in sourceExcerpt and documentFindings.quote.",
+      "Every meaningful recordPatch field and every selectionCriteriaRows row should have a related documentFindings entry.",
+      "For each field included in recordPatch, add a separate documentFindings item with field equal to that recordPatch key.",
+      "For each selectionCriteriaRows item, add a separate documentFindings item with field='selectionCriteriaRows' and quote/sourceExcerpt for that row.",
+      "If a document finding is based on a criteria row, use target='selectionCriteriaRows' and field='selectionCriteriaRows'.",
+      "For selectionCriteriaRows, extract two document-backed layers: (1) bid evaluation/winner/scoring criteria; (2) mandatory bidder or contractor qualification requirements that affect admission, participation, selection or contractability.",
+      "If documents say the only evaluation criterion is price or lowest price, return one price row for that evaluation rule, then keep extracting mandatory bidder requirements as group='requirement' with weightPercent=null.",
+      "Use group='requirement' for block-factor/no-weight requirements such as licenses, permits, staff/team resources, qualification certificates, comparable experience, required forms and strict mandatory application documents.",
+      "Existing scoring_payload.selectionCriteriaRows may contain human-entered coverageStatus/coverageNote values. When a document-backed row matches an existing row by title or business meaning, preserve the existing coverageStatus and coverageNote unless the new document evidence directly contradicts it.",
+      "Do not present preserved human-entered coverage notes as document evidence. documentFindings.quote and sourceExcerpt must still come from supplied Markdown/json documents.",
+      "Never treat technical specification implementation items, system features, bug definitions, technology stack, acceptance rules, source-code transfer, security tasks or delivery obligations as selectionCriteriaRows unless they are explicitly stated as bidder qualification/admission requirements or application evaluation criteria.",
+      "Keep sourceExcerpt, documentFindings.quote and documentFindings.note compact; use short quotes instead of long paragraphs.",
+      "If uncertain about coverageStatus, use 'partial' rather than omitting coverageStatus.",
+      "Check every instructions.extractionTargets.recordPatch field before the final answer; include all supported fields that have document evidence.",
+      "Do not stop after the first customer/title/price fields; extract deadlines, securities, terms, retrading, anti-dumping, creative requirements, notes and summary when present.",
+      "For recordPatch.shortTitle return only one of: Аутсорс, Аутстаф. Use Аутсорс for contracts about delivering work/service results; use Аутстаф only when the documents clearly describe providing personnel/staff to the customer without contractor-owned work result responsibility.",
+      "Keep overallExecutionTerm and contractTerm separate: overallExecutionTerm is the work/service delivery period; contractTerm is the legal validity period of the agreement.",
+      "When a work/service term is split across adjacent lines or table cells, combine the neighboring cells into one business value, for example 'с даты подписания договора - до 01 декабря 2026 года'."
+    ],
+    extractionTargets: {
+      recordPatch: [
+        {
+          field: "customer",
+          label: "Заказчик",
+          searchHints: ["заказчик", "наименование заказчика", "организатор закупки", "клиент", "получатель услуг"],
+          output: "Official customer/ordering organization name."
+        },
+        {
+          field: "projectTitle",
+          label: "Название проекта",
+          searchHints: ["предмет закупки", "наименование закупки", "название проекта", "техническое задание", "оказание услуг", "выполнение работ"],
+          output: "Human-readable project title if clearly stated."
+        },
+        {
+          field: "title",
+          label: "Предмет закупки",
+          searchHints: ["предмет договора", "предмет закупки", "объект закупки", "описание объекта закупки", "цель работ"],
+          output: "Full procurement subject."
+        },
+        {
+          field: "shortTitle",
+          label: "Предмет кратко",
+          searchHints: [
+            "выполнение работ",
+            "оказание услуг",
+            "результат работ",
+            "акт выполненных работ",
+            "отчет о фактически выполненных работах",
+            "трудозатраты привлеченных специалистов",
+            "предоставление персонала",
+            "предоставление работников",
+            "аутсорс",
+            "аутстаф"
+          ],
+          output: "One of exactly: Аутсорс, Аутстаф. Map договора на выполнение работ/оказание услуг с результатом и актами to Аутсорс."
+        },
+        {
+          field: "deadlineAt",
+          label: "Срок подачи",
+          searchHints: ["дата и время окончания подачи", "окончание приема заявок", "срок подачи заявок", "deadline"],
+          output: "Submission deadline as found in documents."
+        },
+        {
+          field: "nmc",
+          label: "НМЦ",
+          searchHints: ["начальная максимальная цена", "НМЦ", "НМЦК", "максимальная цена договора", "цена договора"],
+          output: "Initial/max contract price with currency if present."
+        },
+        {
+          field: "procurementStage",
+          label: "Какой этап",
+          searchHints: [
+            "способ закупки",
+            "форма проведения",
+            "запрос цен",
+            "открытый запрос цен",
+            "аукцион",
+            "конкурс",
+            "пко",
+            "предквалификация",
+            "мониторинг цен",
+            "сбор нмц",
+            "анализ рынка цен"
+          ],
+          output: "One of exactly: ПКО, Тендер, Сбор НМЦ, Аукцион, Мониторинг цен - закрытый конкурс, Мониторинг цен - открытый конкурс, Анализ рынка цен. Map explicit запрос цен/конкурс/тендер procurement methods to Тендер."
+        },
+        {
+          field: "purchaseBy",
+          label: "Закупка по",
+          searchHints: ["44-ФЗ", "223-ФЗ", "положение о закупке", "коммерческая закупка"],
+          output: "One of: 44-ФЗ, 223-ФЗ / Положение о закупке, Коммерческая закупка, Иное."
+        },
+        {
+          field: "platformPayment",
+          label: "Оплата площадки",
+          searchHints: ["оплата площадки", "тариф электронной площадки", "комиссия площадки", "плата оператору"],
+          output: "Platform payment/commission terms."
+        },
+        {
+          field: "applicationSecurity",
+          label: "Обеспечение заявки",
+          searchHints: ["обеспечение заявки", "размер обеспечения заявки", "банковская гарантия заявки", "задаток"],
+          output: "Bid/application security amount and terms."
+        },
+        {
+          field: "contractSecurity",
+          label: "Обеспечение контракта",
+          searchHints: ["обеспечение исполнения договора", "обеспечение исполнения контракта", "гарантийные обязательства", "банковская гарантия"],
+          output: "Contract performance security amount and terms."
+        },
+        {
+          field: "overallExecutionTerm",
+          label: "Общий срок выполнения работ",
+          searchHints: [
+            "общий срок выполнения работ",
+            "срок выполнения работ",
+            "срок оказания услуг",
+            "срок оказания услуг / выполнения работ",
+            "период выполнения",
+            "начало - с даты подписания договора",
+            "окончание - до",
+            "с даты заключения по",
+            "по 01 декабря 2026",
+            "календарных дней",
+            "рабочих дней"
+          ],
+          output: "Overall work/service delivery term. Include both start and end when documents provide them in nearby lines/table cells."
+        },
+        {
+          field: "contractTerm",
+          label: "Срок договора",
+          searchHints: ["срок действия договора", "договор действует", "окончание срока действия договора"],
+          output: "Legal contract validity term only, not the work/service delivery period."
+        },
+        {
+          field: "retrade",
+          label: "Переторжка",
+          searchHints: ["переторжка", "дополнительные ценовые предложения", "аукционный шаг", "торговая сессия"],
+          output: "Retrading/auction/price improvement rules."
+        },
+        {
+          field: "antiDumpingMeasures",
+          label: "Антидемпинговые меры",
+          searchHints: ["антидемпинговые меры", "снижение цены", "25 процентов", "добросовестность участника"],
+          output: "Anti-dumping rules or 'Нет', if documents explicitly say they do not apply."
+        },
+        {
+          field: "creative",
+          label: "Творческое",
+          searchHints: ["дизайн", "креатив", "концепция", "макет", "визуальная концепция"],
+          output: "Boolean true only if creative/design concept work is clearly required; false only if clearly not required."
+        },
+        {
+          field: "notes",
+          label: "Примечания",
+          searchHints: ["особые условия", "важные условия", "ограничения", "требования к участнику", "существенные условия"],
+          output: "Compact notes with important restrictions, unusual conditions, submission details or risks."
+        },
+        {
+          field: "summary",
+          label: "Резюме",
+          searchHints: ["цель", "объем работ", "ключевые требования", "результат работ"],
+          output: "Short summary of procurement and delivery scope."
+        }
+      ],
+      selectionCriteriaRows: {
+        purpose: "Extract explicit winner selection, bid evaluation, scoring/final ranking criteria and mandatory bidder/contractor qualification requirements. This block should reproduce the business table 'Критерии выбора подрядчика': weighted evaluation rows plus no-weight block-factor requirements.",
+        searchHints: [
+          "критерии оценки",
+          "порядок оценки",
+          "оценка заявок",
+          "рассмотрение и оценка заявок",
+          "подведение итогов",
+          "выбор победителя",
+          "победителем признается",
+          "единственным критерием является цена",
+          "наименьшую цену",
+          "значимость критерия",
+          "вес критерия",
+          "цена договора",
+          "дополнительные требования к участникам",
+          "требования к участникам процедуры закупки",
+          "соответствие участника требованиям",
+          "строго обязательно",
+          "блок-фактор",
+          "лицензия ФСТЭК",
+          "лицензия ФСБ",
+          "техническая защита конфиденциальной информации",
+          "криптографических средств",
+          "квалификация участника",
+          "опыт участника",
+          "наличие опыта",
+          "сопоставимых с предметом запроса цен",
+          "не менее 3-мя договорами",
+          "не менее 25 000 000",
+          "трудовых ресурсов",
+          "не менее 15-ти специалистов",
+          "ФОРМА 3.2.2",
+          "ФОРМА 3.2.3",
+          "деловая репутация",
+          "техническое предложение"
+        ],
+        exclusions: [
+          "Техническое задание",
+          "термины и определения",
+          "Баг",
+          "Недостаток",
+          "PHP/YII2",
+          "Vue.js",
+          "исходные коды",
+          "документация к системе",
+          "приемка работ"
+        ],
+        priceOnlyGuidance: "When a section states 'Единственным критерием является цена' or the winner is the participant with the lowest price, return one row: group='price', title='Цена', weightPercent=100 if the document makes it the only evaluation criterion, otherwise null, coverageStatus='full'. This does not mean there are no mandatory bidder requirements.",
+        mandatoryRequirementGuidance: "For explicit admission/qualification/mandatory application requirements, return group='requirement', weightPercent=null. Good row titles are short business names such as 'Лицензия ФСТЭК', 'Лицензия ФСБ', 'Команда', 'Опыт'. Put the actual requirement text and confirmation form in coverageNote/sourceExcerpt. If the document marks the row as strictly mandatory/block-factor/no weight, keep coverageStatus='full' unless the supplied card evidence says it is not covered.",
+        preserveExistingGuidance: "Before returning rows, compare them with scoring_payload.selectionCriteriaRows. If an existing row has the same title or same business meaning, carry over its coverageStatus and coverageNote, especially human portfolio notes such as which internal projects may close an experience requirement. Keep sourceExcerpt tied to the document requirement, not to the human note.",
+        rowShape: {
+          group: "price | nonPrice | requirement",
+          title: "criterion or requirement name",
+          weightPercent: "number for weighted evaluation criteria; null for group='requirement'",
+          coverageStatus: "full | partial | none",
+          coverageNote: "how we cover it or what is missing",
+          sourceExcerpt: "exact source quote"
+        },
+        coverageGuidance: {
+          full: "The row appears coverable based on document wording or is a standard price criterion.",
+          partial: "Information is incomplete, ambiguous, or likely needs manager review.",
+          none: "Document describes a hard requirement that appears not covered or impossible."
+        }
+      }
+    },
     selectionCriteriaEnums: {
       group: ["price", "nonPrice", "requirement"],
       coverageStatus: ["full", "partial", "none"]
-    },
-    preassessmentEnums: {
-      criticality: ["unknown", "critical", "notCritical"],
-      summaryDecision: ["estimate", "decline"],
-      alexanderDecision: ["estimate", "decline"]
     }
   };
 }
@@ -761,6 +1133,72 @@ function normalizeDocumentFinding(value) {
     note,
     confidence: normalizeConfidence(value.confidence)
   };
+}
+
+function reconcileDocumentFindingsWithPayload(documentFindings, documents) {
+  if (!Array.isArray(documentFindings) || !Array.isArray(documents) || !documents.length) {
+    return {
+      documentFindings: Array.isArray(documentFindings) ? documentFindings : [],
+      warnings: []
+    };
+  }
+
+  const searchableDocuments = documents
+    .map((document) => ({
+      documentId: normalizeOptionalText(document.documentId),
+      text: normalizeEvidenceSearchText([
+        document.markdown,
+        ...(Array.isArray(document.jsonArtifacts)
+          ? document.jsonArtifacts.map((artifact) => JSON.stringify(artifact.content || ""))
+          : [])
+      ].join("\n"))
+    }))
+    .filter((document) => document.documentId && document.text);
+  let repairedCount = 0;
+
+  const nextFindings = documentFindings.map((finding) => {
+    const quote = normalizeOptionalText(finding.quote || finding.excerpt);
+    const matchedDocumentId = findUniqueDocumentIdForQuote(quote, searchableDocuments);
+
+    if (!matchedDocumentId || matchedDocumentId === finding.documentId) {
+      return finding;
+    }
+
+    repairedCount += 1;
+
+    return {
+      ...finding,
+      documentId: matchedDocumentId
+    };
+  });
+
+  return {
+    documentFindings: nextFindings,
+    warnings: repairedCount ? [`dify_document_finding_document_id_repaired:${repairedCount}`] : []
+  };
+}
+
+function findUniqueDocumentIdForQuote(quote, searchableDocuments) {
+  const needle = normalizeEvidenceSearchText(quote);
+
+  if (needle.length < 12) {
+    return "";
+  }
+
+  const matches = searchableDocuments
+    .filter((document) => document.text.includes(needle))
+    .map((document) => document.documentId);
+
+  return matches.length === 1 ? matches[0] : "";
+}
+
+function normalizeEvidenceSearchText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}%]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
 }
 
 function sanitizeJsonValue(value, depth = 0) {
@@ -904,6 +1342,67 @@ async function readJsonResponse(response) {
   }
 
   return response.json();
+}
+
+async function readDifyResponsePayload(response, config) {
+  const contentType = response.headers.get("content-type") || "";
+
+  if (response.ok && (config.responseMode === "streaming" || contentType.includes("text/event-stream"))) {
+    return readDifyStreamingResponse(response);
+  }
+
+  return readJsonResponse(response);
+}
+
+async function readDifyStreamingResponse(response) {
+  const text = await response.text();
+  const events = parseSseJsonEvents(text);
+
+  if (!events.length) {
+    const parsed = parseMaybeJson(text);
+
+    if (parsed) {
+      return parsed;
+    }
+
+    throw createDifyError("dify_stream_empty", "Dify streaming response did not contain workflow events", {
+      httpStatus: 502
+    });
+  }
+
+  const finishedEvent = [...events].reverse().find((event) => event.event === "workflow_finished") || events.at(-1);
+  const data = isObject(finishedEvent.data) ? finishedEvent.data : {};
+
+  return {
+    task_id: normalizeOptionalText(finishedEvent.task_id),
+    workflow_run_id: normalizeOptionalText(finishedEvent.workflow_run_id || data.workflow_run_id || data.id),
+    data: {
+      ...data,
+      workflow_run_id: normalizeOptionalText(finishedEvent.workflow_run_id || data.workflow_run_id)
+    }
+  };
+}
+
+function parseSseJsonEvents(text) {
+  return String(text || "")
+    .split(/\r?\n\r?\n/u)
+    .map((block) =>
+      block
+        .split(/\r?\n/u)
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trimStart())
+        .join("\n")
+        .trim()
+    )
+    .filter((data) => data && data !== "[DONE]")
+    .map((data) => {
+      try {
+        return JSON.parse(data);
+      } catch (_error) {
+        return null;
+      }
+    })
+    .filter(isObject);
 }
 
 function normalizeDifyApiError(response, payload) {

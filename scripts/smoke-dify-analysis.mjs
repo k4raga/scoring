@@ -168,10 +168,23 @@ try {
   assert.equal(run.record.selectionCriteriaRows[0].coverageStatus, "full");
   assert.equal(difyRequest.url, "/workflows/run");
   assert.equal(difyRequest.authorization, "Bearer smoke-secret");
-  assert.equal(difyRequest.body.inputs.scoring_payload.record.criteriaDocumentUrl, undefined);
-  assert.match(JSON.stringify(difyRequest.body.inputs.scoring_payload.documents), /# Критерии/u);
+  assert.deepEqual(Object.keys(difyRequest.body.inputs), ["scoring_payload"]);
+  assert.equal(difyRequest.body.response_mode, "blocking");
+
+  const scoringPayload = difyRequest.body.inputs.scoring_payload;
+
+  assert.equal(scoringPayload.context.contractVersion, "dify-ai-pass.v1");
+  assert.equal(scoringPayload.context.language, "ru");
+  assert.equal(scoringPayload.record.criteriaDocumentUrl, undefined);
+  assert.equal(scoringPayload.record.documentsFolderHref, undefined);
+  assert.match(JSON.stringify(scoringPayload.documents), /# Критерии/u);
+  assertNoUnsafeReferences(JSON.stringify(scoringPayload), "dify payload");
+
+  assert.equal(run.job.result.payload.documentFindings[0].documentId, "doc-1");
+  assert.match(run.job.result.payload.documentFindings[0].quote, /Новый заказчик/u);
   assert.doesNotMatch(JSON.stringify(run.job.result), /smoke-secret/u);
   assert.doesNotMatch(JSON.stringify(run.job.result), /# Критерии/u);
+  assertNoUnsafeReferences(JSON.stringify(run.job.result), "job result");
 
   console.log(
     JSON.stringify(
@@ -239,4 +252,16 @@ function delay(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function assertNoUnsafeReferences(value, label) {
+  assert.doesNotMatch(value, /smoke-secret/u, `${label} leaked Dify API key`);
+  assert.doesNotMatch(value, /127\.0\.0\.1|localhost/u, `${label} leaked machine-local URL`);
+  assert.doesNotMatch(value, /[A-Z]:\\/u, `${label} leaked Windows absolute path`);
+  assert.doesNotMatch(value, /\/api\/records\//u, `${label} leaked record API route`);
+  assert.doesNotMatch(value, /\/assets\/storage\//u, `${label} leaked storage link`);
+  assert.doesNotMatch(value, /"href"\s*:/u, `${label} leaked href field`);
+  assert.doesNotMatch(value, /"path"\s*:/u, `${label} leaked path field`);
+  assert.doesNotMatch(value, /"sourcePath"\s*:/u, `${label} leaked sourcePath field`);
+  assert.doesNotMatch(value, /"markdownPath"\s*:/u, `${label} leaked markdownPath field`);
 }

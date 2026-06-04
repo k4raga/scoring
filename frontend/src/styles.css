@@ -1320,6 +1320,56 @@ svg {
   color: var(--muted);
 }
 
+.detail-select-pill {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: rgba(36, 32, 48, 0.82);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.detail-select-pill.tone-pko {
+  background: #ffd0c8;
+}
+
+.detail-select-pill.tone-outsourcing {
+  background: #c9f5a8;
+}
+
+.detail-select-pill.tone-outstaff {
+  background: #b9e1ff;
+}
+
+.detail-select-pill.tone-tender {
+  background: #ffd4ae;
+}
+
+.detail-select-pill.tone-nmc {
+  background: #ffe59b;
+}
+
+.detail-select-pill.tone-auction {
+  background: #bfe1fb;
+}
+
+.detail-select-pill.tone-monitoringClosed {
+  background: #c7e0e3;
+}
+
+.detail-select-pill.tone-monitoringOpen {
+  background: #c9edbb;
+}
+
+.detail-select-pill.tone-marketAnalysis {
+  background: #dcc4ee;
+}
+
 .detail-select-caret {
   position: absolute;
   top: 50%;

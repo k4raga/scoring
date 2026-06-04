@@ -38,6 +38,10 @@ const CRITERIA_KIND_OPTIONS = [
   { value: "блок-фактор", label: "блок-фактор" }
 ];
 
+const SHORT_TITLE_OPTIONS = [
+  { value: "Аутсорс", label: "Аутсорс" },
+  { value: "Аутстаф", label: "Аутстаф" }
+];
 const PURCHASE_BY_UNKNOWN = "Нет информации";
 const PURCHASE_BY_OPTIONS = [
   { value: PURCHASE_BY_UNKNOWN, label: PURCHASE_BY_UNKNOWN },
@@ -47,6 +51,15 @@ const PURCHASE_BY_OPTIONS = [
   { value: "Иное", label: "Иное" }
 ];
 const LEGACY_INVALID_PURCHASE_BY = new Set(["", "Техническое задание", "Загрузка архива", "Демо-данные"]);
+const PROCUREMENT_STAGE_OPTIONS = [
+  { value: "ПКО", label: "ПКО" },
+  { value: "Тендер", label: "Тендер" },
+  { value: "Сбор НМЦ", label: "Сбор НМЦ" },
+  { value: "Аукцион", label: "Аукцион" },
+  { value: "Мониторинг цен - закрытый конкурс", label: "Мониторинг цен - закрытый конкурс" },
+  { value: "Мониторинг цен - открытый конкурс", label: "Мониторинг цен - открытый конкурс" },
+  { value: "Анализ рынка цен", label: "Анализ рынка цен" }
+];
 
 const EDITOR_SECTIONS = [
   {
@@ -55,7 +68,8 @@ const EDITOR_SECTIONS = [
     fields: [
       field("customer", "Заказчик", "text"),
       field("title", "Предмет закупки", "text"),
-      field("shortTitle", "Предмет кратко", "text"),
+      field("shortTitle", "Предмет кратко", "select", { options: SHORT_TITLE_OPTIONS }),
+      field("procurementStage", "Какой этап", "select", { options: PROCUREMENT_STAGE_OPTIONS }),
       field("sourceUrl", "Ссылка на извещение", "url"),
       field("etpUrl", "Ссылка на ЭТП", "url"),
       field("documentsFolderHref", "Папка с документами на рассмотрение", "url"),
@@ -167,6 +181,82 @@ export function getPreassessmentCriticalityOptions() {
 
 export function getPreassessmentSummaryDecisionOptions() {
   return PREASSESSMENT_SUMMARY_DECISION_OPTIONS;
+}
+
+export function getProcurementStageOptions() {
+  return PROCUREMENT_STAGE_OPTIONS;
+}
+
+export function getShortTitleOptions() {
+  return SHORT_TITLE_OPTIONS;
+}
+
+export function normalizeShortTitle(value) {
+  const normalized = String(value || "").trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (SHORT_TITLE_OPTIONS.some((option) => option.value === normalized)) {
+    return normalized;
+  }
+
+  const lowered = normalized.toLocaleLowerCase("ru-RU");
+
+  if (/аутстаф|outstaff/u.test(lowered)) {
+    return "Аутстаф";
+  }
+
+  if (/аутсорс|outsourc/u.test(lowered)) {
+    return "Аутсорс";
+  }
+
+  return normalized;
+}
+
+export function normalizeProcurementStage(value) {
+  const normalized = String(value || "").trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (PROCUREMENT_STAGE_OPTIONS.some((option) => option.value === normalized)) {
+    return normalized;
+  }
+
+  const lowered = normalized.toLocaleLowerCase("ru-RU");
+
+  if (/пко|предквалификац/u.test(lowered)) {
+    return "ПКО";
+  }
+
+  if (/сбор\s*нмц|сбор\s*нмцк/u.test(lowered)) {
+    return "Сбор НМЦ";
+  }
+
+  if (/аукцион/u.test(lowered)) {
+    return "Аукцион";
+  }
+
+  if (/мониторинг\s*цен/u.test(lowered) && /закрыт/u.test(lowered)) {
+    return "Мониторинг цен - закрытый конкурс";
+  }
+
+  if (/мониторинг\s*цен/u.test(lowered) && /открыт/u.test(lowered)) {
+    return "Мониторинг цен - открытый конкурс";
+  }
+
+  if (/анализ\s*рынка\s*цен/u.test(lowered)) {
+    return "Анализ рынка цен";
+  }
+
+  if (/тендер|запрос\s*цен|конкурс|закупк/u.test(lowered)) {
+    return "Тендер";
+  }
+
+  return "";
 }
 
 export function normalizeSelectionCriteriaRows(input, options = {}) {

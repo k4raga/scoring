@@ -1,21 +1,33 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { createRecord, deleteRecord } from "../api.js";
+import { DocumentCompactList } from "../features/record-detail/DocumentWikiBlocks.jsx";
+import { CustomSelect } from "../features/record-detail/RecordControls.jsx";
+import { PreassessmentSection } from "../features/record-detail/PreassessmentSection.jsx";
+import { SelectionCriteriaSection } from "../features/record-detail/SelectionCriteriaSection.jsx";
 import {
-  createAnalysisJob,
-  createRecord,
-  deleteRecord,
-  fetchAiProviders,
-  fetchRecord,
-  fetchRecordAnalysisJobs,
-  runDifyAnalysisJob,
-  saveRecord
-} from "../api.js";
+  buildDocItems,
+  buildEditableDocumentBlocks,
+  createDocumentBlockId
+} from "../features/record-detail/documentWikiModel.js";
+import { useAnalysisContext } from "../features/record-detail/useAnalysisContext.js";
+import { useRecordDetail } from "../features/record-detail/useRecordDetail.js";
 import { CalendarIcon, LogoMark, SearchIcon } from "../ui/icons.jsx";
 import ProjectCreateButton from "../ui/ProjectCreateButton.jsx";
+import { getCanonicalStageOptions } from "../uiStage.js";
 import {
-  getCanonicalStageLabel,
-  getCanonicalStageOptions
-} from "../uiStage.js";
+  RISK_BASE_URL,
+  createPreassessmentRiskRow,
+  createSelectionCriteriaRow,
+  getProcurementStageSelectOptions,
+  getPurchaseBySelectOptions,
+  getRecordEditorOptions,
+  getShortTitleSelectOptions,
+  mapCreativeToToggle,
+  mapToggleToCreative,
+  normalizeDocumentWikiConfig,
+  normalizePurchaseByValue
+} from "../features/record-detail/recordFormModel.js";
 
 const MONTHS = [
   "Январь",
@@ -34,38 +46,8 @@ const MONTHS = [
 
 const HEADER_SUBTITLE = "Утром - деньги, вечером - стулья";
 const SEARCH_PLACEHOLDER = "Поиск по полям и документам";
-const RISK_BASE_URL = "https://docs.google.com/spreadsheets/d/1vRWazbT1FUDv6o4Sq208-_pC7cdxptJBy2PoZyc27sY/edit?gid=423778694#gid=423778694";
 const STAGE_OPTIONS = getCanonicalStageOptions();
 const STAGE_SELECT_OPTIONS = STAGE_OPTIONS.map((option) => ({ value: option.label, label: option.label }));
-const PURCHASE_BY_UNKNOWN = "Нет информации";
-const PURCHASE_BY_OPTIONS = [
-  PURCHASE_BY_UNKNOWN,
-  "44-ФЗ",
-  "223-ФЗ / Положение о закупке",
-  "Коммерческая закупка",
-  "Иное"
-];
-const LEGACY_INVALID_PURCHASE_BY = new Set(["", "Техническое задание", "Загрузка архива", "Демо-данные"]);
-const SELECTION_CRITERIA_GROUP_OPTIONS = [
-  { value: "price", label: "Ценовой критерий" },
-  { value: "nonPrice", label: "Неценовой критерий" },
-  { value: "requirement", label: "Дополнительное требование" }
-];
-const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
-  { value: "full", label: "Полностью закрываем" },
-  { value: "partial", label: "Частично закрываем" },
-  { value: "none", label: "Не закрываем" }
-];
-const PREASSESSMENT_CRITICALITY_OPTIONS = [
-  { value: "unknown", label: "Не указано" },
-  { value: "critical", label: "Критично" },
-  { value: "notCritical", label: "Не критично" }
-];
-const PREASSESSMENT_SUMMARY_DECISION_OPTIONS = [
-  { value: "", label: "Не выбрано" },
-  { value: "estimate", label: "Оценка" },
-  { value: "decline", label: "Не участвуем" }
-];
 
 export default function DetailPage() {
   const { recordId = "" } = useParams();
@@ -82,17 +64,32 @@ export default function DetailPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteStatus, setDeleteStatus] = useState("idle");
   const [deleteMessage, setDeleteMessage] = useState("");
-  const [status, setStatus] = useState("loading");
-  const [error, setError] = useState("");
-  const [record, setRecord] = useState(null);
-  const [form, setForm] = useState(createEmptyForm());
-  const [savedForm, setSavedForm] = useState(createEmptyForm());
-  const [saveStatus, setSaveStatus] = useState("idle");
-  const [saveMessage, setSaveMessage] = useState("");
-  const [aiProviders, setAiProviders] = useState([]);
-  const [analysisJobs, setAnalysisJobs] = useState([]);
-  const [difyStatus, setDifyStatus] = useState("idle");
-  const [difyMessage, setDifyMessage] = useState("");
+  const {
+    dirty,
+    error,
+    form,
+    handleSave,
+    markDirtyIdle,
+    record,
+    replaceRecord,
+    resetForm,
+    saveMessage,
+    saveStatus,
+    setForm,
+    showSaveBar,
+    status
+  } = useRecordDetail(recordId);
+  const {
+    difyMessage,
+    difyProvider,
+    difyStatus,
+    handleDifyRun,
+    latestDifyJob
+  } = useAnalysisContext({
+    dirty,
+    onRecordLoaded: replaceRecord,
+    recordId
+  });
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -139,106 +136,16 @@ export default function DetailPage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isDeleteModalOpen]);
 
-  useEffect(() => {
-    let active = true;
-
-    async function load() {
-      try {
-        const nextRecord = await fetchRecord(recordId);
-
-        if (!active) {
-          return;
-        }
-
-        const nextForm = buildFormState(nextRecord);
-        setRecord(nextRecord);
-        setForm(nextForm);
-        setSavedForm(nextForm);
-        setStatus("success");
-        setError("");
-      } catch (loadError) {
-        if (!active) {
-          return;
-        }
-
-        setRecord(null);
-        setForm(createEmptyForm());
-        setSavedForm(createEmptyForm());
-        setStatus("error");
-        setError(loadError instanceof Error ? loadError.message : "unexpected_error");
-      }
-    }
-
-    load();
-
-    return () => {
-      active = false;
-    };
-  }, [recordId]);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadAnalysisContext() {
-      try {
-        const [providersPayload, jobsPayload] = await Promise.all([
-          fetchAiProviders(),
-          fetchRecordAnalysisJobs(recordId)
-        ]);
-
-        if (!active) {
-          return;
-        }
-
-        setAiProviders(Array.isArray(providersPayload?.providers) ? providersPayload.providers : []);
-        setAnalysisJobs(Array.isArray(jobsPayload?.jobs) ? jobsPayload.jobs : []);
-      } catch (_error) {
-        if (!active) {
-          return;
-        }
-
-        setAiProviders([]);
-        setAnalysisJobs([]);
-      }
-    }
-
-    if (recordId) {
-      loadAnalysisContext();
-    }
-
-    return () => {
-      active = false;
-    };
-  }, [recordId]);
-
-  useEffect(() => {
-    if (saveStatus !== "success" || !saveMessage) {
-      return undefined;
-    }
-
-    const timerId = window.setTimeout(() => {
-      setSaveStatus("idle");
-      setSaveMessage("");
-    }, 2500);
-
-    return () => window.clearTimeout(timerId);
-  }, [saveMessage, saveStatus]);
-
-  const dirty = useMemo(() => serializeForm(form) !== serializeForm(savedForm), [form, savedForm]);
-  const showSaveBar = dirty || saveStatus === "saving" || Boolean(saveMessage);
   const monthPath = record ? buildMonthPath(record.year, record.month) : "/";
   const monthLabel = record ? formatMonth(record.month) : "месяц";
   const searchTargets = useMemo(() => buildSearchTargets(record, form), [form, record]);
   const searchMatches = useMemo(() => filterSearchTargets(searchTargets, searchQuery), [searchQuery, searchTargets]);
   const documentBlocks = useMemo(() => buildEditableDocumentBlocks(record, form.documentWiki), [form.documentWiki, record]);
-  const difyProvider = useMemo(() => aiProviders.find((provider) => provider.id === "dify") || null, [aiProviders]);
-  const difyJobs = useMemo(() => analysisJobs.filter((job) => job.providerId === "dify"), [analysisJobs]);
-  const latestDifyJob = difyJobs[0] || null;
+  const editorOptions = useMemo(() => getRecordEditorOptions(record), [record]);
 
   function updateField(key, value) {
     setForm((current) => ({ ...current, [key]: value }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function updateSelectionCriteriaRow(rowId, key, value) {
@@ -253,8 +160,7 @@ export default function DetailPage() {
         return key === "group" && value === "requirement" ? { ...nextRow, weightPercent: "" } : nextRow;
       })
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function addSelectionCriteriaRow() {
@@ -262,8 +168,7 @@ export default function DetailPage() {
       ...current,
       selectionCriteriaRows: [...current.selectionCriteriaRows, createSelectionCriteriaRow({ order: current.selectionCriteriaRows.length + 1 })]
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function removeSelectionCriteriaRow(rowId) {
@@ -273,8 +178,7 @@ export default function DetailPage() {
         .filter((row) => row.rowId !== rowId)
         .map((row, index) => ({ ...row, order: index + 1 }))
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function updatePreassessmentField(key, value) {
@@ -285,8 +189,7 @@ export default function DetailPage() {
         [key]: value
       }
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function updatePreassessmentRiskRow(rowId, key, value) {
@@ -299,8 +202,7 @@ export default function DetailPage() {
         )
       }
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function addPreassessmentRiskRow() {
@@ -314,8 +216,7 @@ export default function DetailPage() {
         ]
       }
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function removePreassessmentRiskRow(rowId) {
@@ -328,14 +229,12 @@ export default function DetailPage() {
           .map((row, index) => ({ ...row, order: index + 1 }))
       }
     }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function updateDocumentWiki(nextWiki) {
     setForm((current) => ({ ...current, documentWiki: normalizeDocumentWikiConfig(nextWiki) }));
-    setSaveStatus("idle");
-    setSaveMessage("");
+    markDirtyIdle();
   }
 
   function updateDocumentBlockTitle(block, title) {
@@ -453,69 +352,6 @@ export default function DetailPage() {
     updateDocumentWiki(nextWiki);
   }
 
-  function resetForm() {
-    setForm(savedForm);
-    setSaveStatus("idle");
-    setSaveMessage("");
-  }
-
-  async function refreshAnalysisContext() {
-    const [providersPayload, jobsPayload] = await Promise.all([
-      fetchAiProviders(),
-      fetchRecordAnalysisJobs(recordId)
-    ]);
-
-    setAiProviders(Array.isArray(providersPayload?.providers) ? providersPayload.providers : []);
-    setAnalysisJobs(Array.isArray(jobsPayload?.jobs) ? jobsPayload.jobs : []);
-  }
-
-  async function handleDifyRun() {
-    if (dirty) {
-      setDifyStatus("error");
-      setDifyMessage("Сначала сохраните изменения карточки.");
-      return;
-    }
-
-    setDifyStatus("running");
-    setDifyMessage("Запускаем Dify AI-pass.");
-
-    try {
-      const jobPayload = await createAnalysisJob({
-        recordId,
-        providerId: "dify",
-        requestedBy: "detail_page",
-        metadata: {
-          source: "detail_page"
-        }
-      });
-      const jobId = jobPayload?.job?.id;
-
-      if (!jobId) {
-        throw new Error("analysis_job_id_missing");
-      }
-
-      const runPayload = await runDifyAnalysisJob(jobId);
-      const nextRecord = runPayload?.record || (await fetchRecord(recordId));
-      const nextForm = buildFormState(nextRecord);
-
-      setRecord(nextRecord);
-      setForm(nextForm);
-      setSavedForm(nextForm);
-      setDifyStatus("success");
-      setDifyMessage("Dify AI-pass завершен.");
-      await refreshAnalysisContext();
-    } catch (difyError) {
-      setDifyStatus("error");
-      setDifyMessage(difyError instanceof Error ? difyError.message : "Dify AI-pass не выполнен.");
-
-      try {
-        await refreshAnalysisContext();
-      } catch (_refreshError) {
-        // ignore refresh failure after the primary error
-      }
-    }
-  }
-
   function openProjectModal() {
     setProjectModalTitle(form.projectTitle || record?.projectTitle || form.title || record?.title || "");
     setProjectModalArchive(null);
@@ -589,34 +425,6 @@ export default function DetailPage() {
     } catch (deleteError) {
       setDeleteStatus("error");
       setDeleteMessage(deleteError instanceof Error ? deleteError.message : "Не удалось удалить проект.");
-    }
-  }
-
-  async function handleSave() {
-    const missingCoverage = form.selectionCriteriaRows.some((row) => isMeaningfulSelectionCriteriaRow(row) && !row.coverageStatus);
-
-    if (missingCoverage) {
-      setSaveStatus("error");
-      setSaveMessage("У каждой строки критериев должен быть статус закрытия.");
-      return;
-    }
-
-    setSaveStatus("saving");
-    setSaveMessage("");
-
-    try {
-      const response = await saveRecord(recordId, buildSavePayload(form));
-      const nextRecord = response?.record || (await fetchRecord(recordId));
-      const nextForm = buildFormState(nextRecord);
-
-      setRecord(nextRecord);
-      setForm(nextForm);
-      setSavedForm(nextForm);
-      setSaveStatus("success");
-      setSaveMessage("Изменения сохранены.");
-    } catch (saveError) {
-      setSaveStatus("error");
-      setSaveMessage(saveError instanceof Error ? saveError.message : "Не удалось сохранить запись.");
     }
   }
 
@@ -755,12 +563,20 @@ export default function DetailPage() {
                 </FieldCard>
 
                 <FieldCard fieldId="shortTitle" label="Предмет кратко" span="full">
-                  <input
-                    className="detail-control"
-                    onChange={(event) => updateField("shortTitle", event.target.value)}
-                    placeholder="Коротко сформулируйте предмет проекта"
-                    type="text"
+                  <CustomSelect
+                    onChange={(value) => updateField("shortTitle", value)}
+                    options={getShortTitleSelectOptions(form.shortTitle, editorOptions.shortTitleOptions)}
+                    placeholder="Выберите предмет"
                     value={form.shortTitle}
+                  />
+                </FieldCard>
+
+                <FieldCard fieldId="procurementStage" label="Какой этап" span="full">
+                  <CustomSelect
+                    onChange={(value) => updateField("procurementStage", value)}
+                    options={getProcurementStageSelectOptions(form.procurementStage, editorOptions.procurementStageOptions)}
+                    placeholder="Выберите этап"
+                    value={form.procurementStage}
                   />
                 </FieldCard>
 
@@ -783,7 +599,7 @@ export default function DetailPage() {
                 <FieldCard fieldId="purchaseBy" label="Закупка по">
                   <CustomSelect
                     onChange={(value) => updateField("purchaseBy", value)}
-                    options={getPurchaseByOptions(form.purchaseBy).map((option) => ({ value: option, label: option }))}
+                    options={getPurchaseBySelectOptions(form.purchaseBy, editorOptions.purchaseByOptions)}
                     value={normalizePurchaseByValue(form.purchaseBy)}
                   />
                 </FieldCard>
@@ -846,13 +662,11 @@ export default function DetailPage() {
                 </FieldCard>
 
                 <FieldCard fieldId="contractTerm" label="Срок договора" span="half">
-                  <DetailDateField
-                    fieldId="contractTerm"
-                    label="Срок договора"
-                    mode="date"
-                    onChange={(value) => updateField("contractTerm", value)}
-                    placeholder="дд.мм.гггг"
-                    span="half"
+                  <input
+                    className="detail-control"
+                    onChange={(event) => updateField("contractTerm", event.target.value)}
+                    placeholder="До полного исполнения обязательств"
+                    type="text"
                     value={form.contractTerm}
                   />
                 </FieldCard>
@@ -943,6 +757,8 @@ export default function DetailPage() {
             </section>
 
             <SelectionCriteriaSection
+              coverageOptions={editorOptions.selectionCriteriaCoverageOptions}
+              groupOptions={editorOptions.selectionCriteriaGroupOptions}
               onAdd={addSelectionCriteriaRow}
               onRemove={removeSelectionCriteriaRow}
               onUpdate={updateSelectionCriteriaRow}
@@ -950,11 +766,13 @@ export default function DetailPage() {
             />
 
             <PreassessmentSection
+              criticalityOptions={editorOptions.preassessmentCriticalityOptions}
               onAdd={addPreassessmentRiskRow}
               onFieldChange={updatePreassessmentField}
               onRemove={removePreassessmentRiskRow}
               onRowUpdate={updatePreassessmentRiskRow}
               preassessment={form.preassessment}
+              summaryDecisionOptions={editorOptions.preassessmentSummaryDecisionOptions}
             />
           </div>
 
@@ -970,7 +788,7 @@ export default function DetailPage() {
 
             <AnalysisStageCard analysis={record?.workflow?.analysis} />
             <DifyAnalysisCard
-              disabled={status !== "success" || difyStatus === "running"}
+              disabled={status !== "success"}
               job={latestDifyJob}
               message={difyMessage}
               onRun={handleDifyRun}
@@ -1192,7 +1010,8 @@ function DifyAnalysisCard({ disabled, job, message, onRun, provider, status }) {
   const jobStatus = String(job?.status || "").trim();
   const warnings = getDifyJobWarnings(job);
   const error = getDifyJobError(job);
-  const isRunning = status === "running" || jobStatus === "running";
+  const isTerminalJob = jobStatus === "completed" || jobStatus === "failed";
+  const isRunning = jobStatus === "running" || (status === "running" && !isTerminalJob);
   const isProviderConfigured = providerStatus === "configured";
 
   return (
@@ -1228,551 +1047,6 @@ function DifyAnalysisCard({ disabled, job, message, onRun, provider, status }) {
         {isRunning ? "AI-pass выполняется..." : "Запустить AI-pass"}
       </button>
     </section>
-  );
-}
-
-function PreassessmentSection({ onAdd, onFieldChange, onRemove, onRowUpdate, preassessment }) {
-  const riskRows = preassessment.riskRows || [];
-
-  return (
-    <section className="detail-section detail-selection-criteria-section detail-preassessment-section" id="section-preassessment">
-      <div className="detail-section-head detail-criteria-head detail-preassessment-head">
-        <div>
-          <h2>Предоценка</h2>
-          <a className="detail-preassessment-base-link" href={RISK_BASE_URL} rel="noreferrer" target="_blank">
-            База рисков
-          </a>
-        </div>
-        <button className="section-link detail-add-criteria-button" onClick={onAdd} type="button">
-          Добавить риск
-        </button>
-      </div>
-
-      {riskRows.length ? (
-        <div className="detail-selection-criteria-list detail-preassessment-list">
-          {riskRows.map((row) => (
-            <PreassessmentRiskRow
-              key={row.rowId}
-              onRemove={onRemove}
-              onUpdate={onRowUpdate}
-              row={row}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="detail-criteria-empty detail-selection-criteria-empty">
-          Строки предоценки пока не заполнены.
-        </div>
-      )}
-
-      <div className="detail-selection-criteria-row detail-preassessment-summary">
-        <div className="detail-field-card detail-preassessment-summary-row">
-          <span className="detail-field-label">Решение по итогам предоценки</span>
-          <CustomSelect
-            onChange={(value) => onFieldChange("summaryDecision", value)}
-            options={PREASSESSMENT_SUMMARY_DECISION_OPTIONS}
-            value={preassessment.summaryDecision}
-          />
-        </div>
-        <div className="detail-field-card detail-preassessment-summary-row">
-          <span className="detail-field-label">Решение Александра</span>
-          <CustomSelect
-            onChange={(value) => onFieldChange("alexanderDecision", value)}
-            options={PREASSESSMENT_SUMMARY_DECISION_OPTIONS}
-            value={preassessment.alexanderDecision}
-          />
-        </div>
-        <label className="detail-field-card detail-preassessment-summary-row">
-          <span className="detail-field-label">Файл оценки</span>
-          <input
-            className="detail-control"
-            onChange={(event) => onFieldChange("estimateFileUrl", event.target.value)}
-            placeholder="https://..."
-            type="url"
-            value={preassessment.estimateFileUrl}
-          />
-        </label>
-      </div>
-    </section>
-  );
-}
-
-function PreassessmentRiskRow({ onRemove, onUpdate, row }) {
-  const isIncomplete = row.criticality === "unknown";
-
-  return (
-    <article className={`detail-selection-criteria-row detail-preassessment-row ${isIncomplete ? "is-incomplete" : ""}`.trim()}>
-      <div className="detail-selection-criteria-row-top">
-        <span className="detail-selection-criteria-order">#{row.order}</span>
-        <button className="detail-remove-button" onClick={() => onRemove(row.rowId)} type="button">
-          Удалить
-        </button>
-      </div>
-
-      <div className="detail-selection-criteria-grid detail-preassessment-grid">
-        <div className="detail-field-card detail-selection-criteria-controls detail-preassessment-controls">
-          <label className="detail-selection-criteria-control">
-            <span className="detail-field-label">Параметр</span>
-            <input
-              className="detail-control"
-              onChange={(event) => onUpdate(row.rowId, "parameter", event.target.value)}
-              placeholder="Например: Битрикс24"
-              type="text"
-              value={row.parameter}
-            />
-          </label>
-
-          <div className="detail-selection-criteria-control">
-            <span className="detail-field-label">Критичность</span>
-            <CustomSelect
-              onChange={(value) => onUpdate(row.rowId, "criticality", value)}
-              options={PREASSESSMENT_CRITICALITY_OPTIONS}
-              value={row.criticality}
-            />
-          </div>
-        </div>
-
-        <div className="detail-field-card detail-selection-criteria-body detail-preassessment-body">
-          <label className="detail-selection-criteria-control">
-            <span className="detail-field-label">Комментарий менеджера</span>
-            <textarea
-              className="detail-control detail-control-textarea"
-              onChange={(event) => onUpdate(row.rowId, "managerComment", event.target.value)}
-              placeholder="Комментарий менеджера или предложение по обходу риска"
-              rows="3"
-              value={row.managerComment}
-            />
-          </label>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function SelectionCriteriaSection({ onAdd, onRemove, onUpdate, rows }) {
-  const groupedRows = groupSelectionCriteriaRows(rows);
-
-  return (
-    <section className="detail-section detail-selection-criteria-section" id="section-selection-criteria">
-      <div className="detail-section-head detail-criteria-head">
-        <div>
-          <h2>Критерии выбора</h2>
-          <p>Критерии, по которым организатор тендера выбирает победителя. Одна строка — один критерий или требование.</p>
-        </div>
-        <button className="section-link detail-add-criteria-button" onClick={onAdd} type="button">
-          Добавить строку
-        </button>
-      </div>
-
-      {rows.length ? (
-        <div className="detail-selection-criteria-groups">
-          {groupedRows.map((group) => (
-            <div className="detail-selection-criteria-group" key={group.value}>
-              <div className="detail-selection-criteria-group-head">
-                <strong>{group.label}</strong>
-                <span>{group.rows.length}</span>
-              </div>
-
-              <div className="detail-selection-criteria-list">
-                {group.rows.map((row) => (
-                  <SelectionCriteriaRow
-                    key={row.rowId}
-                    onRemove={onRemove}
-                    onUpdate={onUpdate}
-                    row={row}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="detail-criteria-empty detail-selection-criteria-empty">
-          Критерии выбора пока не заполнены. Добавьте строки вручную или дождитесь тестового extractor-pass.
-        </div>
-      )}
-    </section>
-  );
-}
-
-function SelectionCriteriaRow({ onRemove, onUpdate, row }) {
-  const showWeight = row.group !== "requirement";
-
-  return (
-    <article className="detail-selection-criteria-row">
-      <div className="detail-selection-criteria-row-top">
-        <span className="detail-selection-criteria-order">#{row.order}</span>
-        <button className="detail-remove-button" onClick={() => onRemove(row.rowId)} type="button">
-          Удалить
-        </button>
-      </div>
-
-      <div className="detail-selection-criteria-grid">
-        <div className="detail-field-card detail-selection-criteria-controls">
-          <div className="detail-selection-criteria-control">
-            <span className="detail-field-label">Группа</span>
-            <CustomSelect
-              onChange={(value) => onUpdate(row.rowId, "group", value)}
-              options={SELECTION_CRITERIA_GROUP_OPTIONS}
-              value={row.group}
-            />
-          </div>
-
-          <label className="detail-selection-criteria-control">
-            <span className="detail-field-label">Вес, %</span>
-            <input
-              className="detail-control"
-              disabled={!showWeight}
-              max="100"
-              min="0"
-              onChange={(event) => onUpdate(row.rowId, "weightPercent", event.target.value)}
-              placeholder={showWeight ? "40" : "Без веса"}
-              type="number"
-              value={showWeight ? row.weightPercent : ""}
-            />
-          </label>
-
-          <div className="detail-selection-criteria-control">
-            <span className="detail-field-label">Закрытие</span>
-            <CustomSelect
-              onChange={(value) => onUpdate(row.rowId, "coverageStatus", value)}
-              options={SELECTION_CRITERIA_COVERAGE_OPTIONS}
-              placeholder="Выберите статус"
-              value={row.coverageStatus}
-            />
-          </div>
-        </div>
-
-        <div className="detail-field-card detail-selection-criteria-body">
-          <label className="detail-selection-criteria-control">
-            <span className="detail-field-label">Критерий / требование</span>
-            <textarea
-              className="detail-control detail-control-textarea"
-              onChange={(event) => onUpdate(row.rowId, "title", event.target.value)}
-              placeholder="Например: минимальная цена, опыт команды или обязательная интеграция"
-              rows="3"
-              value={row.title}
-            />
-          </label>
-
-          <label className="detail-selection-criteria-control">
-            <span className="detail-field-label">Как закрываем</span>
-            <textarea
-              className="detail-control detail-control-textarea"
-              onChange={(event) => onUpdate(row.rowId, "coverageNote", event.target.value)}
-              placeholder="Что именно в нашем предложении закрывает критерий или почему не закрывает"
-              rows="3"
-              value={row.coverageNote}
-            />
-          </label>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function DocumentCompactList({ blocks, record, recordId }) {
-  const rows = buildCompactDocumentRows(blocks, record, recordId);
-
-  if (!rows.length) {
-    return <div className="detail-doc-empty">Документы пока не привязаны.</div>;
-  }
-
-  return (
-    <div className="detail-doc-compact">
-      <div className="detail-doc-compact-head">
-        <span className="detail-field-label">Документация</span>
-        <Link to={`/records/${encodeURIComponent(recordId)}/documents`}>Все документы</Link>
-      </div>
-
-      <div className="detail-doc-row-list">
-        {rows.map((row) => (
-          <DocumentCompactRow key={row.id} row={row} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DocumentCompactRow({ row }) {
-  return (
-    <div className="detail-doc-row">
-      <span className="detail-doc-row-title">{row.title}</span>
-      <span className="detail-doc-row-actions">
-        {row.mdHref ? (
-          row.mdHref.startsWith("/records/") ? (
-            <Link to={row.mdHref}>MD</Link>
-          ) : (
-            <a href={row.mdHref} rel="noreferrer" target="_blank">MD</a>
-          )
-        ) : null}
-        {row.sourceHref ? (
-          row.sourceHref.startsWith("/records/") ? (
-            <Link to={row.sourceHref}>{row.sourceLabel || "Открыть"}</Link>
-          ) : (
-            <a href={row.sourceHref} rel="noreferrer" target="_blank">{row.sourceLabel || "DOCX"}</a>
-          )
-        ) : null}
-        {!row.mdHref && !row.sourceHref && row.href ? (
-          <a href={row.href} rel="noreferrer" target="_blank">Открыть</a>
-        ) : null}
-      </span>
-    </div>
-  );
-}
-
-function DocumentWikiBlocks({
-  blocks,
-  knowledgeBase,
-  onAdd,
-  onMove,
-  onRemoveManual,
-  onToggle,
-  onUpdateManual,
-  onUpdateTitle,
-  recordId
-}) {
-  if (!blocks.length) {
-    return (
-      <div className="detail-wiki-blocks">
-        <div className="detail-doc-empty">Документы пока не привязаны.</div>
-        <button className="detail-wiki-add-button" onClick={onAdd} type="button">
-          Добавить блок
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="detail-wiki-blocks">
-      <div className="detail-wiki-head">
-        <div>
-          <span className="detail-field-label">Wiki / база знаний</span>
-          <small>{knowledgeBase?.publishPath || "Quartz-compatible слой"}</small>
-        </div>
-        <button className="detail-wiki-add-button" onClick={onAdd} type="button">
-          Добавить блок
-        </button>
-      </div>
-
-      {blocks.map((block, index) => (
-        <DocumentWikiBlock
-          block={block}
-          index={index}
-          isFirst={index === 0}
-          isLast={index === blocks.length - 1}
-          key={block.id}
-          onMove={onMove}
-          onRemoveManual={onRemoveManual}
-          onToggle={onToggle}
-          onUpdateManual={onUpdateManual}
-          onUpdateTitle={onUpdateTitle}
-          recordId={recordId}
-        />
-      ))}
-    </div>
-  );
-}
-
-function DocumentWikiBlock({
-  block,
-  isFirst,
-  isLast,
-  onMove,
-  onRemoveManual,
-  onToggle,
-  onUpdateManual,
-  onUpdateTitle,
-  recordId
-}) {
-  const href = block.route || block.href || "";
-  const isMarkdownRoute = href.startsWith("/records/");
-  const isManual = block.source === "manual";
-
-  return (
-    <article className={`detail-wiki-block ${block.visible ? "" : "is-hidden"}`.trim()}>
-      <div className="detail-wiki-block-top">
-        <span className={`detail-wiki-type is-${block.type}`.trim()}>{getDocumentBlockTypeLabel(block.type)}</span>
-        <div className="detail-wiki-actions">
-          <button disabled={isFirst} onClick={() => onMove(block, -1)} type="button" aria-label="Поднять блок">
-            ↑
-          </button>
-          <button disabled={isLast} onClick={() => onMove(block, 1)} type="button" aria-label="Опустить блок">
-            ↓
-          </button>
-          <button onClick={() => onToggle(block)} type="button">
-            {block.visible ? "Скрыть" : "Вернуть"}
-          </button>
-          {isManual ? (
-            <button onClick={() => onRemoveManual(block.id)} type="button">
-              Удалить
-            </button>
-          ) : null}
-        </div>
-      </div>
-
-      <label className="detail-wiki-title-field">
-        <span>Название</span>
-        <input
-          className="detail-control"
-          onChange={(event) => onUpdateTitle(block, event.target.value)}
-          value={block.title}
-        />
-      </label>
-
-      {isManual ? (
-        <div className="detail-wiki-manual-fields">
-          <label className="detail-wiki-title-field">
-            <span>Ссылка</span>
-            <input
-              className="detail-control"
-              onChange={(event) => onUpdateManual(block.id, { href: event.target.value })}
-              placeholder="https:// или /records/..."
-              value={block.href || ""}
-            />
-          </label>
-          <label className="detail-wiki-title-field">
-            <span>MD / заметка</span>
-            <textarea
-              className="detail-control detail-control-textarea"
-              onChange={(event) => onUpdateManual(block.id, { body: event.target.value })}
-              placeholder="Короткое описание или Markdown-блок"
-              rows="3"
-              value={block.body || ""}
-            />
-          </label>
-        </div>
-      ) : null}
-
-      <div className="detail-wiki-preview">
-        {block.visible ? (
-          href ? (
-            isMarkdownRoute ? (
-              <Link className="detail-uploaded-doc detail-uploaded-doc-markdown" to={href}>
-                <span>{block.title}</span>
-                <small>{block.subtitle || "Открыть"}</small>
-              </Link>
-            ) : (
-              <a className="detail-uploaded-doc" href={href} rel="noreferrer" target="_blank">
-                <span>{block.title}</span>
-                <small>{block.subtitle || "Открыть"}</small>
-              </a>
-            )
-          ) : block.body ? (
-            <div className="detail-wiki-note">{block.body}</div>
-          ) : (
-            <div className="detail-doc-empty">У блока пока нет ссылки или текста.</div>
-          )
-        ) : (
-          <div className="detail-doc-empty">Блок скрыт, но может быть восстановлен.</div>
-        )}
-      </div>
-
-      {block.source === "generated" && block.documentId && !isMarkdownRoute && block.type === "wiki" ? (
-        <Link className="detail-wiki-inline-link" to={`/records/${encodeURIComponent(recordId)}/documents/${encodeURIComponent(block.documentId)}`}>
-          Открыть MD-страницу
-        </Link>
-      ) : null}
-    </article>
-  );
-}
-
-function DocumentArtifactGroups({ groups, recordId }) {
-  const hasArtifacts = Object.values(groups).some((items) => items.length > 0);
-
-  if (!hasArtifacts) {
-    return <div className="detail-doc-empty">Документы пока не привязаны.</div>;
-  }
-
-  return (
-    <div className="detail-artifact-groups">
-      <DocumentArtifactGroup
-        emptyLabel="Исходный архив не найден."
-        items={groups.sourceArchives}
-        title="Исходный архив"
-      />
-      <DocumentArtifactGroup
-        emptyLabel="Нормализованных markdown-документов пока нет."
-        items={groups.normalizedMarkdown}
-        recordId={recordId}
-        title="Нормализованные документы"
-        type="markdown"
-      />
-        <DocumentArtifactGroup
-          emptyLabel="Служебных JSON-артефактов пока нет."
-          items={groups.jsonArtifacts}
-          title="Служебные артефакты"
-        />
-        <DocumentArtifactGroup
-          emptyLabel="База знаний пока не создана."
-          items={groups.knowledgeArtifacts}
-          title="База знаний"
-        />
-        <DocumentArtifactGroup
-        emptyLabel="Файлов с fallback не найдено."
-        items={groups.fallbackDocuments}
-        title="Требуется fallback"
-        type="fallback"
-      />
-      {groups.legacyUploaded.length ? (
-        <DocumentArtifactGroup
-          items={groups.legacyUploaded}
-          title="Загруженные файлы"
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function DocumentArtifactGroup({ emptyLabel, items, recordId = "", title, type = "link" }) {
-  return (
-    <div className="detail-artifact-group">
-      <span className="detail-field-label">{title}</span>
-      {items.length ? (
-        <div className="detail-uploaded-doc-list">
-          {items.map((document, index) => (
-            <DocumentArtifactItem
-              document={document}
-              index={index}
-              key={`${document.documentId || document.href || document.path || document.fileName || title}-${index}`}
-              recordId={recordId}
-              type={type}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="detail-doc-empty">{emptyLabel}</div>
-      )}
-    </div>
-  );
-}
-
-function DocumentArtifactItem({ document, index, recordId, type }) {
-  const label = document.label || document.fileName || document.sourceFileName || `Файл ${index + 1}`;
-
-  if (type === "markdown" && document.documentId) {
-    return (
-      <Link className="detail-uploaded-doc detail-uploaded-doc-markdown" to={`/records/${encodeURIComponent(recordId)}/documents/${encodeURIComponent(document.documentId)}`}>
-        <span>{label}</span>
-        <small>{document.sourceFileName || document.status || "Markdown"}</small>
-      </Link>
-    );
-  }
-
-  if (type === "fallback") {
-    return (
-      <div className="detail-uploaded-doc detail-uploaded-doc-fallback">
-        <span>{label}</span>
-        <small>{formatFallbackSummary(document)}</small>
-      </div>
-    );
-  }
-
-  return (
-    <a className="detail-uploaded-doc" href={document.href || "#"} rel="noreferrer" target="_blank">
-      <span>{label}</span>
-      {document.artifactKey ? <small>{document.artifactKey}</small> : null}
-    </a>
   );
 }
 
@@ -1896,75 +1170,6 @@ function MoneyField({ fieldId, label, onChange, placeholder = "920000", value })
         <span className="detail-number-suffix">₽</span>
       </div>
     </FieldCard>
-  );
-}
-
-function CustomSelect({ onChange, options, placeholder = "", value }) {
-  const rootRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const normalizedOptions = useMemo(() => {
-    return (options || []).map((option) => (typeof option === "string" ? { value: option, label: option } : option));
-  }, [options]);
-  const selectedOption = normalizedOptions.find((option) => option.value === value) || null;
-
-  useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-
-    function handlePointerDown(event) {
-      if (!rootRef.current?.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
-
-  return (
-    <div className={`detail-select ${isOpen ? "open" : ""}`.trim()} ref={rootRef}>
-      <button
-        aria-expanded={isOpen}
-        className="detail-select-trigger"
-        onClick={() => setIsOpen((current) => !current)}
-        type="button"
-      >
-        <span className={`detail-select-value ${selectedOption ? "" : "is-placeholder"}`.trim()}>
-          {selectedOption?.label || placeholder}
-        </span>
-        <span aria-hidden="true" className="detail-select-caret"></span>
-      </button>
-
-      {isOpen ? (
-        <div className="detail-select-menu" role="listbox">
-          {normalizedOptions.map((option) => (
-            <button
-              className={`detail-select-option ${option.value === value ? "is-active" : ""}`.trim()}
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              type="button"
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-    </div>
   );
 }
 
@@ -2263,662 +1468,6 @@ function DetailDateField({ fieldId, label, mode = "date", onChange, placeholder 
   );
 }
 
-function createEmptyForm() {
-  return {
-    customer: "",
-    projectTitle: "",
-    title: "",
-    shortTitle: "",
-    sourceUrl: "",
-    etpUrl: "",
-    documentsFolderHref: "",
-    googleDocumentsFolderHref: "",
-    deadlineAt: "",
-    nmc: "",
-    purchaseBy: PURCHASE_BY_UNKNOWN,
-    platformPayment: "",
-    applicationSecurity: "",
-    contractSecurity: "",
-    overallExecutionTerm: "",
-    contractTerm: "",
-    retrade: "Нет",
-    antiDumpingMeasures: "Нет",
-    creative: false,
-    creativeLinkUrl: "",
-    requirementsDocumentUrl: "",
-    criteriaDocumentUrl: "",
-    technicalSpecificationUrl: "",
-    notes: "",
-    stage: "",
-    selectionCriteriaRows: [],
-    preassessment: createEmptyPreassessment(),
-    documentWiki: createEmptyDocumentWiki()
-  };
-}
-
-function buildFormState(record) {
-  return {
-    customer: String(record?.customer || ""),
-    projectTitle: String(record?.projectTitle || record?.title || ""),
-    title: String(record?.title || ""),
-    shortTitle: String(record?.shortTitle || ""),
-    sourceUrl: String(record?.sourceUrl || ""),
-    etpUrl: String(record?.etpUrl || ""),
-    documentsFolderHref: String(record?.documentsFolderHref || ""),
-    googleDocumentsFolderHref: String(record?.googleDocumentsFolderHref || ""),
-    deadlineAt: String(record?.deadlineAt || ""),
-    nmc: String(record?.nmc || ""),
-    purchaseBy: normalizePurchaseByValue(record?.purchaseBy),
-    platformPayment: String(record?.platformPayment || ""),
-    applicationSecurity: String(record?.applicationSecurity || ""),
-    contractSecurity: String(record?.contractSecurity || ""),
-    overallExecutionTerm: String(record?.overallExecutionTerm || ""),
-    contractTerm: String(record?.contractTerm || ""),
-    retrade: String(record?.retrade || "Нет"),
-    antiDumpingMeasures: String(record?.antiDumpingMeasures || "Нет"),
-    creative: normalizeCreativeValue(record?.creative) ?? false,
-    creativeLinkUrl: String(record?.creativeLinkUrl || ""),
-    requirementsDocumentUrl: String(record?.requirementsDocumentUrl || ""),
-    criteriaDocumentUrl: String(record?.criteriaDocumentUrl || ""),
-    technicalSpecificationUrl: String(record?.technicalSpecificationUrl || ""),
-    notes: String(record?.notes || ""),
-    stage: getCanonicalStageLabel(record?.stage, record?.status),
-    selectionCriteriaRows: (record?.selectionCriteriaRows || []).map((row, index) =>
-      createSelectionCriteriaRow(row, index)
-    ),
-    preassessment: createPreassessmentState(record?.preassessment),
-    documentWiki: normalizeDocumentWikiConfig(record?.documentWiki)
-  };
-}
-
-function createSelectionCriteriaRow(row = {}, index = 0) {
-  return {
-    rowId: createRowId(),
-    order: Number.isFinite(Number(row.order)) ? Number(row.order) : index + 1,
-    group: normalizeSelectionCriteriaGroupValue(row.group),
-    title: String(row.title || ""),
-    weightPercent: row.weightPercent === null || row.weightPercent === undefined ? "" : String(row.weightPercent),
-    coverageStatus: Object.prototype.hasOwnProperty.call(row, "coverageStatus")
-      ? normalizeSelectionCriteriaCoverageValue(row.coverageStatus)
-      : "",
-    coverageNote: String(row.coverageNote || ""),
-    sourceExcerpt: String(row.sourceExcerpt || "")
-  };
-}
-
-function createEmptyPreassessment() {
-  return {
-    riskRows: [],
-    riskBaseUrl: "",
-    summaryDecision: "",
-    alexanderDecision: "",
-    estimateFileUrl: ""
-  };
-}
-
-function createPreassessmentState(value) {
-  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
-
-  return {
-    riskRows: (Array.isArray(source.riskRows) ? source.riskRows : []).map((row, index) =>
-      createPreassessmentRiskRow(row, index)
-    ),
-    riskBaseUrl: String(source.riskBaseUrl || ""),
-    summaryDecision: normalizePreassessmentSummaryDecisionValue(source.summaryDecision),
-    alexanderDecision: normalizePreassessmentSummaryDecisionValue(source.alexanderDecision),
-    estimateFileUrl: String(source.estimateFileUrl || "")
-  };
-}
-
-function createPreassessmentRiskRow(row = {}, index = 0) {
-  return {
-    rowId: createRowId(),
-    order: Number.isFinite(Number(row.order)) ? Number(row.order) : index + 1,
-    parameter: String(row.parameter || ""),
-    managerComment: String(row.managerComment || ""),
-    criticality: normalizePreassessmentCriticalityValue(row.criticality),
-    riskBaseRef: String(row.riskBaseRef || ""),
-    sourceKey: String(row.sourceKey || "")
-  };
-}
-
-function createRowId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function serializeForm(form) {
-  return JSON.stringify({
-    ...form,
-    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
-      order: index + 1,
-      group,
-      title,
-      weightPercent,
-      coverageStatus,
-      coverageNote,
-      sourceExcerpt
-    })),
-    preassessment: serializePreassessment(form.preassessment),
-    documentWiki: normalizeDocumentWikiConfig(form.documentWiki)
-  });
-}
-
-function buildSavePayload(form) {
-  return {
-    customer: form.customer,
-    projectTitle: form.projectTitle,
-    title: form.title,
-    shortTitle: form.shortTitle,
-    sourceUrl: form.sourceUrl,
-    etpUrl: form.etpUrl,
-    documentsFolderHref: form.documentsFolderHref,
-    googleDocumentsFolderHref: form.googleDocumentsFolderHref,
-    deadlineAt: fromDateTimeLocalValue(form.deadlineAt),
-    nmc: form.nmc,
-    purchaseBy: form.purchaseBy,
-    platformPayment: form.platformPayment,
-    applicationSecurity: form.applicationSecurity,
-    contractSecurity: form.contractSecurity,
-    overallExecutionTerm: form.overallExecutionTerm,
-    contractTerm: form.contractTerm,
-    retrade: form.retrade,
-    antiDumpingMeasures: form.antiDumpingMeasures,
-    creative: form.creative,
-    creativeLinkUrl: form.creativeLinkUrl,
-    requirementsDocumentUrl: form.requirementsDocumentUrl,
-    criteriaDocumentUrl: form.criteriaDocumentUrl,
-    technicalSpecificationUrl: form.technicalSpecificationUrl,
-    notes: form.notes,
-    stage: form.stage,
-    documentWiki: normalizeDocumentWikiConfig(form.documentWiki),
-    preassessment: serializePreassessment(form.preassessment),
-    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
-      order: index + 1,
-      group,
-      title,
-      weightPercent: normalizeWeightPercentValue(weightPercent),
-      coverageStatus,
-      coverageNote,
-      sourceExcerpt
-    }))
-  };
-}
-
-function serializePreassessment(preassessment) {
-  const source = createPreassessmentState(preassessment);
-
-  return {
-    riskRows: source.riskRows.map(({ parameter, managerComment, criticality, riskBaseRef, sourceKey }, index) => ({
-      order: index + 1,
-      parameter,
-      managerComment,
-      criticality,
-      riskBaseRef,
-      sourceKey
-    })),
-    riskBaseUrl: source.riskBaseUrl,
-    summaryDecision: source.summaryDecision,
-    alexanderDecision: source.alexanderDecision,
-    estimateFileUrl: source.estimateFileUrl
-  };
-}
-
-function buildDocItems(form) {
-  return [
-    {
-      key: "etpUrl",
-      label: "Ссылка на ЭТП",
-      placeholder: "Вставьте ссылку на ЭТП",
-      value: form.etpUrl
-    },
-    {
-      key: "documentsFolderHref",
-      label: "Документы",
-      placeholder: "Вставьте ссылку на документы",
-      value: form.documentsFolderHref
-    },
-    {
-      key: "sourceUrl",
-      label: "Ссылка на извещение",
-      placeholder: "Вставьте ссылку на извещение",
-      value: form.sourceUrl
-    },
-    {
-      key: "googleDocumentsFolderHref",
-      label: "Папка на рассмотрение",
-      placeholder: "Вставьте ссылку на папку",
-      value: form.googleDocumentsFolderHref
-    },
-    {
-      key: "requirementsDocumentUrl",
-      label: "Требования",
-      placeholder: "Вставьте ссылку на требования",
-      value: form.requirementsDocumentUrl
-    },
-    {
-      key: "criteriaDocumentUrl",
-      label: "Критерии выбора",
-      placeholder: "Вставьте ссылку на критерии",
-      value: form.criteriaDocumentUrl
-    },
-    {
-      key: "technicalSpecificationUrl",
-      label: "ТЗ",
-      placeholder: "Вставьте ссылку на ТЗ",
-      value: form.technicalSpecificationUrl
-    }
-  ];
-}
-
-function buildDocumentGroups(record) {
-  const artifacts = record?.documentArtifacts && typeof record.documentArtifacts === "object" ? record.documentArtifacts : {};
-  const fallbackFromDocuments = groupLegacyDocuments(record?.documents || []);
-
-  return {
-    sourceArchives: normalizeArtifactItems(artifacts.sourceArchives, fallbackFromDocuments.sourceArchives),
-    normalizedMarkdown: normalizeArtifactItems(artifacts.normalizedMarkdown, fallbackFromDocuments.normalizedMarkdown),
-    jsonArtifacts: normalizeArtifactItems(artifacts.jsonArtifacts, fallbackFromDocuments.jsonArtifacts),
-    knowledgeArtifacts: normalizeArtifactItems(artifacts.knowledgeArtifacts, fallbackFromDocuments.knowledgeArtifacts),
-    fallbackDocuments: normalizeArtifactItems(artifacts.fallbackDocuments, fallbackFromDocuments.fallbackDocuments),
-    legacyUploaded: normalizeArtifactItems(artifacts.legacyUploaded, fallbackFromDocuments.legacyUploaded)
-  };
-}
-
-function createEmptyDocumentWiki() {
-  return {
-    version: 1,
-    overrides: {},
-    manualBlocks: []
-  };
-}
-
-function normalizeDocumentWikiConfig(value) {
-  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
-  const overrides = {};
-
-  for (const [blockId, override] of Object.entries(source.overrides || {})) {
-    if (!override || typeof override !== "object" || Array.isArray(override)) {
-      continue;
-    }
-
-    overrides[String(blockId)] = {
-      title: String(override.title || ""),
-      visible: override.visible === false ? false : true,
-      order: Number.isFinite(Number(override.order)) ? Number(override.order) : null
-    };
-  }
-
-  return {
-    version: 1,
-    overrides,
-    manualBlocks: (Array.isArray(source.manualBlocks) ? source.manualBlocks : []).map((block, index) => ({
-      id: String(block?.id || `manual-${index + 1}`),
-      type: normalizeDocumentBlockType(block?.type || "manual"),
-      title: String(block?.title || "Ручной блок"),
-      href: String(block?.href || ""),
-      body: String(block?.body || ""),
-      visible: block?.visible === false ? false : true,
-      order: Number.isFinite(Number(block?.order)) ? Number(block.order) : 1000 + index
-    }))
-  };
-}
-
-function buildEditableDocumentBlocks(record, documentWiki) {
-  const config = normalizeDocumentWikiConfig(documentWiki);
-  const sourceBlocks = Array.isArray(record?.documentBlocks?.blocks)
-    ? record.documentBlocks.blocks
-    : buildDocumentBlocksFromLegacyGroups(record);
-  const generatedBlocks = sourceBlocks
-    .filter((block) => block.source !== "manual")
-    .map((block) => {
-      const override = config.overrides[block.id] || {};
-
-      return {
-        ...block,
-        title: override.title || block.title,
-        visible: override.visible === false ? false : true,
-        order: Number.isFinite(Number(override.order)) ? Number(override.order) : Number(block.order || 0)
-      };
-    });
-  const manualBlocks = config.manualBlocks.map((block) => ({
-    id: block.id,
-    source: "manual",
-    type: normalizeDocumentBlockType(block.type),
-    title: block.title,
-    subtitle: block.body ? "Ручная заметка" : "Ручная ссылка",
-    href: block.href,
-    body: block.body,
-    visible: block.visible,
-    order: block.order,
-    editable: true,
-    removable: true
-  }));
-  const blocks = [...generatedBlocks, ...manualBlocks]
-    .sort((left, right) => Number(left.order || 0) - Number(right.order || 0) || String(left.title).localeCompare(String(right.title), "ru-RU"));
-
-  return {
-    version: 1,
-    knowledgeBase: record?.documentBlocks?.knowledgeBase || {
-      target: "Quartz",
-      renderer: "quartz-compatible",
-      projectId: record?.id || "",
-      projectTitle: record?.projectTitle || record?.title || "",
-      publishPath: ""
-    },
-    blocks
-  };
-}
-
-function buildCompactDocumentRows(blocks, record, recordId) {
-  const sourceByDocumentId = new Map();
-  const wikiByDocumentId = new Map();
-  const rows = [];
-  const normalizedRecordId = String(recordId || record?.id || "").trim();
-
-  for (const block of Array.isArray(blocks) ? blocks : []) {
-    if (!block.visible) {
-      continue;
-    }
-
-    if (block.documentId && block.type === "source") {
-      sourceByDocumentId.set(block.documentId, block);
-    }
-
-    if (block.documentId && block.type === "wiki") {
-      wikiByDocumentId.set(block.documentId, block);
-    }
-  }
-
-  if (hasSourceArchive(record, blocks) && normalizedRecordId) {
-    rows.push({
-      id: "source-archive",
-      title: "Исходный архив",
-      mdHref: "",
-      sourceHref: `/api/records/${encodeURIComponent(normalizedRecordId)}/source-archive`,
-      sourceLabel: "Архив",
-      href: ""
-    });
-  }
-
-  if (normalizedRecordId) {
-    rows.push({
-      id: "source-folder",
-      title: "Папка распаковки",
-      mdHref: "",
-      sourceHref: `/records/${encodeURIComponent(normalizedRecordId)}/source-folder`,
-      sourceLabel: "Папка",
-      href: ""
-    });
-  }
-
-  for (const [documentId, wiki] of wikiByDocumentId.entries()) {
-    if (String(documentId).startsWith("artifact-")) {
-      continue;
-    }
-
-    const source = sourceByDocumentId.get(documentId);
-    rows.push({
-      id: `document-${documentId}`,
-      title: stripExtension(wiki.title || source?.title || documentId),
-      mdHref: wiki.route || wiki.href || "",
-      sourceHref: source?.route || source?.href || "",
-      sourceLabel: source ? getSourceActionLabel(source) : "",
-      href: ""
-    });
-  }
-
-  return rows;
-}
-
-function hasSourceArchive(record, blocks) {
-  if (Array.isArray(blocks) && blocks.some((block) => block?.type === "source" && !block?.documentId)) {
-    return true;
-  }
-
-  return Boolean(
-    record?.documentsFolderHref ||
-    record?.googleDocumentsFolderHref ||
-    (Array.isArray(record?.documents) && record.documents.some((document) => document?.kind === "archive"))
-  );
-}
-
-function stripExtension(value) {
-  return String(value || "").replace(/\.[a-z0-9]{2,6}$/iu, "");
-}
-
-function getSourceActionLabel(block) {
-  const fileName = String(block.fileName || block.title || block.href || "").toLowerCase();
-
-  if (fileName.endsWith(".zip") || fileName.endsWith(".rar") || fileName.endsWith(".7z")) {
-    return "Архив";
-  }
-
-  if (fileName.endsWith(".pdf")) {
-    return "PDF";
-  }
-
-  if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
-    return "XLSX";
-  }
-
-  if (fileName.endsWith(".doc") || fileName.endsWith(".docx")) {
-    return "DOCX";
-  }
-
-  return "Файл";
-}
-
-function buildDocumentBlocksFromLegacyGroups(record) {
-  const groups = buildDocumentGroups(record);
-  const blockGroups = [
-    ["sourceArchives", "source", 100],
-    ["legacyUploaded", "source", 200],
-    ["knowledgeArtifacts", "wiki", 300],
-    ["normalizedMarkdown", "wiki", 400],
-    ["fallbackDocuments", "fallback", 700],
-    ["jsonArtifacts", "diagnostic", 900]
-  ];
-  const blocks = [];
-
-  for (const [groupKey, type, baseOrder] of blockGroups) {
-    for (const [index, document] of (groups[groupKey] || []).entries()) {
-      const documentId = String(document?.documentId || document?.artifactKey || "").trim();
-      const route = type === "wiki" && document.kind === "normalized_markdown" && documentId && record?.id
-        ? `/records/${encodeURIComponent(record.id)}/documents/${encodeURIComponent(documentId)}`
-        : "";
-      const id = `${type}:${documentId || document?.href || document?.fileName || index}`;
-
-      blocks.push({
-        id,
-        source: "generated",
-        type,
-        title: String(document?.label || document?.sourceFileName || document?.fileName || `Документ ${index + 1}`),
-        subtitle: String(document?.sourcePath || document?.artifactKey || document?.status || ""),
-        href: String(document?.href || ""),
-        route,
-        body: "",
-        visible: true,
-        order: baseOrder + index,
-        documentId,
-        artifactKey: String(document?.artifactKey || ""),
-        sourceDocument: document
-      });
-    }
-  }
-
-  return blocks;
-}
-
-function createDocumentBlockId() {
-  return `manual-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function normalizeDocumentBlockType(value) {
-  const normalized = String(value || "").trim();
-
-  if (["source", "wiki", "manual", "fallback", "diagnostic"].includes(normalized)) {
-    return normalized;
-  }
-
-  return "manual";
-}
-
-function getDocumentBlockTypeLabel(type) {
-  const labels = {
-    source: "Оригинал",
-    wiki: "Wiki / MD",
-    manual: "Ручной",
-    fallback: "Fallback",
-    diagnostic: "Диагностика"
-  };
-
-  return labels[type] || type || "Блок";
-}
-
-function groupLegacyDocuments(documents) {
-  const groups = {
-    sourceArchives: [],
-    normalizedMarkdown: [],
-    jsonArtifacts: [],
-    knowledgeArtifacts: [],
-    fallbackDocuments: [],
-    legacyUploaded: []
-  };
-
-  for (const document of Array.isArray(documents) ? documents : []) {
-    const kind = String(document?.kind || "").trim();
-    const group = String(document?.group || "").trim();
-
-    if (kind === "archive") {
-      groups.sourceArchives.push(document);
-    } else if (kind === "normalized_markdown" || group === "normalizedMarkdown") {
-      groups.normalizedMarkdown.push(document);
-    } else if (kind === "json_artifact" || group === "jsonArtifacts") {
-      groups.jsonArtifacts.push(document);
-    } else if (kind === "knowledge_html" || group === "knowledgeArtifacts") {
-      groups.knowledgeArtifacts.push(document);
-    } else if (kind === "fallback_document" || group === "fallbackDocuments") {
-      groups.fallbackDocuments.push(document);
-    } else {
-      groups.legacyUploaded.push(document);
-    }
-  }
-
-  return groups;
-}
-
-function normalizeArtifactItems(primaryItems, fallbackItems = []) {
-  const seen = new Set();
-  const result = [];
-
-  for (const item of [...(Array.isArray(primaryItems) ? primaryItems : []), ...(Array.isArray(fallbackItems) ? fallbackItems : [])]) {
-    const key = String(item?.documentId || item?.href || item?.path || item?.fileName || item?.label || "").trim();
-
-    if (!key || seen.has(key)) {
-      continue;
-    }
-
-    seen.add(key);
-    result.push(item);
-  }
-
-  return result;
-}
-
-function formatFallbackSummary(document) {
-  const fallback = document?.fallback && typeof document.fallback === "object" ? document.fallback : {};
-  const reason = String(fallback.reason || document?.status || "manual_review_required").trim();
-  const pipeline = String(fallback.suggestedPipeline || fallback.pipeline || "").trim();
-
-  return [reason, pipeline].filter(Boolean).join(" · ");
-}
-
-function getPurchaseByOptions(currentValue) {
-  const normalizedValue = normalizePurchaseByValue(currentValue);
-  const options = [...PURCHASE_BY_OPTIONS];
-
-  if (normalizedValue && !options.includes(normalizedValue)) {
-    options.push(normalizedValue);
-  }
-
-  return options;
-}
-
-function normalizePurchaseByValue(value) {
-  const normalized = String(value ?? "").trim();
-
-  if (LEGACY_INVALID_PURCHASE_BY.has(normalized)) {
-    return PURCHASE_BY_UNKNOWN;
-  }
-
-  if (/223\s*[-–]?\s*фз/i.test(normalized)) {
-    return "223-ФЗ / Положение о закупке";
-  }
-
-  if (/44\s*[-–]?\s*фз/i.test(normalized)) {
-    return "44-ФЗ";
-  }
-
-  return normalized || PURCHASE_BY_UNKNOWN;
-}
-
-function normalizeSelectionCriteriaGroupValue(value) {
-  const normalized = String(value || "").trim();
-  return SELECTION_CRITERIA_GROUP_OPTIONS.some((option) => option.value === normalized) ? normalized : "nonPrice";
-}
-
-function normalizeSelectionCriteriaCoverageValue(value) {
-  const normalized = String(value || "").trim();
-  return SELECTION_CRITERIA_COVERAGE_OPTIONS.some((option) => option.value === normalized) ? normalized : "";
-}
-
-function normalizePreassessmentCriticalityValue(value) {
-  const normalized = String(value || "").trim();
-  return PREASSESSMENT_CRITICALITY_OPTIONS.some((option) => option.value === normalized) ? normalized : "unknown";
-}
-
-function normalizePreassessmentSummaryDecisionValue(value) {
-  const normalized = String(value || "").trim();
-  const lowered = normalized.toLowerCase().replace(/[-_\s]+/g, "");
-
-  if (["estimate", "evaluation", "оценка", "беремвоценку", "берёмвоценку", "оставитьвоценке", "оставитьвоценку"].includes(lowered)) {
-    return "estimate";
-  }
-
-  if (["decline", "nobid", "no", "неучаствуем", "неучастие", "отказ", "отказаться", "отказотучастия"].includes(lowered)) {
-    return "decline";
-  }
-
-  return "";
-}
-
-function normalizeWeightPercentValue(value) {
-  if (value === "" || value === null || value === undefined) {
-    return null;
-  }
-
-  const numeric = Number(String(value).replace(",", "."));
-  return Number.isFinite(numeric) ? Math.max(0, Math.min(100, numeric)) : null;
-}
-
-function isMeaningfulSelectionCriteriaRow(row) {
-  return Boolean(
-    String(row?.title || "").trim() ||
-    String(row?.coverageNote || "").trim() ||
-    String(row?.sourceExcerpt || "").trim() ||
-    String(row?.weightPercent || "").trim()
-  );
-}
-
-function groupSelectionCriteriaRows(rows) {
-  return SELECTION_CRITERIA_GROUP_OPTIONS.map((option) => ({
-    ...option,
-    rows: rows
-      .filter((row) => row.group === option.value)
-      .sort((left, right) => Number(left.order || 0) - Number(right.order || 0))
-  })).filter((group) => group.rows.length);
-}
-
 function buildSearchTargets(record, form) {
   const wikiBlocks = buildEditableDocumentBlocks(record, form.documentWiki).blocks;
   const criteriaText = form.selectionCriteriaRows
@@ -2935,7 +1484,7 @@ function buildSearchTargets(record, form) {
     )
   ].join(" ");
   const targets = [
-    { id: "section-general", label: "Общая информация", group: "Секция", value: [form.customer, form.title, form.shortTitle, form.nmc, form.purchaseBy].join(" ") },
+    { id: "section-general", label: "Общая информация", group: "Секция", value: [form.customer, form.title, form.shortTitle, form.procurementStage, form.nmc, form.purchaseBy].join(" ") },
     { id: "section-amounts", label: "Информация по суммам", group: "Секция", value: [form.platformPayment, form.applicationSecurity, form.contractSecurity].join(" ") },
     { id: "section-tender", label: "Информация по тендеру", group: "Секция", value: [form.overallExecutionTerm, form.contractTerm, form.retrade, form.antiDumpingMeasures, form.notes].join(" ") },
     { id: "section-preassessment", label: "Предоценка", group: "Секция", value: preassessmentText },
@@ -2966,44 +1515,6 @@ function filterSearchTargets(targets, query) {
   return targets
     .filter((target) => `${target.label} ${target.group} ${target.value}`.toLowerCase().includes(normalizedQuery))
     .slice(0, 8);
-}
-
-function normalizeCreativeValue(value) {
-  if (value === true || value === false) {
-    return value;
-  }
-
-  if (value === null || value === undefined || value === "") {
-    return null;
-  }
-
-  const normalized = String(value).trim().toLowerCase();
-
-  if (["да", "true", "yes", "1"].includes(normalized)) {
-    return true;
-  }
-
-  if (["нет", "false", "no", "0"].includes(normalized)) {
-    return false;
-  }
-
-  return null;
-}
-
-function mapCreativeToToggle(value) {
-  if (value === true) {
-    return "true";
-  }
-
-  return "false";
-}
-
-function mapToggleToCreative(value) {
-  return value === "true";
-}
-
-function fromDateTimeLocalValue(value) {
-  return value ? value.replace("T", " ") : "";
 }
 
 function buildMonthPath(year, month) {

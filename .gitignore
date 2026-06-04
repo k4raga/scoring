@@ -4,6 +4,10 @@ backend/node_modules/
 frontend/dist/
 backend/.cache/
 backend/data/analysis-jobs.json
+.env
+.env.*
+!.env.example
+!.env.local.example
 __pycache__/
 *.pyc
 *.log
