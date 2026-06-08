@@ -496,7 +496,7 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
     recordPatch.contractTerm = "нет данных";
   }
 
-  if (extractedOverallExecutionTerm && isWeakTenderValue(recordPatch.overallExecutionTerm)) {
+  if (extractedOverallExecutionTerm && (isWeakTenderValue(recordPatch.overallExecutionTerm) || hasTenderTermLabelPrefix(recordPatch.overallExecutionTerm))) {
     recordPatch.overallExecutionTerm = extractedOverallExecutionTerm;
   }
 
@@ -1138,6 +1138,10 @@ function cleanTenderTerm(value) {
     .replace(/\s+/gu, " ")
     .replace(/[.;,\s]+$/u, "")
     .trim();
+}
+
+function hasTenderTermLabelPrefix(value) {
+  return /^(?:Планируемый\s+срок|Общий\s+срок\s+выполнения\s+работ|Срок\s+оказания\s+услуг|Срок\s+выполнения\s+работ)(?:\s|:|$)/iu.test(normalizeOptionalText(value));
 }
 
 function cleanTenderPurpose(value) {

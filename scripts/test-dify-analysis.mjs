@@ -760,6 +760,7 @@ const arealTechnicalAssignmentPass = await runDifyAnalysisPass({
                 title: "4 Пилотное внедрение (MVP)",
                 shortTitle: "## 4 Пилотное внедрение (MVP",
                 nmc: "Не указано в документах",
+                overallExecutionTerm: "Планируемый срок Июль 2026г. – ноябрь 2026г. (старт ОПЭ – сентябрь 2026 г.)",
                 creative: true,
                 notes: "# ТЗ ИИ для мастер данных ## Сведения об извлечении",
                 summary: "# ТЗ ИИ для мастер данных ## Сведения об извлечении"
