@@ -276,6 +276,7 @@ function mergeSelectionCriteriaRowsWithExisting(nextRows, existingRows) {
 function clearSelectionCriteriaExpertFields(row) {
   return {
     ...row,
+    coverageNote: normalizeOptionalText(row.coverageNote) || normalizeOptionalText(row.sourceExcerpt) || normalizeOptionalText(row.title),
     coverageStatus: "",
     coverageAmount: ""
   };
