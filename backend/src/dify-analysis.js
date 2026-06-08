@@ -1038,6 +1038,7 @@ function isWeakTenderValue(value) {
     /^не\s+указано/iu.test(normalized) ||
     /^нет\s+информации/iu.test(normalized) ||
     /^сведения\s+об\s+извлечении/iu.test(normalized) ||
+    /^техническ[\p{L}\p{N}_]*\s+задани[\p{L}\p{N}_]*\s+на/iu.test(normalized) ||
     /^#{1,6}\s+/u.test(normalized) ||
     /^#\s*ТЗ/iu.test(normalized) ||
     /\|\s*---\s*\|/u.test(normalized) ||
