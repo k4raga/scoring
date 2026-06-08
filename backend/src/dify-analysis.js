@@ -428,6 +428,7 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
   const extractedSubject = extractSubjectFromTechnicalAssignment(text);
   const extractedCustomer = extractCustomerFromTechnicalAssignment(text);
   const extractedNmc = extractNmcFromTechnicalAssignment(text);
+  const extractedOverallExecutionTerm = extractOverallExecutionTermFromTechnicalAssignment(text);
   const purpose = extractPurposeFromTechnicalAssignment(text);
 
   if (extractedCustomer && isWeakTenderValue(recordPatch.customer)) {
@@ -480,6 +481,10 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
     recordPatch.contractTerm = "нет данных";
   }
 
+  if (extractedOverallExecutionTerm && isWeakTenderValue(recordPatch.overallExecutionTerm)) {
+    recordPatch.overallExecutionTerm = extractedOverallExecutionTerm;
+  }
+
   if (hasRetradeAbsenceEvidence(text)) {
     recordPatch.retrade = "Нет";
   } else if (hasRetradeEvidence(text)) {
@@ -506,7 +511,14 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
     : buildTenderTechnicalAssignmentSelectionCriteriaRows(text);
   const documentFindings = [
     ...(Array.isArray(contract.documentFindings) ? contract.documentFindings : []),
-    ...buildTenderTechnicalAssignmentFindings({ recordPatch, document, extractedSubject, extractedCustomer, purpose }),
+    ...buildTenderTechnicalAssignmentFindings({
+      recordPatch,
+      document,
+      extractedSubject,
+      extractedCustomer,
+      extractedOverallExecutionTerm,
+      purpose
+    }),
     ...(explicitSelectionCriteria.rows.length
       ? buildSelectionCriteriaFindings({ document: explicitSelectionCriteria.document, selectionCriteriaRows })
       : buildSelectionCriteriaFindings({ document, selectionCriteriaRows }))
@@ -741,6 +753,12 @@ function buildEvaluationCriterionSourceExcerpt({ title, formula, weightPercent }
 }
 
 function extractSubjectFromTechnicalAssignment(text) {
+  const technicalAssignmentMatch = text.match(/Техническое\s+задание\s+на\s+([\s\S]{10,260}?)(?:\n\s*(?:г\.\s*[\p{L}\s-]+,\s*\d{4}|##\s+Содержание|Содержание)|\n\s*\d+\s*\n)/iu);
+
+  if (technicalAssignmentMatch) {
+    return cleanTenderSubject(normalizeProcurementSubjectAction(technicalAssignmentMatch[1]));
+  }
+
   const headingMatch = text.match(/###\s*Предмет закупки\s*\n+\s*([^\n#][^\n]+)/iu);
 
   if (headingMatch) {
@@ -761,14 +779,18 @@ function extractCustomerFromTechnicalAssignment(text) {
   const patterns = [
     /ДЛЯ\s+КОМПАНИИ\s+([^\n.]+)\.?/iu,
     /\(\s*АУ\s*\)\s*(АО\s+«[^»]+»|[^\n|]+)/iu,
-    /Заказчик(?:ом)?\s*(?:является|:)\s*([^\n.|]+)/iu
+    /Заказчик(?:ом)?\s*(?:является|:)\s*([^\n.|]+)/iu,
+    /"source_path"\s*:\s*"([^"]+)"/iu,
+    /Источник:\s*`([^`]+)`/iu
   ];
 
   for (const pattern of patterns) {
     const match = text.match(pattern);
 
     if (match) {
-      const customer = cleanTenderCustomer(match[1]);
+      const customer = pattern.source.includes("source_path") || pattern.source.includes("Источник")
+        ? extractCustomerFromSourcePath(match[1])
+        : cleanTenderCustomer(match[1]);
 
       if (customer) {
         return customer;
@@ -791,6 +813,18 @@ function extractNmcFromTechnicalAssignment(text) {
   return tableMatch ? normalizeMoneyText(`${tableMatch[1]} руб.`) : "";
 }
 
+function extractOverallExecutionTermFromTechnicalAssignment(text) {
+  const normalized = normalizeOptionalText(text);
+  const plannedMatch = normalized.match(/Планируемый\s+срок\s+([^\n]+?)(?=\n\s*(?:Продукт\s+проекта|Заказчик\s+проекта|Владелец|Организаци|##|###)|$)/iu);
+
+  if (plannedMatch) {
+    return cleanTenderTerm(plannedMatch[1]);
+  }
+
+  const tableMatch = normalized.match(/(?:Общий\s+срок\s+выполнения\s+работ|Срок\s+оказания\s+услуг|Срок\s+выполнения\s+работ)\s*[:|]?\s*([^\n|]{8,180})/iu);
+  return tableMatch ? cleanTenderTerm(tableMatch[1]) : "";
+}
+
 function normalizeMoneyText(value) {
   return normalizeOptionalText(value)
     .replace(/\s+/gu, " ")
@@ -803,8 +837,14 @@ function isUnformattedMoneyValue(value) {
 }
 
 function extractPurposeFromTechnicalAssignment(text) {
-  const match = text.match(/Цель проекта:\s*([^\n]+)/iu);
-  return match ? normalizeOptionalText(match[1]) : "";
+  const projectPurposeMatch = text.match(/Цель проекта:\s*([^\n]+)/iu);
+
+  if (projectPurposeMatch) {
+    return normalizeOptionalText(projectPurposeMatch[1]);
+  }
+
+  const goalsMatch = text.match(/##\s*3\s+Цели\s+и\s+задачи[\s\S]{0,600}?###\s*Цели\s*\n+([\s\S]{20,520}?)(?:\n\s*###\s*Задачи|\n\s*##\s*4)/iu);
+  return goalsMatch ? cleanTenderPurpose(goalsMatch[1]) : "";
 }
 
 function buildCompactProjectTitle({ customer, subject, purpose }) {
@@ -820,7 +860,7 @@ function buildCompactProjectTitle({ customer, subject, purpose }) {
 
 function compactCustomerName(value) {
   const normalized = normalizeOptionalText(value)
-    .replace(/^(?:ПАО|АО|ООО|ЗАО|ИП)\s+/iu, "")
+    .replace(/^(?:ПАО|АО|ООО|ЗАО|ИП|МКАО)\s+/iu, "")
     .replace(/[«»"]/gu, "")
     .replace(/\s+/gu, " ")
     .trim();
@@ -851,6 +891,10 @@ function compactProjectLabel(value) {
 
   if (/битрикс\s*24|bitrix\s*24/u.test(normalized)) {
     return "Битрикс24";
+  }
+
+  if (/ии\s*[-–]?\s*ассистент|ассистент[\s\S]{0,80}нси/u.test(normalized)) {
+    return "ИИ-ассистент";
   }
 
   if (/экосистем[\p{L}\p{N}_]*\s+искусственн[\p{L}\p{N}_]*\s+интеллект|искусственн[\p{L}\p{N}_]*\s+интеллект|(?:^|[^\p{L}\p{N}])ии(?:$|[^\p{L}\p{N}])/u.test(normalized)) {
@@ -951,6 +995,7 @@ function isWeakTenderValue(value) {
     /^не\s+указано/iu.test(normalized) ||
     /^нет\s+информации/iu.test(normalized) ||
     /^сведения\s+об\s+извлечении/iu.test(normalized) ||
+    /^#{1,6}\s+/u.test(normalized) ||
     /^#\s*ТЗ/iu.test(normalized) ||
     /\|\s*---\s*\|/u.test(normalized) ||
     /###\s+/u.test(normalized) ||
@@ -963,6 +1008,7 @@ function isWeakTenderValue(value) {
 function cleanTenderSubject(value) {
   let normalized = normalizeOptionalText(value)
     .replace(/^#+\s*/u, "")
+    .replace(/([A-Za-zА-Яа-яЁё])-\s+([A-Za-zА-Яа-яЁё])/gu, "$1-$2")
     .replace(/\s+/gu, " ")
     .trim();
 
@@ -981,6 +1027,19 @@ function cleanTenderSubject(value) {
   }
 
   return normalized.replace(/\s*[|#]+.*$/u, "").replace(/\s+/gu, " ").trim();
+}
+
+function normalizeProcurementSubjectAction(value) {
+  const normalized = normalizeOptionalText(value)
+    .replace(/([A-Za-zА-Яа-яЁё])-\s+([A-Za-zА-Яа-яЁё])/gu, "$1-$2")
+    .replace(/\s+/gu, " ")
+    .trim();
+
+  return normalized
+    .replace(/^разработку(?=\s|$)/iu, "Разработка")
+    .replace(/^создание(?=\s|$)/iu, "Создание")
+    .replace(/^оказание(?=\s|$)/iu, "Оказание")
+    .replace(/^выполнение(?=\s|$)/iu, "Выполнение");
 }
 
 function truncateBeforeTenderNoise(value) {
@@ -1016,6 +1075,37 @@ function cleanTenderCustomer(value) {
     .trim();
 }
 
+function extractCustomerFromSourcePath(value) {
+  const firstSegment = normalizeOptionalText(value).split(/[\\/]/u)[0] || "";
+  const withoutDate = firstSegment
+    .replace(/\s+\d{1,2}[._-]\d{1,2}(?:[._-]\d{2,4})?.*$/u, "")
+    .replace(/\s+\d{4,}.*$/u, "")
+    .trim();
+
+  if (!withoutDate || /^тз\b|^документаци/iu.test(withoutDate)) {
+    return "";
+  }
+
+  return cleanTenderCustomer(withoutDate);
+}
+
+function cleanTenderTerm(value) {
+  return normalizeOptionalText(value)
+    .replace(/\s*-\s*/gu, " - ")
+    .replace(/\s*–\s*/gu, " – ")
+    .replace(/\s+/gu, " ")
+    .replace(/[.;,\s]+$/u, "")
+    .trim();
+}
+
+function cleanTenderPurpose(value) {
+  return normalizeOptionalText(value)
+    .replace(/([A-Za-zА-Яа-яЁё])-\s+([A-Za-zА-Яа-яЁё])/gu, "$1-$2")
+    .replace(/\s+/gu, " ")
+    .replace(/[.;,\s]+$/u, ".")
+    .trim();
+}
+
 function isExtractionNoise(value) {
   const normalized = normalizeOptionalText(value);
 
@@ -1026,7 +1116,14 @@ function hasExplicitNmc(text) {
   return /НМЦ|НМЦК|начальн\w*\s+максимальн\w*\s+цен|максимальн\w*\s+цен\w*\s+договора/iu.test(text);
 }
 
-function buildTenderTechnicalAssignmentFindings({ recordPatch, document, extractedSubject, extractedCustomer, purpose }) {
+function buildTenderTechnicalAssignmentFindings({
+  recordPatch,
+  document,
+  extractedSubject,
+  extractedCustomer,
+  extractedOverallExecutionTerm,
+  purpose
+}) {
   const documentId = normalizeOptionalText(document.documentId);
   const findings = [];
   const addFinding = (field, quote, note) => {
@@ -1050,6 +1147,7 @@ function buildTenderTechnicalAssignmentFindings({ recordPatch, document, extract
   addFinding("nmc", recordPatch.nmc === "нет" ? "НМЦ в документе не указана" : "", "Явная НМЦ не найдена.");
   addFinding("retrade", recordPatch.retrade === "Да" ? extractRetradeQuote(document.markdown) : "", "Переторжка найдена в графике процедуры.");
   addFinding("creative", recordPatch.creative === true ? extractTestAssignmentQuote(document.markdown, document) : "", "Поле 'Творческое' трактуется как наличие тестового задания / ТЗ.");
+  addFinding("overallExecutionTerm", extractedOverallExecutionTerm, "Планируемый срок работ извлечен из технического задания.");
   addFinding("summary", purpose, "Цель проекта извлечена из технического задания.");
 
   return findings;
@@ -1146,7 +1244,7 @@ function extractRetradeQuote(text) {
 function extractTestAssignmentQuote(text, document) {
   const source = normalizeOptionalText(document?.label || document?.fileName || document?.sourceFileName || document?.sourcePath);
   const normalized = normalizeOptionalText(text);
-  const explicitMatch = normalized.match(/[^\n]*(?:тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|техническ[\p{L}\p{N}_]*\s+задани)[^\n]*/iu);
+  const explicitMatch = normalized.match(/[^\n]*(?:тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип)[^\n]*/iu);
 
   if (explicitMatch) {
     return normalizeOptionalText(explicitMatch[0]).replace(/^#+\s*/u, "");
@@ -1191,7 +1289,7 @@ function getTenderTechnicalAssignmentDocumentScore(document) {
   const markdown = normalizeOptionalText(document?.markdown);
   let score = 0;
 
-  if (/предмет\s+закупки|документаци[яи]\s+о\s+закупке|извещени[\p{L}\p{N}_]*\s+о\s+закупке|сведения\s+о\s+начальной|КРИТЕРИИ\s+ОЦЕНКИ|Критерии\s+оценки|тендерной\s+процедуры|подведение\s+итогов\s+тендера|экосистем[^\n]{0,120}искусственн/iu.test(markdown)) {
+  if (/предмет\s+закупки|документаци[яи]\s+о\s+закупке|извещени[\p{L}\p{N}_]*\s+о\s+закупке|сведения\s+о\s+начальной|КРИТЕРИИ\s+ОЦЕНКИ|Критерии\s+оценки|тендерной\s+процедуры|подведение\s+итогов\s+тендера|техническ[\p{L}\p{N}_]*\s+задани[\p{L}\p{N}_]*\s+на|цели\s+и\s+задачи|периметр\s+и\s+сроки|ии\s*[-–]?\s*ассистент|экосистем[^\n]{0,120}искусственн/iu.test(markdown)) {
     score += 80;
   }
 
@@ -1199,7 +1297,7 @@ function getTenderTechnicalAssignmentDocumentScore(document) {
     score += 70;
   }
 
-  if (/техническ[\p{L}\p{N}_]*\s+задани|требован|критери|оценк|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/u.test(title)) {
+  if (/(?:^|\s)тз(?:\s|$)|техническ[\p{L}\p{N}_]*\s+задани|требован|критери|оценк|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/u.test(title)) {
     score += 50;
   }
 

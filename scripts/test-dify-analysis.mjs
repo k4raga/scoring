@@ -150,6 +150,50 @@ fs.writeFileSync(
   "utf-8"
 );
 fs.writeFileSync(
+  path.join(normalizedDir, "doc-areal-tech.md"),
+  [
+    "---",
+    "{",
+    '  "source_name": "ТЗ ИИ для мастер-данных.pdf",',
+    '  "source_path": "МКАО АРЕАЛ 17.06/ТЗ ИИ для мастер-данных.pdf"',
+    "}",
+    "---",
+    "",
+    "# ТЗ ИИ для мастер данных",
+    "",
+    "Техническое задание на разработку ИИ-",
+    "",
+    "ассистента для НСИ",
+    "",
+    "г. Москва, 2026",
+    "",
+    "## 3 Цели и задачи",
+    "",
+    "### Цели",
+    "",
+    "Создание облачного вспомогательного web-приложения на основе ИИ, которое оптимизирует и упрощает работу пользователей со справочником МТР путем автоматизации ручных проверок и подбора информации.",
+    "",
+    "### Задачи",
+    "",
+    "Создание web-приложения ИИ-ассистента по работе с НСИ.",
+    "",
+    "## 4 Периметр и сроки",
+    "",
+    "Планируемый срок Июль 2026г. – ноябрь 2026г. (старт ОПЭ – сентябрь 2026 г.)",
+    "",
+    "Продукт проекта ИИ-ассистент по НСИ, Human-in-the-loop.",
+    "",
+    "Заказчик проекта Руководитель направления по оптимизации оборотного капитала, Департамент по экономике и финансам",
+    "",
+    "## 7 Этапы работ",
+    "",
+    "## 4 Пилотное внедрение (MVP scope). Оценка метрик",
+    "",
+    "* сроки могут быть скорректированы в рамках тендера с конкретным Исполнителем по согласованию с Заказчиком до заключения Договора."
+  ].join("\n"),
+  "utf-8"
+);
+fs.writeFileSync(
   path.join(artifactsDir, "manifest.json"),
   JSON.stringify({
     href: "http://localhost:4100/private",
@@ -668,6 +712,85 @@ assert.match(tenderTechnicalAssignmentPass.result.selectionCriteriaRows[1].cover
 assert.equal(
   tenderTechnicalAssignmentPass.result.documentFindings.filter((finding) => finding.field === "selectionCriteriaRows").length,
   4
+);
+
+const arealTechnicalAssignmentPass = await runDifyAnalysisPass({
+  job: { id: "job-areal-tech" },
+  record: {
+    ...record,
+    id: "record-areal-tech",
+    projectTitle: "Ареал",
+    title: "## 4 Пилотное внедрение (MVP",
+    shortTitle: "## 4 Пилотное внедрение (MVP",
+    customer: "",
+    selectionCriteriaRows: [],
+    documents: [
+      {
+        kind: "normalized_markdown",
+        group: "normalizedMarkdown",
+        documentId: "doc-areal-tech",
+        label: "ТЗ ИИ для мастер-данных",
+        href: "/artifacts/run-1/normalized/doc-areal-tech.md"
+      }
+    ]
+  },
+  env,
+  fetchImpl: async () =>
+    new Response(
+      JSON.stringify({
+        data: {
+          status: "succeeded",
+          outputs: {
+            result: JSON.stringify({
+              recordPatch: {
+                customer: "",
+                title: "## 4 Пилотное внедрение (MVP",
+                shortTitle: "## 4 Пилотное внедрение (MVP",
+                nmc: "Не указано в документах",
+                creative: true,
+                notes: "# ТЗ ИИ для мастер данных ## Сведения об извлечении",
+                summary: "# ТЗ ИИ для мастер данных ## Сведения об извлечении"
+              },
+              selectionCriteriaRows: [
+                {
+                  group: "requirement",
+                  title: "Проектная команда",
+                  blockFactor: "no",
+                  coverageNote: "Исполнителем должна быть организована проектная команда.",
+                  sourceExcerpt: "Исполнителем должна быть организована Проектная команда"
+                }
+              ],
+              documentFindings: [],
+              warnings: [],
+              metadata: {
+                model: "mock"
+              }
+            })
+          }
+        }
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    )
+});
+
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.customer, "МКАО АРЕАЛ");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.projectTitle, "Ареал ИИ-ассистент");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.title, "Разработка ИИ-ассистента для НСИ");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.shortTitle, "Аутсорс");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.nmc, "нет");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.contractTerm, "нет данных");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.overallExecutionTerm, "Июль 2026г. – ноябрь 2026г. (старт ОПЭ – сентябрь 2026 г.)");
+assert.equal(arealTechnicalAssignmentPass.result.recordPatch.creative, false);
+assert.match(arealTechnicalAssignmentPass.result.recordPatch.summary, /Создание облачного вспомогательного web-приложения/u);
+assert.doesNotMatch(arealTechnicalAssignmentPass.result.recordPatch.summary, /Сведения об извлечении/u);
+assert.equal(
+  arealTechnicalAssignmentPass.result.documentFindings.some((finding) => finding.field === "overallExecutionTerm"),
+  true
 );
 
 const noRetradePass = await runDifyAnalysisPass({
