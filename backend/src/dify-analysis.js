@@ -216,6 +216,8 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
 
   if (selectionCriteriaRows.length) {
     recordPatch.selectionCriteriaRows = selectionCriteriaRows;
+  } else if (shouldClearExistingSelectionCriteriaRows(record.selectionCriteriaRows)) {
+    recordPatch.selectionCriteriaRows = [];
   }
 
   if (criteriaDocumentUrl && normalizeOptionalText(record.criteriaDocumentUrl) !== criteriaDocumentUrl) {
@@ -277,6 +279,19 @@ function clearSelectionCriteriaExpertFields(row) {
     coverageStatus: "",
     coverageAmount: ""
   };
+}
+
+function shouldClearExistingSelectionCriteriaRows(existingRows) {
+  const rows = Array.isArray(existingRows) ? existingRows : [];
+
+  return Boolean(
+    rows.length &&
+    rows.every((row) => {
+      return !normalizeOptionalText(row?.coverageStatus) &&
+        !normalizeOptionalText(row?.coverageAmount) &&
+        isTechnicalImplementationSelectionCriteriaRow(row);
+    })
+  );
 }
 
 function shouldPreserveSelectionCriteriaExpertFields(row) {
@@ -493,7 +508,7 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
 
   if (hasTestAssignmentEvidence(text, document)) {
     recordPatch.creative = true;
-  } else if (recordPatch.creative === true) {
+  } else {
     recordPatch.creative = false;
   }
 

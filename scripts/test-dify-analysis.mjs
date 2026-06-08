@@ -723,7 +723,19 @@ const arealTechnicalAssignmentPass = await runDifyAnalysisPass({
     title: "## 4 Пилотное внедрение (MVP",
     shortTitle: "## 4 Пилотное внедрение (MVP",
     customer: "",
-    selectionCriteriaRows: [],
+    creative: true,
+    selectionCriteriaRows: [
+      {
+        order: 1,
+        group: "requirement",
+        title: "Интеграция SSO/AD",
+        blockFactor: "",
+        coverageStatus: "",
+        coverageAmount: "",
+        coverageNote: "Проверить, учтена ли интеграция SSO/AD в требованиях проекта.",
+        sourceExcerpt: "интеграции с корпоративными системами аутентификации (SSO/AD) должна быть учтена"
+      }
+    ],
     documents: [
       {
         kind: "normalized_markdown",
@@ -797,6 +809,7 @@ assert.equal(arealTechnicalAssignmentPass.result.recordPatch.creative, false);
 assert.match(arealTechnicalAssignmentPass.result.recordPatch.summary, /Создание облачного вспомогательного web-приложения/u);
 assert.doesNotMatch(arealTechnicalAssignmentPass.result.recordPatch.summary, /Сведения об извлечении/u);
 assert.equal(arealTechnicalAssignmentPass.result.selectionCriteriaRows.length, 0);
+assert.deepEqual(arealTechnicalAssignmentPass.result.recordPatch.selectionCriteriaRows, []);
 assert.equal(
   arealTechnicalAssignmentPass.result.documentFindings.some((finding) => finding.field === "overallExecutionTerm"),
   true
