@@ -431,11 +431,11 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
   const extractedOverallExecutionTerm = extractOverallExecutionTermFromTechnicalAssignment(text);
   const purpose = extractPurposeFromTechnicalAssignment(text);
 
-  if (extractedCustomer && isWeakTenderValue(recordPatch.customer)) {
+  if (extractedCustomer && (isWeakTenderValue(recordPatch.customer) || isTenderRoleCustomerValue(recordPatch.customer))) {
     recordPatch.customer = extractedCustomer;
   }
 
-  if (extractedSubject && isWeakTenderValue(recordPatch.title)) {
+  if (extractedSubject && (isWeakTenderValue(recordPatch.title) || isTenderProjectStageHeading(recordPatch.title))) {
     recordPatch.title = extractedSubject;
   }
 
@@ -445,7 +445,7 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
     purpose
   });
 
-  if (compactProjectTitle && isWeakProjectTitle(recordPatch.projectTitle)) {
+  if (compactProjectTitle && (isWeakProjectTitle(recordPatch.projectTitle) || isProjectTitleOnlyCustomer(recordPatch.projectTitle, extractedCustomer))) {
     recordPatch.projectTitle = compactProjectTitle;
   }
 
@@ -506,11 +506,18 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
   }
 
   const explicitSelectionCriteria = buildExplicitEvaluationSelectionCriteriaRows(payload);
-  const selectionCriteriaRows = explicitSelectionCriteria.rows.length
+  const deterministicSelectionCriteriaRows = explicitSelectionCriteria.rows.length
     ? explicitSelectionCriteria.rows
     : buildTenderTechnicalAssignmentSelectionCriteriaRows(text);
+  const selectionCriteriaRows = deterministicSelectionCriteriaRows.length
+    ? deterministicSelectionCriteriaRows
+    : filterDifyTenderSelectionCriteriaRows(contract.selectionCriteriaRows);
+  const inheritedDocumentFindings = filterInheritedTenderDocumentFindings(
+    contract.documentFindings,
+    selectionCriteriaRows
+  );
   const documentFindings = [
-    ...(Array.isArray(contract.documentFindings) ? contract.documentFindings : []),
+    ...inheritedDocumentFindings,
     ...buildTenderTechnicalAssignmentFindings({
       recordPatch,
       document,
@@ -527,7 +534,7 @@ function enhanceTenderTechnicalAssignmentContract(contract, payload) {
   return {
     ...contract,
     recordPatch,
-    selectionCriteriaRows: selectionCriteriaRows.length ? selectionCriteriaRows : contract.selectionCriteriaRows,
+    selectionCriteriaRows,
     documentFindings,
     metadata: {
       ...(isObject(contract.metadata) ? contract.metadata : {}),
@@ -951,6 +958,26 @@ function isWeakProjectTitle(value) {
   );
 }
 
+function isProjectTitleOnlyCustomer(value, customer) {
+  const normalizedValue = normalizeCriteriaMatchText(value);
+  const normalizedCustomer = normalizeCriteriaMatchText(compactCustomerName(customer));
+
+  return Boolean(normalizedValue && normalizedCustomer && normalizedValue === normalizedCustomer);
+}
+
+function isTenderRoleCustomerValue(value) {
+  const normalized = normalizeOptionalText(value);
+
+  return (
+    /заказчик\s+проекта|руководитель\s+направлени|департамент|владелец\s+процесс|со\s+стороны\s+заказчика/iu.test(normalized) &&
+    !/(?:^|\s)(?:ПАО|АО|ООО|ЗАО|ИП|МКАО)\s+[«"\p{L}]/iu.test(normalized)
+  );
+}
+
+function isTenderProjectStageHeading(value) {
+  return /^(?:\d+\s+)?(?:подготовительн[\p{L}\p{N}_]*|проектировани[\p{L}\p{N}_]*|тестов[\p{L}\p{N}_]*\s+контур|пилотн[\p{L}\p{N}_]*\s+внедрени[\p{L}\p{N}_]*|промышленн[\p{L}\p{N}_]*\s+эксплуатац[\p{L}\p{N}_]*|этап\s+развития)(?:\s|\(|$)/iu.test(normalizeOptionalText(value));
+}
+
 function hasRetradeEvidence(text) {
   return (
     /переторжк/iu.test(text) ||
@@ -981,8 +1008,8 @@ function hasTestAssignmentEvidence(text, document) {
   ].map(normalizeOptionalText).join("\n");
 
   return (
-    /тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/iu.test(text) ||
-    /тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/iu.test(source)
+    /тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототипн[\p{L}\p{N}_]*\s+решени[\p{L}\p{N}_]*[^\n]{0,140}(?:приложени|оценк|участник)/iu.test(text) ||
+    /тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|задани[\p{L}\p{N}_]*\s+на\s+прототип/iu.test(source)
   );
 }
 
@@ -1207,6 +1234,41 @@ function buildTenderTechnicalAssignmentSelectionCriteriaRows(text) {
   return rows;
 }
 
+function filterDifyTenderSelectionCriteriaRows(rows) {
+  return (Array.isArray(rows) ? rows : [])
+    .filter((row) => !isTechnicalImplementationSelectionCriteriaRow(row));
+}
+
+function isTechnicalImplementationSelectionCriteriaRow(row) {
+  const haystack = normalizeOptionalText([
+    row?.title,
+    row?.coverageNote,
+    row?.sourceExcerpt
+  ].filter(Boolean).join(" ")).toLocaleLowerCase("ru-RU");
+
+  if (!haystack) {
+    return false;
+  }
+
+  if (/опыт|аккредитац|лицензи|сертификат|квалификац|штат|сотрудник|команд|портфолио|презентац|анкета|коммерческ[\p{L}\p{N}_]*\s+предложен|кп|фстэк|фсб/iu.test(haystack)) {
+    return false;
+  }
+
+  return /sso|(?:^|[^\p{L}\p{N}])ad(?:$|[^\p{L}\p{N}])|mdm|актуализац|дельт|api|ml|модель|классификац|парсинг|дедупликац|поиск\s+аналог|личн[\p{L}\p{N}_]*\s+кабинет|пользовательск[\p{L}\p{N}_]*\s+интерфейс|ui|ux|архитектур|логирован|бэкап|резервн[\p{L}\p{N}_]*\s+копирован|справочник|нси|функциональн[\p{L}\p{N}_]*\s+требован|модул|экран|система\s+долж/iu.test(haystack);
+}
+
+function filterInheritedTenderDocumentFindings(findings, selectionCriteriaRows) {
+  const hasSelectionCriteriaRows = Array.isArray(selectionCriteriaRows) && selectionCriteriaRows.length > 0;
+
+  return (Array.isArray(findings) ? findings : []).filter((finding) => {
+    if (normalizeOptionalText(finding?.field) !== "selectionCriteriaRows") {
+      return true;
+    }
+
+    return hasSelectionCriteriaRows;
+  });
+}
+
 function isTenderTechnicalAssignmentCompetencyTable(text) {
   const normalized = normalizeOptionalText(text);
 
@@ -1244,7 +1306,7 @@ function extractRetradeQuote(text) {
 function extractTestAssignmentQuote(text, document) {
   const source = normalizeOptionalText(document?.label || document?.fileName || document?.sourceFileName || document?.sourcePath);
   const normalized = normalizeOptionalText(text);
-  const explicitMatch = normalized.match(/[^\n]*(?:тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип)[^\n]*/iu);
+  const explicitMatch = normalized.match(/[^\n]*(?:тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототипн[\p{L}\p{N}_]*\s+решени[\p{L}\p{N}_]*[^\n]{0,140}(?:приложени|оценк|участник))[^\n]*/iu);
 
   if (explicitMatch) {
     return normalizeOptionalText(explicitMatch[0]).replace(/^#+\s*/u, "");
@@ -2229,8 +2291,8 @@ export function buildDifyInstructions() {
         {
           field: "creative",
           label: "Творческое",
-          searchHints: ["тестовое задание", "ТЗ", "техническое задание", "дизайн", "креатив", "концепция", "макет", "визуальная концепция", "презентация о компании", "презентацию о компании"],
-          output: "Boolean true if the package includes a test assignment / ТЗ / technical assignment for participant evaluation, or if creative/design concept work or a company presentation is clearly required. False only if clearly not required."
+          searchHints: ["тестовое задание", "творческое задание", "задание на прототип", "прототипное решение", "дизайн", "креатив", "концепция", "макет", "визуальная концепция", "презентация о компании", "презентацию о компании"],
+          output: "Boolean true only if the package includes a test assignment, creative task, prototype task/prototype solution for participant evaluation, or clearly required creative/design concept work. Do not mark ordinary technical specifications as creative."
         },
         {
           field: "notes",

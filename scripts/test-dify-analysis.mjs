@@ -743,8 +743,9 @@ const arealTechnicalAssignmentPass = await runDifyAnalysisPass({
           outputs: {
             result: JSON.stringify({
               recordPatch: {
-                customer: "",
-                title: "## 4 Пилотное внедрение (MVP",
+                customer: "Заказчик проекта Руководитель направления по оптимизации оборотного капитала, Департамент по экономике и финансам",
+                projectTitle: "Ареал",
+                title: "4 Пилотное внедрение (MVP)",
                 shortTitle: "## 4 Пилотное внедрение (MVP",
                 nmc: "Не указано в документах",
                 creative: true,
@@ -754,10 +755,17 @@ const arealTechnicalAssignmentPass = await runDifyAnalysisPass({
               selectionCriteriaRows: [
                 {
                   group: "requirement",
-                  title: "Проектная команда",
+                  title: "Интеграция SSO/AD",
                   blockFactor: "no",
-                  coverageNote: "Исполнителем должна быть организована проектная команда.",
-                  sourceExcerpt: "Исполнителем должна быть организована Проектная команда"
+                  coverageNote: "Проверить, учтена ли интеграция SSO/AD в требованиях проекта.",
+                  sourceExcerpt: "интеграции с корпоративными системами аутентификации (SSO/AD) должна быть учтена"
+                },
+                {
+                  group: "requirement",
+                  title: "MDM прямой обмен данными",
+                  blockFactor: "no",
+                  coverageNote: "Проверить наличие прямого обмена данными с мастер-системой MDM.",
+                  sourceExcerpt: "Интеграция с мастер-системой MDM (прямой обмен данными)."
                 }
               ],
               documentFindings: [],
@@ -788,6 +796,7 @@ assert.equal(arealTechnicalAssignmentPass.result.recordPatch.overallExecutionTer
 assert.equal(arealTechnicalAssignmentPass.result.recordPatch.creative, false);
 assert.match(arealTechnicalAssignmentPass.result.recordPatch.summary, /Создание облачного вспомогательного web-приложения/u);
 assert.doesNotMatch(arealTechnicalAssignmentPass.result.recordPatch.summary, /Сведения об извлечении/u);
+assert.equal(arealTechnicalAssignmentPass.result.selectionCriteriaRows.length, 0);
 assert.equal(
   arealTechnicalAssignmentPass.result.documentFindings.some((finding) => finding.field === "overallExecutionTerm"),
   true
