@@ -64,7 +64,7 @@
 - Opening `/records/:recordId` loads `fetchRecord(recordId)`, builds form state, stores `savedForm`, and sets success/error state.
 - The detail page loads AI providers and record analysis jobs separately from the record load.
 - Dirty-state is computed by comparing `serializeForm(form)` and `serializeForm(savedForm)`.
-- Save validates meaningful `selectionCriteriaRows` require `coverageStatus`, sends `saveRecord(recordId, buildSavePayload(form))`, then rebuilds form from the returned record.
+- Save allows meaningful `selectionCriteriaRows` without `coverageStatus`, because expert assessment fields are filled by the tender specialist after AI extraction; it sends `saveRecord(recordId, buildSavePayload(form))`, then rebuilds form from the returned record.
 - Reset restores `savedForm`.
 - Selection criteria rows support add, edit, remove and order recalculation.
 - Preassessment supports risk row add, edit, remove, criticality, summary decision, Alexander decision and estimate file URL.

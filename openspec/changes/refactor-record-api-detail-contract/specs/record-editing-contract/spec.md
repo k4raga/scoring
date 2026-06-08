@@ -18,9 +18,9 @@
 - **WHEN** frontend отправляет `PUT /api/records/:recordId` с валидным payload карточки
 - **THEN** backend SHALL применить patch через единый record patch contract и вернуть `{ updated: true, record }`
 
-#### Scenario: Пользователь сохраняет невалидные критерии
+#### Scenario: Пользователь сохраняет критерии без экспертного закрытия
 - **WHEN** frontend отправляет строку `selectionCriteriaRows` с содержанием, но без `coverageStatus`
-- **THEN** backend SHALL отклонить сохранение как `selection_criteria_coverage_required`
+- **THEN** backend SHALL сохранить строку, потому что `coverageStatus` и `coverageAmount` заполняет тендерный специалист отдельно
 
 #### Scenario: Пользователь сохраняет карточку с блоком предоценки
 - **WHEN** frontend отправляет `preassessment` с risk rows и итоговыми решениями

@@ -86,6 +86,7 @@ const difyServer = http.createServer((request, response) => {
                   group: "price",
                   title: "Цена договора",
                   weightPercent: 60,
+                  blockFactor: "",
                   coverageStatus: "full",
                   coverageNote: "Закрываем ценой",
                   sourceExcerpt: "Цена - 60%"
@@ -165,7 +166,8 @@ try {
 
   assert.equal(run.job.status, "completed");
   assert.equal(run.record.customer, "Новый заказчик");
-  assert.equal(run.record.selectionCriteriaRows[0].coverageStatus, "full");
+  assert.equal(run.record.selectionCriteriaRows[0].coverageStatus, "");
+  assert.equal(run.record.selectionCriteriaRows[0].coverageNote, "Закрываем ценой");
   assert.equal(difyRequest.url, "/workflows/run");
   assert.equal(difyRequest.authorization, "Bearer smoke-secret");
   assert.deepEqual(Object.keys(difyRequest.body.inputs), ["scoring_payload"]);

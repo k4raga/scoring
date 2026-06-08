@@ -43,6 +43,14 @@ const editorSchema = {
         { value: "full", label: "Закрываем" },
         { value: "none", label: "Не закрываем" }
       ]
+    },
+    {
+      key: "blockFactor",
+      type: "select",
+      options: [
+        { value: "blockFactor", label: "Блок-фактор" },
+        { value: "no", label: "Нет" }
+      ]
     }
   ],
   preassessmentRiskRowSchema: [
@@ -70,6 +78,7 @@ const record = {
       title: "Цена",
       weightPercent: 40,
       coverageStatus: "full",
+      coverageAmount: "100%",
       coverageNote: "Закрываем"
     }
   ],
@@ -117,7 +126,9 @@ const newSelectionRow = createSelectionCriteriaRow({
   group: "requirement",
   title: "Интеграция",
   weightPercent: 80,
-  coverageStatus: "none"
+  blockFactor: "blockFactor",
+  coverageStatus: "none",
+  coverageAmount: "50%"
 });
 const newRiskRow = createPreassessmentRiskRow({
   parameter: "Битрикс24",
@@ -138,7 +149,11 @@ const serialized = serializeForm(editedForm);
 assert.equal(serialized.includes("rowId"), false);
 assert.equal(JSON.stringify(payload).includes("rowId"), false);
 assert.equal(payload.selectionCriteriaRows[0].weightPercent, 40);
+assert.equal(payload.selectionCriteriaRows[0].blockFactor, "");
+assert.equal(payload.selectionCriteriaRows[0].coverageAmount, "100%");
 assert.equal(payload.selectionCriteriaRows[1].weightPercent, null);
+assert.equal(payload.selectionCriteriaRows[1].blockFactor, "blockFactor");
+assert.equal(payload.selectionCriteriaRows[1].coverageAmount, "50%");
 assert.equal(payload.preassessment.riskRows.length, 2);
 assert.equal(payload.documentWiki.manualBlocks[0].id, "manual-1");
 
@@ -160,6 +175,7 @@ const patchedRecord = applyRecordPatch(
 
 assert.equal(patchedRecord.selectionCriteriaRows.length, 2);
 assert.equal(patchedRecord.selectionCriteriaRows[1].weightPercent, null);
+assert.equal(patchedRecord.selectionCriteriaRows[1].blockFactor, "blockFactor");
 assert.equal(patchedRecord.preassessment.riskRows.length, 2);
 assert.equal(patchedRecord.documentWiki.overrides["wiki:requirements"].visible, false);
 assert.equal(patchedRecord.documentWiki.manualBlocks[0].id, "manual-1");
@@ -173,6 +189,10 @@ assert.deepEqual(
 assert.deepEqual(
   editorOptions.selectionCriteriaCoverageOptions.map((option) => option.value),
   ["full", "none"]
+);
+assert.deepEqual(
+  editorOptions.selectionCriteriaBlockFactorOptions.map((option) => option.value),
+  ["blockFactor", "no"]
 );
 assert.deepEqual(
   editorOptions.preassessmentCriticalityOptions.map((option) => option.value),

@@ -121,6 +121,9 @@ customer, projectTitle, title, shortTitle, deadlineAt, nmc, stage, purchaseBy,
 platformPayment, applicationSecurity, contractSecurity, overallExecutionTerm,
 contractTerm, retrade, antiDumpingMeasures, creative, notes, summary.
 
+`projectTitle` — короткий заголовок карточки/hero: заказчик + 2-3 слова про проект, например `Эрманн техподдержка`.
+Полный предмет закупки, цель проекта и длинные описания возвращай в `title`/`summary`, а не в `projectTitle`.
+
 Перед финальным ответом проверь каждое поле из instructions.extractionTargets.recordPatch.
 Если поле подтверждено документом, включи его в recordPatch. Не ограничивайся 2-3 полями.
 
@@ -164,10 +167,12 @@ quote/excerpt должен содержать короткую цитату.
 Каждая строка selectionCriteriaRows должна иметь:
 - group: price | nonPrice | requirement;
 - title;
-- weightPercent или null;
-- coverageStatus: full | partial | none;
-- coverageNote;
+- weightPercent только для group=price, иначе null;
+- blockFactor: blockFactor | no для group=nonPrice или group=requirement, пусто для group=price;
+- coverageNote: задача для тендерного специалиста из документа;
 - sourceExcerpt.
+
+Не заполняй coverageStatus и coverageAmount. Это экспертные поля, их заполняет тендерный специалист после AI-pass.
 
 Для каждой строки selectionCriteriaRows добавь отдельный documentFindings:
 field='selectionCriteriaRows', target='selectionCriteriaRows', documentId и quote/excerpt по этой строке.
@@ -211,9 +216,17 @@ field='selectionCriteriaRows', target='selectionCriteriaRows', documentId и quo
       "group": "price",
       "title": "Цена договора",
       "weightPercent": 60,
-      "coverageStatus": "full",
-      "coverageNote": "Критерий цены найден в документации",
+      "blockFactor": "",
+      "coverageNote": "Подготовить ценовое предложение по критерию цены договора",
       "sourceExcerpt": "Цена договора - 60%"
+    },
+    {
+      "group": "requirement",
+      "title": "Опыт",
+      "weightPercent": null,
+      "blockFactor": "blockFactor",
+      "coverageNote": "Подтвердить опыт выполнения сопоставимых работ",
+      "sourceExcerpt": "Наличие не менее 2 лет опыта..."
     }
   ],
   "documentFindings": [

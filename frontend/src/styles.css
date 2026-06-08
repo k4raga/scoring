@@ -1937,6 +1937,10 @@ svg {
   min-width: 0;
 }
 
+.detail-selection-criteria-control-wide {
+  grid-column: 1 / -1;
+}
+
 .detail-selection-criteria-empty {
   padding: 18px;
   border: 1px dashed rgba(48, 40, 76, 0.16);

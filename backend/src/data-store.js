@@ -466,7 +466,9 @@ function groupSelectionCriteriaRows(selectionCriteriaRows) {
         criteriaRow.title || "Без названия",
         [
           criteriaRow.weightPercent !== null && criteriaRow.weightPercent !== undefined ? `Вес: ${criteriaRow.weightPercent}%` : "",
+          criteriaRow.blockFactor ? `Блок-фактор: ${formatSelectionCriteriaBlockFactor(criteriaRow.blockFactor)}` : "",
           criteriaRow.coverageStatus ? `Закрытие: ${formatCoverageStatus(criteriaRow.coverageStatus)}` : "",
+          criteriaRow.coverageAmount ? `На сколько закрываем: ${criteriaRow.coverageAmount}` : "",
           criteriaRow.coverageNote ? `Пояснение: ${criteriaRow.coverageNote}` : "",
           criteriaRow.sourceExcerpt ? `Источник: ${criteriaRow.sourceExcerpt}` : ""
         ]
@@ -502,6 +504,18 @@ function formatCoverageStatus(value) {
   };
 
   return labels[value] || value || "-";
+}
+
+function formatSelectionCriteriaBlockFactor(value) {
+  if (value === "blockFactor") {
+    return "Блок-фактор";
+  }
+
+  if (value === "no") {
+    return "Нет";
+  }
+
+  return value || "";
 }
 
 function row(label, value) {

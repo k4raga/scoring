@@ -103,13 +103,15 @@ Alternative considered: дать Dify доступ к оригинальному
 
 `recordPatch` должен проходить allowlist полей, совместимых с `applyRecordPatch`: `customer`, `projectTitle`, `title`, `shortTitle`, `deadlineAt`, `nmc`, `stage`, `purchaseBy`, `platformPayment`, `applicationSecurity`, `contractSecurity`, `overallExecutionTerm`, `contractTerm`, `retrade`, `antiDumpingMeasures`, `creative`, `notes`, `summary`, `selectionCriteriaRows`.
 
+`projectTitle` используется как короткий hero-заголовок карточки: заказчик + 2-3 слова о проекте. Полный предмет закупки остается в `title`, а длинное описание/цель — в `summary`.
+
 Запрещенные patch-поля:
 
 - document link fields;
 - `workflow`, `documents`, `documentWiki`, `documentArtifacts`;
 - любые неизвестные поля.
 
-`selectionCriteriaRows` нормализуются через существующую модель: `group`, `title`, `weightPercent`, `coverageStatus`, `coverageNote`, `sourceExcerpt`, `order`.
+`selectionCriteriaRows` нормализуются через существующую модель: `group`, `title`, `weightPercent`, `blockFactor`, `coverageStatus`, `coverageAmount`, `coverageNote`, `sourceExcerpt`, `order`. Dify заполняет документные поля (`group`, `title`, `weightPercent` для ценовых и неценовых критериев с весом, `blockFactor` только для требований без веса, `coverageNote`, `sourceExcerpt`), где `coverageNote` является задачей для тендерного специалиста из документа. `coverageStatus` и `coverageAmount` остаются экспертными полями тендерного специалиста.
 
 Validated patch применяется автоматически через backend contract, как сейчас работает analysis contract. Отдельный human-review шаг не нужен: если результат пользователю не подходит, он может вручную поправить поля карточки и строки критериев в UI.
 

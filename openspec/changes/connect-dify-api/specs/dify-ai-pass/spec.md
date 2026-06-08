@@ -73,7 +73,7 @@
 
 #### Scenario: Dify предлагает строки критериев
 - **WHEN** Dify result содержит `selectionCriteriaRows`
-- **THEN** backend SHALL нормализовать строки через модель selection criteria и SHALL требовать обязательный `coverageStatus`
+- **THEN** backend SHALL нормализовать строки через модель selection criteria, SHALL сохранить документные поля включая `weightPercent` для ценовых и неценовых критериев с весом, `blockFactor` только для требований без веса и `coverageNote` как задачу для специалиста, and SHALL оставить экспертные поля `coverageStatus` и `coverageAmount` пустыми для тендерного специалиста
 
 #### Scenario: Dify patch прошел валидацию
 - **WHEN** Dify result прошел backend validation

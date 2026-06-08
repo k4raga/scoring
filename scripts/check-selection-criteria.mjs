@@ -8,7 +8,9 @@ const normalizedRows = normalizeSelectionCriteriaRows([
     group: "неценовой критерий",
     title: "Опыт команды",
     weightPercent: "40%",
+    blockFactor: "нет",
     coverageStatus: "полностью закрываем",
+    coverageAmount: "80%",
     coverageNote: "Есть релевантные проекты",
     sourceExcerpt: "Опыт команды оценивается с весом 40%."
   },
@@ -17,6 +19,7 @@ const normalizedRows = normalizeSelectionCriteriaRows([
     group: "дополнительное требование",
     title: "Интеграция с внутренними системами",
     weightPercent: "25",
+    blockFactor: "блок-фактор",
     coverageStatus: "частично закрываем"
   }
 ]);
@@ -24,9 +27,12 @@ const normalizedRows = normalizeSelectionCriteriaRows([
 assert.equal(normalizedRows.length, 2);
 assert.equal(normalizedRows[0].group, "requirement");
 assert.equal(normalizedRows[0].weightPercent, null);
+assert.equal(normalizedRows[0].blockFactor, "blockFactor");
 assert.equal(normalizedRows[0].coverageStatus, "partial");
+assert.equal(normalizedRows[1].coverageAmount, "80%");
 assert.equal(normalizedRows[1].group, "nonPrice");
 assert.equal(normalizedRows[1].weightPercent, 40);
+assert.equal(normalizedRows[1].blockFactor, "");
 assert.deepEqual(
   normalizedRows.map((row) => row.order),
   [1, 2]
@@ -40,9 +46,9 @@ assert.deepEqual(
   []
 );
 
-assert.throws(
-  () => normalizeSelectionCriteriaRows([{ title: "Цена", group: "price" }], { requireCoverage: true }),
-  /selection_criteria_coverage_required/
+assert.equal(
+  normalizeSelectionCriteriaRows([{ title: "Цена", group: "price" }], { requireCoverage: true })[0].coverageStatus,
+  ""
 );
 
 const patchedFromLegacy = applyRecordPatch(
@@ -60,13 +66,17 @@ const patchedSelectionCriteria = applyRecordPatch(
         group: "requirement",
         title: "Интеграция",
         weightPercent: 80,
-        coverageStatus: "full"
+        blockFactor: "blockFactor",
+        coverageStatus: "full",
+        coverageAmount: "100%"
       }
     ]
   }
 );
 
 assert.equal(patchedSelectionCriteria.selectionCriteriaRows[0].weightPercent, null);
+assert.equal(patchedSelectionCriteria.selectionCriteriaRows[0].blockFactor, "blockFactor");
 assert.equal(patchedSelectionCriteria.selectionCriteriaRows[0].coverageStatus, "full");
+assert.equal(patchedSelectionCriteria.selectionCriteriaRows[0].coverageAmount, "100%");
 
 console.log("selection criteria checks passed");

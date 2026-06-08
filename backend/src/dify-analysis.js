@@ -9,9 +9,20 @@ const DEFAULT_DIFY_INPUT_KEY = "scoring_payload";
 const DEFAULT_DIFY_RESPONSE_MODE = "blocking";
 const DEFAULT_DIFY_TIMEOUT_MS = 95_000;
 const DEFAULT_MAX_DOCUMENTS = 40;
-const DEFAULT_MAX_DOCUMENT_CHARS = 120_000;
-const DEFAULT_MAX_JSON_ARTIFACT_CHARS = 80_000;
-const DEFAULT_MAX_PAYLOAD_CHARS = 650_000;
+const DEFAULT_MAX_DOCUMENT_CHARS = 30_000;
+const DEFAULT_MAX_JSON_ARTIFACT_CHARS = 10_000;
+const DEFAULT_MAX_PAYLOAD_CHARS = 220_000;
+const FOCUSED_SNIPPET_MAX_CHARS = 12_000;
+const FOCUSED_SNIPPET_CONTEXT_BEFORE_CHARS = 1_200;
+const FOCUSED_SNIPPET_CONTEXT_AFTER_CHARS = 9_000;
+const FOCUSED_SNIPPET_PATTERNS = [
+  /Критерии\s+оценки\s+и\s+сопоставления\s+заявок/iu,
+  /Критерии\s+оценки/iu,
+  /Критерий\s+оценки\s+заявок/iu,
+  /Значимость\s+критерия/iu,
+  /Вес\s+критерия/iu,
+  /Единственным\s+критерием\s+является\s+цена/iu
+];
 const DOCUMENT_LINK_FIELDS = new Set([
   "documentsFolderHref",
   "googleDocumentsFolderHref",
@@ -161,7 +172,10 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
     user: buildDifyUser(record, job),
     fetchImpl
   });
-  const normalized = normalizeDifyWorkflowResponse(difyResponse.payload);
+  const normalized = enhanceDifyContractWithPayload(
+    normalizeDifyWorkflowResponse(difyResponse.payload),
+    payloadBuild.payload
+  );
   const reconciledFindings = reconcileDocumentFindingsWithPayload(
     normalized.documentFindings,
     payloadBuild.payload.documents
@@ -195,9 +209,17 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
     record.selectionCriteriaRows
   );
   const recordPatch = { ...normalized.recordPatch };
+  const criteriaDocumentUrl = resolveRecordMarkdownHrefByDocumentId(
+    record,
+    normalized.metadata?.selectionCriteriaSourceDocumentId
+  );
 
   if (selectionCriteriaRows.length) {
     recordPatch.selectionCriteriaRows = selectionCriteriaRows;
+  }
+
+  if (criteriaDocumentUrl && normalizeOptionalText(record.criteriaDocumentUrl) !== criteriaDocumentUrl) {
+    recordPatch.criteriaDocumentUrl = criteriaDocumentUrl;
   }
 
   return {
@@ -222,8 +244,9 @@ export async function runDifyAnalysisPass({ job, record, env = process.env, fetc
 }
 
 function mergeSelectionCriteriaRowsWithExisting(nextRows, existingRows) {
-  const normalizedNextRows = normalizeSelectionCriteriaRows(nextRows, { requireCoverage: true });
-  const normalizedExistingRows = normalizeSelectionCriteriaRows(existingRows, { requireCoverage: true });
+  const normalizedNextRows = normalizeSelectionCriteriaRows(nextRows, { requireCoverage: false })
+    .map(clearSelectionCriteriaExpertFields);
+  const normalizedExistingRows = normalizeSelectionCriteriaRows(existingRows, { requireCoverage: false });
 
   if (!normalizedNextRows.length || !normalizedExistingRows.length) {
     return normalizedNextRows;
@@ -236,14 +259,38 @@ function mergeSelectionCriteriaRowsWithExisting(nextRows, existingRows) {
       return nextRow;
     }
 
+    if (!shouldPreserveSelectionCriteriaExpertFields(existingRow)) {
+      return nextRow;
+    }
+
     return {
       ...nextRow,
-      order: existingRow.order || nextRow.order,
-      title: existingRow.title || nextRow.title,
-      coverageStatus: existingRow.coverageStatus || nextRow.coverageStatus,
-      coverageNote: existingRow.coverageNote || nextRow.coverageNote
+      coverageAmount: existingRow.coverageAmount || nextRow.coverageAmount,
+      coverageStatus: existingRow.coverageStatus || nextRow.coverageStatus
     };
   });
+}
+
+function clearSelectionCriteriaExpertFields(row) {
+  return {
+    ...row,
+    coverageStatus: "",
+    coverageAmount: ""
+  };
+}
+
+function shouldPreserveSelectionCriteriaExpertFields(row) {
+  if (!row.coverageStatus && !row.coverageAmount) {
+    return false;
+  }
+
+  const note = normalizeOptionalText(row.coverageNote).toLocaleLowerCase("ru-RU");
+
+  return !(
+    /требовани[\p{L}\p{N}_]*\s+требует\s+проверки\s+менеджер/u.test(note) ||
+    /оценка\s+тендерн[\p{L}\p{N}_]*\s+специалист/u.test(note) ||
+    /выберите\s+статус/u.test(note)
+  );
 }
 
 function findMatchingSelectionCriteriaRow(row, existingRows) {
@@ -260,7 +307,10 @@ function findMatchingSelectionCriteriaRow(row, existingRows) {
       return true;
     }
 
-    return getSelectionCriteriaSignature(row) === getSelectionCriteriaSignature(existingRow);
+    const rowSignature = getSelectionCriteriaSignature(row);
+    const existingSignature = getSelectionCriteriaSignature(existingRow);
+
+    return Boolean(row.group === existingRow.group && rowSignature && existingSignature && rowSignature === existingSignature);
   }) || null;
 }
 
@@ -303,6 +353,978 @@ function normalizeCriteriaMatchText(value) {
     .toLocaleLowerCase("ru-RU")
     .replace(/ё/g, "е")
     .replace(/[^\p{L}\p{N}]+/gu, "");
+}
+
+function enhanceDifyContractWithPayload(contract, payload) {
+  if (!isObject(contract)) {
+    return contract;
+  }
+
+  if (!isRfiMarketAnalysisPayload(payload)) {
+    return enhanceTenderTechnicalAssignmentContract(contract, payload);
+  }
+
+  const rfiDocument = findPayloadDocument(payload, /RFI|анализ рынка|выбор контрагента не производится/iu);
+  const rfiText = normalizeOptionalText(rfiDocument?.markdown);
+  const technicalDocument = findPayloadDocument(payload, /Техническое задание|этапы и виды работ|длительность.+недел/iu);
+  const rfiTitle = extractRfiTitle(rfiText);
+  const hasUnclearStages = Boolean(technicalDocument?.markdown && /этапы и виды работ|длительность.+недел/iu.test(technicalDocument.markdown));
+  const recordPatch = {
+    ...contract.recordPatch,
+    procurementStage: "Анализ рынка цен",
+    nmc: "нет",
+    purchaseBy: contract.recordPatch?.purchaseBy || "Коммерческая закупка",
+    platformPayment: normalizeDashValue(contract.recordPatch?.platformPayment),
+    applicationSecurity: normalizeDashValue(contract.recordPatch?.applicationSecurity),
+    contractSecurity: normalizeDashValue(contract.recordPatch?.contractSecurity),
+    retrade: "Нет",
+    antiDumpingMeasures: "не применимо на данном этапе",
+    creative: /презентаци[яю]\s+о\s+компании/iu.test(rfiText) ? true : contract.recordPatch?.creative
+  };
+
+  if (rfiTitle) {
+    recordPatch.title = rfiTitle;
+    recordPatch.projectTitle = rfiTitle;
+  }
+
+  if (/X5|Х5/u.test(rfiText) && (!recordPatch.customer || /^X5|Х5$/iu.test(recordPatch.customer))) {
+    recordPatch.customer = 'ПАО "КОРПОРАТИВНЫЙ ЦЕНТР ИКС 5"';
+  }
+
+  if (hasUnclearStages) {
+    recordPatch.overallExecutionTerm = "непонятно, этапы идут один за другим или одновременно";
+  }
+
+  if (!recordPatch.contractTerm) {
+    recordPatch.contractTerm = "нет данных";
+  }
+
+  const selectionCriteriaRows = buildRfiSelectionCriteriaRows(rfiText);
+  const documentFindings = [
+    ...(Array.isArray(contract.documentFindings) ? contract.documentFindings : []),
+    ...buildRfiDocumentFindings({ recordPatch, rfiDocument, selectionCriteriaRows })
+  ];
+
+  return {
+    ...contract,
+    recordPatch,
+    selectionCriteriaRows: selectionCriteriaRows.length ? selectionCriteriaRows : contract.selectionCriteriaRows,
+    documentFindings
+  };
+}
+
+function enhanceTenderTechnicalAssignmentContract(contract, payload) {
+  const document = findTenderTechnicalAssignmentDocument(payload);
+
+  if (!document) {
+    return contract;
+  }
+
+  const payloadText = getPayloadDocumentsText(payload);
+  const text = normalizeOptionalText([document.markdown, payloadText].filter(Boolean).join("\n"));
+  const recordPatch = {
+    ...contract.recordPatch
+  };
+  const extractedSubject = extractSubjectFromTechnicalAssignment(text);
+  const extractedCustomer = extractCustomerFromTechnicalAssignment(text);
+  const extractedNmc = extractNmcFromTechnicalAssignment(text);
+  const purpose = extractPurposeFromTechnicalAssignment(text);
+
+  if (extractedCustomer && isWeakTenderValue(recordPatch.customer)) {
+    recordPatch.customer = extractedCustomer;
+  }
+
+  if (extractedSubject && isWeakTenderValue(recordPatch.title)) {
+    recordPatch.title = extractedSubject;
+  }
+
+  const compactProjectTitle = buildCompactProjectTitle({
+    customer: recordPatch.customer || extractedCustomer,
+    subject: extractedSubject || recordPatch.title,
+    purpose
+  });
+
+  if (compactProjectTitle && isWeakProjectTitle(recordPatch.projectTitle)) {
+    recordPatch.projectTitle = compactProjectTitle;
+  }
+
+  if (extractedSubject && isWeakTenderValue(recordPatch.shortTitle)) {
+    recordPatch.shortTitle = "Аутсорс";
+  }
+
+  if (hasTenderStageEvidence(text) && (isWeakTenderValue(recordPatch.procurementStage) || /^анализ\s+рынка\s+цен$/iu.test(normalizeOptionalText(recordPatch.procurementStage)))) {
+    recordPatch.procurementStage = "Тендер";
+  }
+
+  if (extractedNmc && (isWeakTenderValue(recordPatch.nmc) || /^нет$/iu.test(normalizeOptionalText(recordPatch.nmc)) || isUnformattedMoneyValue(recordPatch.nmc))) {
+    recordPatch.nmc = extractedNmc;
+  } else if (isWeakTenderValue(recordPatch.nmc) && !hasExplicitNmc(text)) {
+    recordPatch.nmc = "нет";
+  }
+
+  if (isWeakTenderValue(recordPatch.platformPayment)) {
+    recordPatch.platformPayment = "-";
+  }
+
+  if (isWeakTenderValue(recordPatch.applicationSecurity)) {
+    recordPatch.applicationSecurity = "-";
+  }
+
+  if (isWeakTenderValue(recordPatch.contractSecurity)) {
+    recordPatch.contractSecurity = "-";
+  } else if (extractedNmc && /5\s*%\s*от\s*НМЦ[^\n]*2026\s+руб/iu.test(normalizeOptionalText(recordPatch.contractSecurity))) {
+    recordPatch.contractSecurity = `5% от НМЦ (${extractedNmc})`;
+  }
+
+  if (isWeakTenderValue(recordPatch.contractTerm)) {
+    recordPatch.contractTerm = "нет данных";
+  }
+
+  if (hasRetradeAbsenceEvidence(text)) {
+    recordPatch.retrade = "Нет";
+  } else if (hasRetradeEvidence(text)) {
+    recordPatch.retrade = "Да";
+  }
+
+  if (hasTestAssignmentEvidence(text, document)) {
+    recordPatch.creative = true;
+  } else if (recordPatch.creative === true) {
+    recordPatch.creative = false;
+  }
+
+  if (purpose && isExtractionNoise(recordPatch.notes)) {
+    recordPatch.notes = "";
+  }
+
+  if (purpose && isExtractionNoise(recordPatch.summary)) {
+    recordPatch.summary = purpose;
+  }
+
+  const explicitSelectionCriteria = buildExplicitEvaluationSelectionCriteriaRows(payload);
+  const selectionCriteriaRows = explicitSelectionCriteria.rows.length
+    ? explicitSelectionCriteria.rows
+    : buildTenderTechnicalAssignmentSelectionCriteriaRows(text);
+  const documentFindings = [
+    ...(Array.isArray(contract.documentFindings) ? contract.documentFindings : []),
+    ...buildTenderTechnicalAssignmentFindings({ recordPatch, document, extractedSubject, extractedCustomer, purpose }),
+    ...(explicitSelectionCriteria.rows.length
+      ? buildSelectionCriteriaFindings({ document: explicitSelectionCriteria.document, selectionCriteriaRows })
+      : buildSelectionCriteriaFindings({ document, selectionCriteriaRows }))
+  ];
+
+  return {
+    ...contract,
+    recordPatch,
+    selectionCriteriaRows: selectionCriteriaRows.length ? selectionCriteriaRows : contract.selectionCriteriaRows,
+    documentFindings,
+    metadata: {
+      ...(isObject(contract.metadata) ? contract.metadata : {}),
+      ...(explicitSelectionCriteria.document?.documentId
+        ? { selectionCriteriaSourceDocumentId: explicitSelectionCriteria.document.documentId }
+        : {})
+    }
+  };
+}
+
+function buildExplicitEvaluationSelectionCriteriaRows(payload) {
+  const documents = Array.isArray(payload?.documents) ? payload.documents : [];
+
+  for (const document of documents) {
+    const markdown = normalizeOptionalText(document?.markdown);
+
+    if (!hasExplicitEvaluationCriteriaEvidence(markdown)) {
+      continue;
+    }
+
+    for (const table of parseMarkdownTables(markdown)) {
+      const criterionIndex = findEvaluationCriterionColumn(table.headers);
+      const weightIndex = findEvaluationWeightColumn(table.headers);
+
+      if (criterionIndex < 0 || weightIndex < 0) {
+        continue;
+      }
+
+      const rows = [];
+
+      for (const tableRow of table.rows) {
+        const rawTitle = cleanMarkdownTableCell(tableRow[criterionIndex]);
+        const rawWeight = cleanMarkdownTableCell(tableRow[weightIndex]);
+        const weightPercent = parseCriteriaWeightPercent(rawWeight);
+
+        if (!rawTitle || weightPercent === null) {
+          continue;
+        }
+
+        const group = isPriceEvaluationCriterion(rawTitle) ? "price" : "nonPrice";
+        const formula = cleanMarkdownTableCell(tableRow[findEvaluationFormulaColumn(table.headers)] || "");
+        const title = cleanEvaluationCriterionTitle(rawTitle, group);
+
+        if (!title) {
+          continue;
+        }
+
+        rows.push({
+          order: rows.length + 1,
+          group,
+          title,
+          weightPercent,
+          blockFactor: "",
+          coverageStatus: "",
+          coverageAmount: "",
+          coverageNote: buildEvaluationCriterionCoverageNote({ group, title, formula }),
+          sourceExcerpt: buildEvaluationCriterionSourceExcerpt({ title: rawTitle, formula, weightPercent })
+        });
+      }
+
+      if (rows.length) {
+        return {
+          document,
+          rows
+        };
+      }
+    }
+  }
+
+  return {
+    document: null,
+    rows: []
+  };
+}
+
+function hasExplicitEvaluationCriteriaEvidence(markdown) {
+  return (
+    /Критерии\s+оценки\s+и\s+сопоставления\s+заявок/iu.test(markdown) ||
+    /Критерий\s+оценки\s+заявок/iu.test(markdown) ||
+    /Значимость\s+критерия/iu.test(markdown) ||
+    /Вес\s+критерия/iu.test(markdown)
+  );
+}
+
+function parseMarkdownTables(markdown) {
+  const lines = normalizeOptionalText(markdown).split(/\r?\n/u);
+  const tables = [];
+
+  for (let index = 0; index < lines.length - 1; index += 1) {
+    if (!isMarkdownTableLine(lines[index]) || !isMarkdownTableSeparatorLine(lines[index + 1])) {
+      continue;
+    }
+
+    const tableLines = [lines[index], lines[index + 1]];
+    let cursor = index + 2;
+
+    while (cursor < lines.length && isMarkdownTableLine(lines[cursor])) {
+      tableLines.push(lines[cursor]);
+      cursor += 1;
+    }
+
+    const headers = parseMarkdownTableLine(tableLines[0]);
+    const rows = tableLines
+      .slice(2)
+      .map(parseMarkdownTableLine)
+      .filter((row) => row.some(Boolean));
+
+    tables.push({
+      headers,
+      rows,
+      raw: tableLines.join("\n")
+    });
+    index = cursor - 1;
+  }
+
+  return tables;
+}
+
+function isMarkdownTableLine(line) {
+  return /^\s*\|.*\|\s*$/u.test(normalizeOptionalText(line));
+}
+
+function isMarkdownTableSeparatorLine(line) {
+  const cells = parseMarkdownTableLine(line);
+  return Boolean(cells.length && cells.every((cell) => /^:?-{3,}:?$/u.test(cell)));
+}
+
+function parseMarkdownTableLine(line) {
+  const normalized = normalizeOptionalText(line).replace(/^\s*\|/u, "").replace(/\|\s*$/u, "");
+  return normalized.split("|").map(cleanMarkdownTableCell);
+}
+
+function cleanMarkdownTableCell(value) {
+  return normalizeOptionalText(value)
+    .replace(/<br\s*\/?>/giu, "\n")
+    .replace(/\\\|/gu, "|")
+    .replace(/\*\*/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function findEvaluationCriterionColumn(headers) {
+  return headers.findIndex((header) => {
+    const normalized = normalizeCriteriaHeaderText(header);
+    return /критери.*оцен.*заяв|критери.*оцен|показател.*оцен/u.test(normalized);
+  });
+}
+
+function findEvaluationWeightColumn(headers) {
+  return headers.findIndex((header) => {
+    const normalized = normalizeCriteriaHeaderText(header);
+    return /значимост.*критери|вес.*критери|удельн.*вес/u.test(normalized);
+  });
+}
+
+function findEvaluationFormulaColumn(headers) {
+  const index = headers.findIndex((header) => {
+    const normalized = normalizeCriteriaHeaderText(header);
+    return /порядок.*расчет|формул|способ.*оцен|как.*закро/u.test(normalized);
+  });
+
+  return index >= 0 ? index : -1;
+}
+
+function normalizeCriteriaHeaderText(value) {
+  return normalizeOptionalText(value)
+    .toLocaleLowerCase("ru-RU")
+    .replace(/ё/gu, "е")
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function parseCriteriaWeightPercent(value) {
+  const match = normalizeOptionalText(value).match(/(?<!\d)(\d{1,3})(?:[,.](\d{1,2}))?(?!\d)/u);
+
+  if (!match) {
+    return null;
+  }
+
+  const parsed = Number(`${match[1]}.${match[2] || "0"}`);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isPriceEvaluationCriterion(value) {
+  return /цен[аы]|стоимост|цена\s+договора/iu.test(value);
+}
+
+function cleanEvaluationCriterionTitle(value, group) {
+  if (group === "price") {
+    return "Цена";
+  }
+
+  return normalizeOptionalText(value)
+    .replace(/^Наличие\s+у\s+участника\s+аккредитации(\s+на\b)?/iu, "Аккредитация$1")
+    .replace(/^Наличие\s+аккредитации(\s+на\b)?/iu, "Аккредитация$1")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function buildEvaluationCriterionCoverageNote({ group, title, formula }) {
+  if (group === "price") {
+    return "Подготовить конкурентное ценовое предложение; оценка рассчитывается по цене договора.";
+  }
+
+  if (/аккредитац/iu.test(title)) {
+    return "Подтвердить наличие аккредитации на осуществление деятельности в области информационных технологий.";
+  }
+
+  if (/прототип/iu.test(title)) {
+    return "Подготовить прототипное решение по Приложению №5 для экспертной оценки.";
+  }
+
+  return truncateText(formula || title, 500);
+}
+
+function buildEvaluationCriterionSourceExcerpt({ title, formula, weightPercent }) {
+  return [
+    title,
+    formula,
+    `Значимость критерия: ${weightPercent}`
+  ].filter(Boolean).join(" | ");
+}
+
+function extractSubjectFromTechnicalAssignment(text) {
+  const headingMatch = text.match(/###\s*Предмет закупки\s*\n+\s*([^\n#][^\n]+)/iu);
+
+  if (headingMatch) {
+    return cleanTenderSubject(headingMatch[1]);
+  }
+
+  const developmentMatch = text.match(/Выполнение\s+работ\s+по\s+разработке\s+информационной\s+системы\s+«[^»]+»/iu);
+
+  if (developmentMatch) {
+    return cleanTenderSubject(developmentMatch[0]);
+  }
+
+  const titleMatch = text.match(/Цель проекта:\s*[^.]*?(оказания?\s+услуг[^\n.]+)/iu);
+  return titleMatch ? cleanTenderSubject(titleMatch[1]) : "";
+}
+
+function extractCustomerFromTechnicalAssignment(text) {
+  const patterns = [
+    /ДЛЯ\s+КОМПАНИИ\s+([^\n.]+)\.?/iu,
+    /\(\s*АУ\s*\)\s*(АО\s+«[^»]+»|[^\n|]+)/iu,
+    /Заказчик(?:ом)?\s*(?:является|:)\s*([^\n.|]+)/iu
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+
+    if (match) {
+      const customer = cleanTenderCustomer(match[1]);
+
+      if (customer) {
+        return customer;
+      }
+    }
+  }
+
+  return "";
+}
+
+function extractNmcFromTechnicalAssignment(text) {
+  const normalized = normalizeOptionalText(text);
+  const scopedMatch = normalized.match(/(?:Сведения\s+о\s+начальной[\s\S]{0,600}|НМЦ[\s\S]{0,600}|НМЦК[\s\S]{0,600})(?<!\d)(\d{1,3}(?:\s\d{3}){2,},\d{2}\s*руб\.?)/iu);
+
+  if (scopedMatch) {
+    return normalizeMoneyText(scopedMatch[1]);
+  }
+
+  const tableMatch = normalized.match(/\|\s*(?<!\d)(\d{1,3}(?:\s\d{3}){2,},\d{2})\s*руб\.?\s*\|/iu);
+  return tableMatch ? normalizeMoneyText(`${tableMatch[1]} руб.`) : "";
+}
+
+function normalizeMoneyText(value) {
+  return normalizeOptionalText(value)
+    .replace(/\s+/gu, " ")
+    .replace(/\s*руб\.?$/iu, " руб.")
+    .trim();
+}
+
+function isUnformattedMoneyValue(value) {
+  return /^\d{6,}(?:[.,]\d{1,2})?$/u.test(normalizeOptionalText(value));
+}
+
+function extractPurposeFromTechnicalAssignment(text) {
+  const match = text.match(/Цель проекта:\s*([^\n]+)/iu);
+  return match ? normalizeOptionalText(match[1]) : "";
+}
+
+function buildCompactProjectTitle({ customer, subject, purpose }) {
+  const customerName = compactCustomerName(customer);
+  const projectLabel = compactProjectLabel([subject, purpose].filter(Boolean).join("\n"));
+
+  if (!customerName || !projectLabel) {
+    return "";
+  }
+
+  return `${customerName} ${projectLabel}`;
+}
+
+function compactCustomerName(value) {
+  const normalized = normalizeOptionalText(value)
+    .replace(/^(?:ПАО|АО|ООО|ЗАО|ИП)\s+/iu, "")
+    .replace(/[«»"]/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (/икс\s*5|x5/iu.test(normalized)) {
+    return "Икс5";
+  }
+
+  if (/сетевая\s+компания/iu.test(normalized)) {
+    return "Сетевая компания";
+  }
+
+  const words = normalized.split(/\s+/u).filter(Boolean);
+  const candidate = words.length > 2 ? words.at(-1) : words[0];
+  return titleCaseWord(candidate);
+}
+
+function compactProjectLabel(value) {
+  const normalized = normalizeOptionalText(value).toLocaleLowerCase("ru-RU");
+
+  if (!normalized) {
+    return "";
+  }
+
+  if (/битрикс\s*24|bitrix\s*24/u.test(normalized)) {
+    return "Битрикс24";
+  }
+
+  if (/экосистем[\p{L}\p{N}_]*\s+искусственн[\p{L}\p{N}_]*\s+интеллект|искусственн[\p{L}\p{N}_]*\s+интеллект|(?:^|[^\p{L}\p{N}])ии(?:$|[^\p{L}\p{N}])/u.test(normalized)) {
+    return "ИИ-экосистема";
+  }
+
+  if (/техническ[\p{L}\p{N}_]*\s+поддержк|техподдержк|ведени[\p{L}\p{N}_]*\s+и\s+техническ[\p{L}\p{N}_]*\s+поддержк|оперативн[\p{L}\p{N}_]*\s+внесени[\p{L}\p{N}_]*\s+изменени/u.test(normalized)) {
+    return "техподдержка";
+  }
+
+  if (/сопровождени/u.test(normalized)) {
+    return "сопровождение";
+  }
+
+  if (/интеграц/u.test(normalized)) {
+    return "интеграция";
+  }
+
+  if (/разработк/u.test(normalized)) {
+    return "разработка";
+  }
+
+  if (/сайт/u.test(normalized)) {
+    return "сайт";
+  }
+
+  if (/crm/u.test(normalized)) {
+    return "CRM";
+  }
+
+  const words = normalized
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .split(/\s+/u)
+    .filter((word) => word.length > 3 && !["оказание", "услуг", "выполнение", "работ", "выбор", "проекта"].includes(word))
+    .slice(0, 2);
+
+  return words.join(" ");
+}
+
+function titleCaseWord(value) {
+  const normalized = normalizeOptionalText(value).toLocaleLowerCase("ru-RU");
+  return normalized ? normalized[0].toLocaleUpperCase("ru-RU") + normalized.slice(1) : "";
+}
+
+function isWeakProjectTitle(value) {
+  const normalized = normalizeOptionalText(value);
+
+  return (
+    !normalized ||
+    /^цель\s+проекта\s*:/iu.test(normalized) ||
+    /^[\p{L}\d\s"«»._-]+\s+\d{2}\.\d{2}$/u.test(normalized) ||
+    normalized.length > 60 ||
+    /[.!?].{8,}/u.test(normalized)
+  );
+}
+
+function hasRetradeEvidence(text) {
+  return (
+    /переторжк/iu.test(text) ||
+    /повторн[\p{L}\p{N}_]*\s+(?:коммерческ[\p{L}\p{N}_]*\s+)?предложен/iu.test(text) ||
+    /дополнительн[\p{L}\p{N}_]*\s+ценов[\p{L}\p{N}_]*\s+предложен/iu.test(text) ||
+    /улучшен[\p{L}\p{N}_]*\s+ценов[\p{L}\p{N}_]*\s+предложен/iu.test(text) ||
+    /улучшени[\p{L}\p{N}_]*\s+(?:цены|кп|коммерческ[\p{L}\p{N}_]*\s+предложен)/iu.test(text)
+  );
+}
+
+function hasRetradeAbsenceEvidence(text) {
+  return (
+    /переторжк[^\n.]{0,80}(?:не\s+предусмотрен|не\s+провод|отсутств|нет)/iu.test(text) ||
+    /(?:без|нет)\s+переторжк/iu.test(text)
+  );
+}
+
+function hasTenderStageEvidence(text) {
+  return /тендерн|подведение итогов тендера|переторжк|конкурс|конкурентн[\p{L}\p{N}_]*\s+закуп|документаци[яи]\s+о\s+закупке|извещени[\p{L}\p{N}_]*\s+о\s+закупке/iu.test(text);
+}
+
+function hasTestAssignmentEvidence(text, document) {
+  const source = [
+    document?.label,
+    document?.fileName,
+    document?.sourceFileName,
+    document?.sourcePath
+  ].map(normalizeOptionalText).join("\n");
+
+  return (
+    /тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/iu.test(text) ||
+    /тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/iu.test(source)
+  );
+}
+
+function isWeakTenderValue(value) {
+  const normalized = normalizeOptionalText(value);
+
+  return (
+    !normalized ||
+    normalized.length > 240 ||
+    /^не\s+указано/iu.test(normalized) ||
+    /^нет\s+информации/iu.test(normalized) ||
+    /^сведения\s+об\s+извлечении/iu.test(normalized) ||
+    /^#\s*ТЗ/iu.test(normalized) ||
+    /\|\s*---\s*\|/u.test(normalized) ||
+    /###\s+/u.test(normalized) ||
+    /Сведения\s+о\s+начальной|Объем\s+документации|Правовой\s+статус\s+закупки/iu.test(normalized) ||
+    /^\d{4}-\d{2}-\d{2}/u.test(normalized) ||
+    /^[\p{L}\d\s._-]+\s+\d{2}\.\d{2}$/u.test(normalized)
+  );
+}
+
+function cleanTenderSubject(value) {
+  let normalized = normalizeOptionalText(value)
+    .replace(/^#+\s*/u, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+
+  if (!normalized) {
+    return "";
+  }
+
+  normalized = truncateBeforeTenderNoise(normalized);
+
+  if (normalized.length > 240) {
+    const firstSentence = normalized.match(/^(.{20,240}?[.!?])(?:\s|$)/u);
+
+    if (firstSentence) {
+      normalized = firstSentence[1];
+    }
+  }
+
+  return normalized.replace(/\s*[|#]+.*$/u, "").replace(/\s+/gu, " ").trim();
+}
+
+function truncateBeforeTenderNoise(value) {
+  const markers = [
+    /Настоящая\s+закупка\s+является/iu,
+    /###\s*Сведения\s+о\s+начальной/iu,
+    /\|\s*Всего\s*:/iu,
+    /Сведения\s+о\s+начальной/iu,
+    /Объем\s+документации/iu,
+    /Правовой\s+статус\s+закупки/iu,
+    /Национальный\s+режим/iu
+  ];
+
+  let endIndex = value.length;
+
+  for (const marker of markers) {
+    const match = marker.exec(value);
+
+    if (match && match.index > 0) {
+      endIndex = Math.min(endIndex, match.index);
+    }
+  }
+
+  return value.slice(0, endIndex).replace(/[.,;:\s]+$/u, "").trim();
+}
+
+function cleanTenderCustomer(value) {
+  return normalizeOptionalText(value)
+    .split("|")[0]
+    .replace(/\s+\d{6}\b.*$/u, "")
+    .replace(/[.,;:]+$/u, "")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function isExtractionNoise(value) {
+  const normalized = normalizeOptionalText(value);
+
+  return !normalized || /^#\s*ТЗ|Сведения\s+об\s+извлечении|Источник:/iu.test(normalized);
+}
+
+function hasExplicitNmc(text) {
+  return /НМЦ|НМЦК|начальн\w*\s+максимальн\w*\s+цен|максимальн\w*\s+цен\w*\s+договора/iu.test(text);
+}
+
+function buildTenderTechnicalAssignmentFindings({ recordPatch, document, extractedSubject, extractedCustomer, purpose }) {
+  const documentId = normalizeOptionalText(document.documentId);
+  const findings = [];
+  const addFinding = (field, quote, note) => {
+    if (!quote) {
+      return;
+    }
+
+    findings.push({
+      field,
+      target: field,
+      documentId,
+      quote,
+      note,
+      confidence: "high"
+    });
+  };
+
+  addFinding("customer", extractedCustomer ? `для компании ${extractedCustomer}` : "", "Заказчик извлечен из заголовка технического задания.");
+  addFinding("title", extractedSubject, "Предмет закупки извлечен из одноименного раздела.");
+  addFinding("procurementStage", recordPatch.procurementStage === "Тендер" ? "Контактное лицо по вопросам проведения тендерной процедуры" : "", "Документ описывает тендерную процедуру.");
+  addFinding("nmc", recordPatch.nmc === "нет" ? "НМЦ в документе не указана" : "", "Явная НМЦ не найдена.");
+  addFinding("retrade", recordPatch.retrade === "Да" ? extractRetradeQuote(document.markdown) : "", "Переторжка найдена в графике процедуры.");
+  addFinding("creative", recordPatch.creative === true ? extractTestAssignmentQuote(document.markdown, document) : "", "Поле 'Творческое' трактуется как наличие тестового задания / ТЗ.");
+  addFinding("summary", purpose, "Цель проекта извлечена из технического задания.");
+
+  return findings;
+}
+
+function buildTenderTechnicalAssignmentSelectionCriteriaRows(text) {
+  if (!isTenderTechnicalAssignmentCompetencyTable(text)) {
+    return [];
+  }
+
+  const rows = [];
+  const addRow = (row) => {
+    rows.push({
+      order: rows.length + 1,
+      coverageStatus: "",
+      coverageAmount: "",
+      ...row
+    });
+  };
+
+  if (/Стоимость\s+и\s+прозрачность\s+сметы\s*\(\s*30\s*%\s*\)/iu.test(text)) {
+    addRow({
+      group: "price",
+      title: "Стоимость и прозрачность сметы",
+      weightPercent: 30,
+      blockFactor: "",
+      coverageNote: "Проверить цену за час и прозрачность модели оплаты: по факту или абонемент.",
+      sourceExcerpt: "Стоимость и прозрачность сметы (30%): конкурентоспособность стоимости часа работы, а также предлагаемая модель оплаты (по факту / абонемент)."
+    });
+  }
+
+  addRow({
+    group: "requirement",
+    title: "Опыт",
+    weightPercent: null,
+    blockFactor: "blockFactor",
+    coverageNote: "• Наличие не менее 2 лет опыта в ведении и поддержке корпоративных сайтов\n• Опыт работы с продуктовыми каталогами, мультиязычными сайтами",
+    sourceExcerpt: "Наличие не менее 2 лет опыта в ведении и поддержке корпоративных сайтов\nОпыт работы с продуктовыми каталогами, мультиязычными сайтами."
+  });
+  addRow({
+    group: "requirement",
+    title: "Опыт",
+    weightPercent: null,
+    blockFactor: "no",
+    coverageNote: "• Опыт работы с FMCG-брендами, продуктовыми сайтами",
+    sourceExcerpt: "Опыт работы с FMCG-брендами, продуктовыми сайтами."
+  });
+  addRow({
+    group: "requirement",
+    title: "Кадры",
+    weightPercent: null,
+    blockFactor: "no",
+    coverageNote: "• Наличие в штате сотрудников с компетенциями администратора CMS\n• Возможность предоставления услуг по аутсорсингу технического администратора (при необходимости)",
+    sourceExcerpt: "Наличие в штате сотрудников с компетенциями администратора CMS.\nВозможность предоставления услуг по аутсорсингу технического администратора (при необходимости)."
+  });
+
+  return rows;
+}
+
+function isTenderTechnicalAssignmentCompetencyTable(text) {
+  const normalized = normalizeOptionalText(text);
+
+  return (
+    /ТРЕБОВАНИЯ\s+К\s+ИСПОЛНИТЕЛЮ/iu.test(normalized) &&
+    /Обязательные\s+компетенции/iu.test(normalized) &&
+    /Желательные\s+компетенции/iu.test(normalized) &&
+    /Наличие\s+не\s+менее\s+2\s+лет\s+опыта\s+в\s+ведении\s+и\s+поддержке\s+корпоративных\s+сайтов/iu.test(normalized) &&
+    /Опыт\s+работы\s+с\s+FMCG-брендами,\s+продуктовыми\s+сайтами/iu.test(normalized) &&
+    /Наличие\s+в\s+штате\s+сотрудников\s+с\s+компетенциями\s+администратора\s+CMS/iu.test(normalized)
+  );
+}
+
+function buildSelectionCriteriaFindings({ document, selectionCriteriaRows }) {
+  const documentId = normalizeOptionalText(document?.documentId);
+
+  return (Array.isArray(selectionCriteriaRows) ? selectionCriteriaRows : [])
+    .filter((row) => row.sourceExcerpt)
+    .map((row) => ({
+      field: "selectionCriteriaRows",
+      target: "selectionCriteriaRows",
+      documentId,
+      quote: row.sourceExcerpt,
+      note: row.title,
+      confidence: "high"
+    }));
+}
+
+function extractRetradeQuote(text) {
+  const normalized = normalizeOptionalText(text);
+  const match = normalized.match(/[^\n]*(?:переторжк|повторн[\p{L}\p{N}_]*\s+(?:коммерческ[\p{L}\p{N}_]*\s+)?предложен|дополнительн[\p{L}\p{N}_]*\s+ценов[\p{L}\p{N}_]*\s+предложен|улучшен[\p{L}\p{N}_]*\s+ценов[\p{L}\p{N}_]*\s+предложен|улучшени[\p{L}\p{N}_]*\s+(?:цены|кп|коммерческ[\p{L}\p{N}_]*\s+предложен))[^\n]*/iu);
+  return match ? normalizeOptionalText(match[0]).replace(/^#+\s*/u, "") : "";
+}
+
+function extractTestAssignmentQuote(text, document) {
+  const source = normalizeOptionalText(document?.label || document?.fileName || document?.sourceFileName || document?.sourcePath);
+  const normalized = normalizeOptionalText(text);
+  const explicitMatch = normalized.match(/[^\n]*(?:тестов[\p{L}\p{N}_]*\s+задан|творческ[\p{L}\p{N}_]*\s+задан|тестов[\p{L}\p{N}_]*\s+част|техническ[\p{L}\p{N}_]*\s+задани)[^\n]*/iu);
+
+  if (explicitMatch) {
+    return normalizeOptionalText(explicitMatch[0]).replace(/^#+\s*/u, "");
+  }
+
+  return source;
+}
+
+function isRfiMarketAnalysisPayload(payload) {
+  const text = getPayloadDocumentsText(payload);
+
+  return /RFI|запрос на предоставление информации|сбор информации и бюджетных оценок|выбор контрагента не производится/iu.test(text);
+}
+
+function getPayloadDocumentsText(payload) {
+  return Array.isArray(payload?.documents)
+    ? payload.documents.map((document) => normalizeOptionalText(document.markdown)).join("\n")
+    : "";
+}
+
+function findPayloadDocument(payload, pattern) {
+  return (Array.isArray(payload?.documents) ? payload.documents : [])
+    .find((document) => pattern.test(normalizeOptionalText(document.markdown))) || null;
+}
+
+function findTenderTechnicalAssignmentDocument(payload) {
+  const documents = Array.isArray(payload?.documents) ? payload.documents : [];
+  const candidates = documents
+    .map((document, index) => ({
+      document,
+      index,
+      score: getTenderTechnicalAssignmentDocumentScore(document)
+    }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index);
+
+  return candidates[0]?.document || null;
+}
+
+function getTenderTechnicalAssignmentDocumentScore(document) {
+  const title = normalizeOptionalText([document?.title, document?.sourceFileName, document?.documentId].join(" ")).toLocaleLowerCase("ru-RU");
+  const markdown = normalizeOptionalText(document?.markdown);
+  let score = 0;
+
+  if (/предмет\s+закупки|документаци[яи]\s+о\s+закупке|извещени[\p{L}\p{N}_]*\s+о\s+закупке|сведения\s+о\s+начальной|КРИТЕРИИ\s+ОЦЕНКИ|Критерии\s+оценки|тендерной\s+процедуры|подведение\s+итогов\s+тендера|экосистем[^\n]{0,120}искусственн/iu.test(markdown)) {
+    score += 80;
+  }
+
+  if (/документаци[\p{L}\p{N}_]*\s+о\s+закуп|извещен/u.test(title)) {
+    score += 70;
+  }
+
+  if (/техническ[\p{L}\p{N}_]*\s+задани|требован|критери|оценк|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/u.test(title)) {
+    score += 50;
+  }
+
+  if (/обосновани[\p{L}\p{N}_]*\s+нмц|форма\s*7|акт|эдо|контаргент|протокол|перечень/u.test(title)) {
+    score -= 60;
+  }
+
+  return score;
+}
+
+function extractRfiTitle(text) {
+  const match = text.match(/RFI\s*[–-]\s*анализ\s+рынка\)?\s*[,.:;-]?\s*(оказание\s+услуг[^\n.]+)/iu);
+
+  if (!match) {
+    return "";
+  }
+
+  const subject = normalizeOptionalText(match[1]).replace(/^./u, (char) => char.toLocaleUpperCase("ru-RU"));
+  return `RFI - анализ рынка. ${subject}`;
+}
+
+function normalizeDashValue(value) {
+  const normalized = normalizeOptionalText(value);
+
+  if (!normalized || /^не\s+указано/iu.test(normalized) || /^нет\s+информации/iu.test(normalized)) {
+    return "-";
+  }
+
+  return normalized;
+}
+
+function buildRfiSelectionCriteriaRows(rfiText) {
+  if (!rfiText) {
+    return [];
+  }
+
+  const rows = [];
+  const addRow = ({ title, sourceExcerpt, blockFactor }) => {
+    if (rfiText.includes(sourceExcerpt) || new RegExp(escapeRegExp(sourceExcerpt), "iu").test(rfiText)) {
+      rows.push({
+        order: rows.length + 1,
+        group: "requirement",
+        title,
+        weightPercent: null,
+        blockFactor,
+        coverageStatus: "",
+        coverageAmount: "",
+        coverageNote: sourceExcerpt,
+        sourceExcerpt
+      });
+    }
+  };
+
+  addRow({
+    title: "Презентация о компании",
+    sourceExcerpt: "Презентацию о компании.",
+    blockFactor: "blockFactor"
+  });
+  addRow({
+    title: "Примеры реализованных проектов (при наличии)",
+    sourceExcerpt: "Примеры реализованных проектов (при наличии).",
+    blockFactor: "no"
+  });
+  addRow({
+    title: "Заполненное КП",
+    sourceExcerpt: "Заполненную форму КП",
+    blockFactor: "blockFactor"
+  });
+  addRow({
+    title: "Заполненную анкету контрагента",
+    sourceExcerpt: "Заполненную анкету контрагента",
+    blockFactor: "blockFactor"
+  });
+  addRow({
+    title: "Описание используемых технологий",
+    sourceExcerpt: "Описание используемых технологий.",
+    blockFactor: "blockFactor"
+  });
+
+  return rows;
+}
+
+function buildRfiDocumentFindings({ recordPatch, rfiDocument, selectionCriteriaRows }) {
+  if (!rfiDocument) {
+    return [];
+  }
+
+  const documentId = normalizeOptionalText(rfiDocument.documentId);
+  const findings = [];
+  const addFinding = (field, quote, note) => {
+    if (!quote) {
+      return;
+    }
+
+    findings.push({
+      field,
+      target: field,
+      documentId,
+      quote,
+      note,
+      confidence: "high"
+    });
+  };
+
+  addFinding("procurementStage", "RFI – анализ рынка", "RFI распознан как этап анализа рынка цен.");
+  addFinding("nmc", "Настоящий RFI сделан для анализа рынка потенциальных контрагентов и технологий.", "Для RFI НМЦ не задана.");
+  addFinding("title", recordPatch.title, "Предмет RFI извлечен из объявления.");
+  addFinding("customer", "X5 приглашает Вас принять участие", "Заказчик определен по RFI-объявлению.");
+
+  for (const row of selectionCriteriaRows) {
+    findings.push({
+      field: "selectionCriteriaRows",
+      target: "selectionCriteriaRows",
+      documentId,
+      quote: row.sourceExcerpt,
+      note: row.title,
+      confidence: "high"
+    });
+  }
+
+  return findings;
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export function buildDifyPayload({ record, job = {}, config = getDifyConfig() } = {}) {
@@ -387,7 +1409,8 @@ export function normalizeDifyContract(contract) {
 
   if (rawSelectionRows.length) {
     try {
-      selectionCriteriaRows = normalizeSelectionCriteriaRows(rawSelectionRows, { requireCoverage: true });
+      selectionCriteriaRows = normalizeSelectionCriteriaRows(rawSelectionRows, { requireCoverage: false })
+        .map(clearSelectionCriteriaExpertFields);
     } catch (error) {
       throw createDifyError(
         normalizeOptionalText(error?.code) || "dify_selection_criteria_invalid",
@@ -522,6 +1545,19 @@ function buildRecordPayload(record) {
   return payload;
 }
 
+function resolveRecordMarkdownHrefByDocumentId(record, documentId) {
+  const normalizedDocumentId = normalizeOptionalText(documentId);
+
+  if (!normalizedDocumentId) {
+    return "";
+  }
+
+  const candidate = collectMarkdownDocumentCandidates(record)
+    .find((document) => normalizeOptionalText(document.documentId || document.id) === normalizedDocumentId);
+
+  return normalizeOptionalText(candidate?.href);
+}
+
 function collectDifyDocuments(record, config, warnings) {
   const markdownCandidates = collectMarkdownDocumentCandidates(record);
   const jsonCandidates = collectJsonArtifactCandidates(record);
@@ -539,6 +1575,21 @@ function collectDifyDocuments(record, config, warnings) {
 
     if (markdownPath && fs.existsSync(markdownPath)) {
       markdown = fs.readFileSync(markdownPath, "utf-8");
+    }
+
+    const focusedMarkdown = buildFocusedDifyMarkdown(markdown);
+
+    if (focusedMarkdown && markdown.length > config.maxDocumentChars) {
+      markdown = [
+        "## Фокусные фрагменты для AI-pass",
+        "",
+        focusedMarkdown,
+        "",
+        "## Начало документа",
+        "",
+        markdown
+      ].join("\n");
+      warnings.push(`dify_document_focused_snippets_added:${documentId}`);
     }
 
     if (markdown.length > config.maxDocumentChars) {
@@ -600,12 +1651,13 @@ function collectDifyDocuments(record, config, warnings) {
     byDocumentId.set(targetDocumentId, entry);
   }
 
-  const documents = [...byDocumentId.values()]
-    .filter((document) => document.markdown || document.jsonArtifacts.length)
+  const allDocuments = prioritizeDifyDocuments([...byDocumentId.values()]
+    .filter((document) => document.markdown || document.jsonArtifacts.length));
+  const documents = allDocuments
     .slice(0, config.maxDocuments);
 
-  if (byDocumentId.size > documents.length) {
-    warnings.push(`dify_documents_omitted:${byDocumentId.size - documents.length}`);
+  if (allDocuments.length > documents.length) {
+    warnings.push(`dify_documents_omitted:${allDocuments.length - documents.length}`);
   }
 
   if (!documents.length) {
@@ -613,6 +1665,120 @@ function collectDifyDocuments(record, config, warnings) {
   }
 
   return documents;
+}
+
+function buildFocusedDifyMarkdown(markdown) {
+  const normalized = normalizeOptionalText(markdown);
+
+  if (!normalized) {
+    return "";
+  }
+
+  const snippets = [];
+
+  for (const pattern of FOCUSED_SNIPPET_PATTERNS) {
+    pattern.lastIndex = 0;
+    const match = pattern.exec(normalized);
+
+    if (!match) {
+      continue;
+    }
+
+    const snippet = extractFocusedMarkdownSnippet(normalized, match.index);
+
+    if (!snippet || snippets.some((existing) => snippetsOverlap(existing, snippet))) {
+      continue;
+    }
+
+    snippets.push(snippet);
+  }
+
+  return snippets
+    .map((snippet, index) => [
+      `### Фрагмент ${index + 1}`,
+      "",
+      snippet.text
+    ].join("\n"))
+    .join("\n\n");
+}
+
+function extractFocusedMarkdownSnippet(markdown, matchIndex) {
+  const preferredStart = findPreviousMarkdownHeading(markdown, matchIndex);
+  const start = preferredStart >= 0
+    ? preferredStart
+    : Math.max(0, matchIndex - FOCUSED_SNIPPET_CONTEXT_BEFORE_CHARS);
+  const end = Math.min(markdown.length, matchIndex + FOCUSED_SNIPPET_CONTEXT_AFTER_CHARS);
+  const text = markdown.slice(start, end).slice(0, FOCUSED_SNIPPET_MAX_CHARS).trim();
+
+  return text
+    ? {
+        start,
+        end: start + text.length,
+        text
+      }
+    : null;
+}
+
+function findPreviousMarkdownHeading(markdown, matchIndex) {
+  const prefix = markdown.slice(0, matchIndex);
+  const headingMatches = [...prefix.matchAll(/\n#{2,5}\s+[^\n]+/gu)];
+  const lastHeading = headingMatches.at(-1);
+
+  return lastHeading ? lastHeading.index + 1 : -1;
+}
+
+function snippetsOverlap(left, right) {
+  return left.start <= right.end && right.start <= left.end;
+}
+
+function prioritizeDifyDocuments(documents) {
+  return documents
+    .map((document, index) => ({
+      document,
+      index,
+      priority: getDifyDocumentPriority(document)
+    }))
+    .sort((left, right) => right.priority - left.priority || left.index - right.index)
+    .map((entry) => entry.document);
+}
+
+function getDifyDocumentPriority(document) {
+  const haystack = normalizeOptionalText([
+    document.documentId,
+    document.title,
+    document.sourceFileName
+  ].join(" ")).toLocaleLowerCase("ru-RU");
+  let score = document.markdown ? 10 : -20;
+
+  if (/документаци[\p{L}\p{N}_]*\s+о\s+закуп|^doc-\d+\s+документаци|извещен/u.test(haystack)) {
+    score += 110;
+  }
+
+  if (/техническ[\p{L}\p{N}_]*\s+задани|требован|критери|оценк|задани[\p{L}\p{N}_]*\s+на\s+прототип|прототип/u.test(haystack)) {
+    score += 95;
+  }
+
+  if (/срок|календарн[\p{L}\p{N}_]*\s+план/u.test(haystack)) {
+    score += 70;
+  }
+
+  if (/нмц|начальн[\p{L}\p{N}_]*\s+цен|форма\s*7|ценов/u.test(haystack)) {
+    score += 60;
+  }
+
+  if (/предложени[\p{L}\p{N}_]*\s+в\s+отношени[\p{L}\p{N}_]*\s+предмет/u.test(haystack)) {
+    score += 45;
+  }
+
+  if (/договор/u.test(haystack)) {
+    score += 20;
+  }
+
+  if (/акт|эдо|контаргент|протокол|перечень|форма\s*[128]/u.test(haystack)) {
+    score -= 30;
+  }
+
+  return score;
 }
 
 function collectMarkdownDocumentCandidates(record) {
@@ -761,7 +1927,7 @@ export function buildDifyInstructions() {
     objective: "Extract procurement/scoring data in two blocks only: tenderInfo and selectionCriteria. Use only supplied Markdown/json documents as evidence. Omit unsupported or unsupported-by-evidence fields.",
     expectedOutput: {
       recordPatch: "object with tender information fields only",
-      selectionCriteriaRows: "array of evaluation criteria and mandatory bidder/contractor requirements: group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt",
+      selectionCriteriaRows: "array of document-backed evaluation criteria and mandatory bidder/contractor requirements: group, title, weightPercent for weighted price/nonPrice rows, blockFactor only for requirement rows without weight, coverageNote, sourceExcerpt. Do not fill expert answer fields.",
       documentFindings: "array of evidence: field/target, documentId, quote/excerpt, reason/note, confidence",
       warnings: "array of warning strings",
       metadata: "object without secrets or links"
@@ -805,17 +1971,26 @@ export function buildDifyInstructions() {
       "For each selectionCriteriaRows item, add a separate documentFindings item with field='selectionCriteriaRows' and quote/sourceExcerpt for that row.",
       "If a document finding is based on a criteria row, use target='selectionCriteriaRows' and field='selectionCriteriaRows'.",
       "For selectionCriteriaRows, extract two document-backed layers: (1) bid evaluation/winner/scoring criteria; (2) mandatory bidder or contractor qualification requirements that affect admission, participation, selection or contractability.",
-      "If documents say the only evaluation criterion is price or lowest price, return one price row for that evaluation rule, then keep extracting mandatory bidder requirements as group='requirement' with weightPercent=null.",
-      "Use group='requirement' for block-factor/no-weight requirements such as licenses, permits, staff/team resources, qualification certificates, comparable experience, required forms and strict mandatory application documents.",
-      "Existing scoring_payload.selectionCriteriaRows may contain human-entered coverageStatus/coverageNote values. When a document-backed row matches an existing row by title or business meaning, preserve the existing coverageStatus and coverageNote unless the new document evidence directly contradicts it.",
+      "For selectionCriteriaRows.coverageNote, write the document-backed task for the tender specialist: what exactly must be proven, prepared or checked, for example 'портфолио 3 сайта банковской тематики'. Do not write whether we close it.",
+      "Do not fill selectionCriteriaRows.coverageStatus or coverageAmount. These fields are filled later by the tender specialist after analysis.",
+      "Explicit bid evaluation tables have priority over technical specifications and prototype task tables. First search for sections named 'Критерии оценки и сопоставления заявок', 'Критерии оценки', 'Значимость критерия' or 'Вес критерия'.",
+      "For group='price' and group='nonPrice', use weightPercent when the document gives a numeric criterion weight, and leave blockFactor empty.",
+      "For group='requirement', use weightPercent=null and set blockFactor to 'blockFactor' for mandatory/blocking requirements or 'no' for desirable/non-blocking requirements.",
+      "If documents say the only evaluation criterion is price or lowest price, return one price row for that evaluation rule, then keep extracting mandatory bidder requirements as group='requirement' with weightPercent=null and blockFactor set.",
+      "Use group='requirement' for no-weight requirements such as licenses, permits, staff/team resources, qualification certificates, comparable experience, required forms and strict mandatory application documents.",
+      "Existing scoring_payload.selectionCriteriaRows may contain human-entered coverageStatus and coverageAmount values. Do not copy or rewrite them in AI output; backend preserves them for matched rows.",
       "Do not present preserved human-entered coverage notes as document evidence. documentFindings.quote and sourceExcerpt must still come from supplied Markdown/json documents.",
       "Never treat technical specification implementation items, system features, bug definitions, technology stack, acceptance rules, source-code transfer, security tasks or delivery obligations as selectionCriteriaRows unless they are explicitly stated as bidder qualification/admission requirements or application evaluation criteria.",
+      "Never expand a prototype task function table into selectionCriteriaRows. If the main evaluation table has one row like 'Экспертная оценка предлагаемого участником прототипного решения', return that one nonPrice row and use the prototype task only as evidence/context.",
       "Keep sourceExcerpt, documentFindings.quote and documentFindings.note compact; use short quotes instead of long paragraphs.",
-      "If uncertain about coverageStatus, use 'partial' rather than omitting coverageStatus.",
+      "If uncertain about a criterion itself, include a warning or omit the row; do not use coverage fields for uncertainty.",
       "Check every instructions.extractionTargets.recordPatch field before the final answer; include all supported fields that have document evidence.",
-      "Do not stop after the first customer/title/price fields; extract deadlines, securities, terms, retrading, anti-dumping, creative requirements, notes and summary when present.",
+      "Do not stop after the first customer/title/price fields; extract deadlines, securities, terms, retrading, anti-dumping, test-assignment/creative requirements, notes and summary when present.",
+      "For recordPatch.projectTitle return a short page title: customer name + 2-3 words about the project, for example 'Эрманн техподдержка' or 'Икс5 Битрикс24'. Do not put full purpose, full procurement subject, URLs or long sentences into projectTitle.",
       "For recordPatch.shortTitle return only one of: Аутсорс, Аутстаф. Use Аутсорс for contracts about delivering work/service results; use Аутстаф only when the documents clearly describe providing personnel/staff to the customer without contractor-owned work result responsibility.",
       "Keep overallExecutionTerm and contractTerm separate: overallExecutionTerm is the work/service delivery period; contractTerm is the legal validity period of the agreement.",
+      "For RFI/market-analysis documents, treat the procedure as analysis, not a supplier-selection tender: if documents say 'RFI', 'анализ рынка', 'сбор информации', 'бюджетных оценок' or 'выбор контрагента не производится', set procurementStage='Анализ рынка цен', nmc='нет' when no explicit NMC/НМЦ is stated, antiDumpingMeasures='не применимо на данном этапе', and do not use participant commercial offer totals as NMC.",
+      "For RFI/market-analysis documents, do not extract technical implementation tasks, project stages, functional requirements or deliverables from the technical specification as selectionCriteriaRows. Extract only RFI submission/package requirements such as presentation, project examples, filled commercial proposal, contractor questionnaire and technology description.",
       "When a work/service term is split across adjacent lines or table cells, combine the neighboring cells into one business value, for example 'с даты подписания договора - до 01 декабря 2026 года'."
     ],
     extractionTargets: {
@@ -823,20 +1998,20 @@ export function buildDifyInstructions() {
         {
           field: "customer",
           label: "Заказчик",
-          searchHints: ["заказчик", "наименование заказчика", "организатор закупки", "клиент", "получатель услуг"],
-          output: "Official customer/ordering organization name."
+          searchHints: ["заказчик", "наименование заказчика", "организатор закупки", "клиент", "получатель услуг", "X5", "Х5"],
+          output: "Official customer/ordering organization name. Prefer the full official legal name if present; otherwise use the most specific customer name found, without shortening it further."
         },
         {
           field: "projectTitle",
           label: "Название проекта",
-          searchHints: ["предмет закупки", "наименование закупки", "название проекта", "техническое задание", "оказание услуг", "выполнение работ"],
-          output: "Human-readable project title if clearly stated."
+          searchHints: ["заказчик", "предмет закупки", "наименование закупки", "название проекта", "техническое задание", "оказание услуг", "выполнение работ", "RFI", "анализ рынка"],
+          output: "Short page title only: customer name + 2-3 words about the project, max about 4 words total. Examples: 'Эрманн техподдержка', 'Икс5 Битрикс24'. Do not return a full sentence, purpose paragraph or full procurement subject here."
         },
         {
           field: "title",
           label: "Предмет закупки",
-          searchHints: ["предмет договора", "предмет закупки", "объект закупки", "описание объекта закупки", "цель работ"],
-          output: "Full procurement subject."
+          searchHints: ["предмет договора", "предмет закупки", "объект закупки", "описание объекта закупки", "цель работ", "RFI", "анализ рынка", "оказание услуг"],
+          output: "Full procurement subject. For RFI use a phrase like 'RFI - анализ рынка. Оказание услуг ...' when that wording is present."
         },
         {
           field: "shortTitle",
@@ -864,8 +2039,8 @@ export function buildDifyInstructions() {
         {
           field: "nmc",
           label: "НМЦ",
-          searchHints: ["начальная максимальная цена", "НМЦ", "НМЦК", "максимальная цена договора", "цена договора"],
-          output: "Initial/max contract price with currency if present."
+          searchHints: ["начальная максимальная цена", "НМЦ", "НМЦК", "максимальная цена договора", "цена договора", "RFI", "анализ рынка"],
+          output: "Initial/max contract price with currency if present. For RFI/market-analysis, return 'нет' if there is no explicit NMC/НМЦ; do not use filled participant КП totals, license prices or offer totals as NMC."
         },
         {
           field: "procurementStage",
@@ -881,9 +2056,14 @@ export function buildDifyInstructions() {
             "предквалификация",
             "мониторинг цен",
             "сбор нмц",
-            "анализ рынка цен"
+            "анализ рынка цен",
+            "RFI",
+            "анализ рынка",
+            "сбор информации",
+            "бюджетных оценок",
+            "выбор контрагента не производится"
           ],
-          output: "One of exactly: ПКО, Тендер, Сбор НМЦ, Аукцион, Мониторинг цен - закрытый конкурс, Мониторинг цен - открытый конкурс, Анализ рынка цен. Map explicit запрос цен/конкурс/тендер procurement methods to Тендер."
+          output: "One of exactly: ПКО, Тендер, Сбор НМЦ, Аукцион, Мониторинг цен - закрытый конкурс, Мониторинг цен - открытый конкурс, Анализ рынка цен. Map RFI/анализ рынка/сбор информации и бюджетных оценок to Анализ рынка цен. Map explicit запрос цен/конкурс/тендер supplier-selection methods to Тендер."
         },
         {
           field: "purchaseBy",
@@ -922,10 +2102,13 @@ export function buildDifyInstructions() {
             "окончание - до",
             "с даты заключения по",
             "по 01 декабря 2026",
+            "этапы и виды работ",
+            "длительность в неделях",
+            "до 16 недель",
             "календарных дней",
             "рабочих дней"
           ],
-          output: "Overall work/service delivery term. Include both start and end when documents provide them in nearby lines/table cells."
+          output: "Overall work/service delivery term. Include both start and end when documents provide them in nearby lines/table cells. If only separate stage durations are present and the documents do not clearly say whether stages are sequential or parallel, return a compact uncertainty note instead of summing or choosing a participant КП estimate."
         },
         {
           field: "contractTerm",
@@ -936,20 +2119,20 @@ export function buildDifyInstructions() {
         {
           field: "retrade",
           label: "Переторжка",
-          searchHints: ["переторжка", "дополнительные ценовые предложения", "аукционный шаг", "торговая сессия"],
-          output: "Retrading/auction/price improvement rules."
+          searchHints: ["переторжка", "повторное коммерческое предложение", "дополнительные ценовые предложения", "улучшенное ценовое предложение", "улучшение цены", "переподача КП"],
+          output: "Return 'Да' only when documents explicitly provide a retrading stage or repeated/additional improved commercial/price proposal after initial submission. Return 'Нет' only when documents explicitly say retrading is absent/not provided. Do not infer retrading from an ordinary auction, tender stage, negotiation, winner selection, or generic price criterion."
         },
         {
           field: "antiDumpingMeasures",
           label: "Антидемпинговые меры",
-          searchHints: ["антидемпинговые меры", "снижение цены", "25 процентов", "добросовестность участника"],
-          output: "Anti-dumping rules or 'Нет', if documents explicitly say they do not apply."
+          searchHints: ["антидемпинговые меры", "снижение цены", "25 процентов", "добросовестность участника", "RFI", "анализ рынка"],
+          output: "Anti-dumping rules or 'Нет', if documents explicitly say they do not apply. For RFI/market-analysis without supplier selection, return 'не применимо на данном этапе'."
         },
         {
           field: "creative",
           label: "Творческое",
-          searchHints: ["дизайн", "креатив", "концепция", "макет", "визуальная концепция"],
-          output: "Boolean true only if creative/design concept work is clearly required; false only if clearly not required."
+          searchHints: ["тестовое задание", "ТЗ", "техническое задание", "дизайн", "креатив", "концепция", "макет", "визуальная концепция", "презентация о компании", "презентацию о компании"],
+          output: "Boolean true if the package includes a test assignment / ТЗ / technical assignment for participant evaluation, or if creative/design concept work or a company presentation is clearly required. False only if clearly not required."
         },
         {
           field: "notes",
@@ -1003,6 +2186,10 @@ export function buildDifyInstructions() {
         ],
         exclusions: [
           "Техническое задание",
+          "Состав и содержание работ",
+          "Таблица 1 «Этапы и виды работ»",
+          "Функциональные требования",
+          "Порядок контроля и приемки",
           "термины и определения",
           "Баг",
           "Недостаток",
@@ -1012,27 +2199,25 @@ export function buildDifyInstructions() {
           "документация к системе",
           "приемка работ"
         ],
-        priceOnlyGuidance: "When a section states 'Единственным критерием является цена' or the winner is the participant with the lowest price, return one row: group='price', title='Цена', weightPercent=100 if the document makes it the only evaluation criterion, otherwise null, coverageStatus='full'. This does not mean there are no mandatory bidder requirements.",
-        mandatoryRequirementGuidance: "For explicit admission/qualification/mandatory application requirements, return group='requirement', weightPercent=null. Good row titles are short business names such as 'Лицензия ФСТЭК', 'Лицензия ФСБ', 'Команда', 'Опыт'. Put the actual requirement text and confirmation form in coverageNote/sourceExcerpt. If the document marks the row as strictly mandatory/block-factor/no weight, keep coverageStatus='full' unless the supplied card evidence says it is not covered.",
-        preserveExistingGuidance: "Before returning rows, compare them with scoring_payload.selectionCriteriaRows. If an existing row has the same title or same business meaning, carry over its coverageStatus and coverageNote, especially human portfolio notes such as which internal projects may close an experience requirement. Keep sourceExcerpt tied to the document requirement, not to the human note.",
+        priceOnlyGuidance: "When a section states 'Единственным критерием является цена' or the winner is the participant with the lowest price, return one row: group='price', title='Цена', weightPercent=100 if the document makes it the only evaluation criterion, otherwise null. This does not mean there are no mandatory bidder requirements.",
+        rfiGuidance: "For RFI/market-analysis, if the document says 'выбор контрагента не производится', do not return price/nonPrice evaluation rows. Return no-weight requirements from the package/submission list only: 'Презентация о компании', 'Примеры реализованных проектов (при наличии)', 'Заполненное КП', 'Заполненную анкету контрагента', 'Описание используемых технологий'. In coverageNote, state the task from the document; do not estimate whether we close it.",
+        mandatoryRequirementGuidance: "For explicit admission/qualification/mandatory application requirements, return group='requirement', weightPercent=null and blockFactor='blockFactor' when the wording is mandatory/required/strict/blocking. For desirable, optional or non-blocking requirements, use blockFactor='no'. Good row titles are short business names such as 'Лицензия ФСТЭК', 'Лицензия ФСБ', 'Команда', 'Опыт', 'Кадры'. Put the actual document wording in sourceExcerpt and a compact specialist task in coverageNote.",
+        preserveExistingGuidance: "Before returning rows, compare them with scoring_payload.selectionCriteriaRows. If an existing row has the same title or same business meaning, return the document-backed row and sourceExcerpt only; backend will preserve human-entered coverage fields.",
         rowShape: {
           group: "price | nonPrice | requirement",
           title: "criterion or requirement name",
-          weightPercent: "number for weighted evaluation criteria; null for group='requirement'",
-          coverageStatus: "full | partial | none",
-          coverageNote: "how we cover it or what is missing",
+          weightPercent: "number for weighted group='price' or group='nonPrice'; null for group='requirement'",
+          blockFactor: "'blockFactor' | 'no' only for group='requirement'; empty for group='price' and group='nonPrice'",
+          coverageStatus: "omit or empty; tender specialist fills it",
+          coverageAmount: "omit or empty; tender specialist fills it",
+          coverageNote: "document-backed task for the tender specialist; not our answer",
           sourceExcerpt: "exact source quote"
-        },
-        coverageGuidance: {
-          full: "The row appears coverable based on document wording or is a standard price criterion.",
-          partial: "Information is incomplete, ambiguous, or likely needs manager review.",
-          none: "Document describes a hard requirement that appears not covered or impossible."
         }
       }
     },
     selectionCriteriaEnums: {
       group: ["price", "nonPrice", "requirement"],
-      coverageStatus: ["full", "partial", "none"]
+      blockFactor: ["blockFactor", "no"]
     }
   };
 }

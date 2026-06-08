@@ -35,7 +35,7 @@ Dify recognizer workflow SHALL return its final answer through workflow output `
 
 #### Scenario: Selection criteria are recognized
 - **WHEN** workflow recognizes winner selection criteria
-- **THEN** each criteria row SHALL include `group`, `title`, `coverageStatus`, and supporting note or excerpt where available
+- **THEN** each criteria row SHALL include `group`, `title`, `weightPercent` for weighted price/nonPrice rows, `blockFactor` only for requirement rows without weight, `coverageNote` as a specialist task, and `sourceExcerpt`, and SHALL NOT fill expert coverage fields `coverageStatus` or `coverageAmount`
 
 #### Scenario: Field is not supported by backend patch
 - **WHEN** workflow detects a value for an unsupported or document-link field

@@ -28,13 +28,18 @@ const PROCUREMENT_STAGE_OPTIONS = [
 export const SELECTION_CRITERIA_GROUP_OPTIONS = [
   { value: "price", label: "Ценовой критерий" },
   { value: "nonPrice", label: "Неценовой критерий" },
-  { value: "requirement", label: "Дополнительное требование" }
+  { value: "requirement", label: "Требования без веса" }
 ];
 
 export const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
   { value: "full", label: "Полностью закрываем" },
   { value: "partial", label: "Частично закрываем" },
   { value: "none", label: "Не закрываем" }
+];
+
+export const SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS = [
+  { value: "blockFactor", label: "Блок-фактор" },
+  { value: "no", label: "Нет" }
 ];
 
 export const PREASSESSMENT_CRITICALITY_OPTIONS = [
@@ -127,10 +132,12 @@ export function createSelectionCriteriaRow(row = {}, index = 0) {
     order: Number.isFinite(Number(row.order)) ? Number(row.order) : index + 1,
     group,
     title: String(row.title || ""),
-    weightPercent: group === "requirement" || row.weightPercent === null || row.weightPercent === undefined ? "" : String(row.weightPercent),
+    weightPercent: group !== "price" || row.weightPercent === null || row.weightPercent === undefined ? "" : String(row.weightPercent),
+    blockFactor: group === "price" ? "" : normalizeSelectionCriteriaBlockFactorValue(row.blockFactor),
     coverageStatus: Object.prototype.hasOwnProperty.call(row, "coverageStatus")
       ? normalizeSelectionCriteriaCoverageValue(row.coverageStatus)
       : "",
+    coverageAmount: String(row.coverageAmount || ""),
     coverageNote: String(row.coverageNote || ""),
     sourceExcerpt: String(row.sourceExcerpt || "")
   };
@@ -151,12 +158,14 @@ export function createPreassessmentRiskRow(row = {}, index = 0) {
 export function serializeForm(form) {
   return JSON.stringify({
     ...form,
-    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
+    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, blockFactor, coverageStatus, coverageAmount, coverageNote, sourceExcerpt }, index) => ({
       order: index + 1,
       group,
       title,
-      weightPercent: group === "requirement" ? "" : weightPercent,
+      weightPercent: group === "price" ? weightPercent : "",
+      blockFactor: group === "price" ? "" : blockFactor,
       coverageStatus,
+      coverageAmount,
       coverageNote,
       sourceExcerpt
     })),
@@ -195,12 +204,14 @@ export function buildSavePayload(form) {
     stage: form.stage,
     documentWiki: normalizeDocumentWikiConfig(form.documentWiki),
     preassessment: serializePreassessment(form.preassessment),
-    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, coverageStatus, coverageNote, sourceExcerpt }, index) => ({
+    selectionCriteriaRows: form.selectionCriteriaRows.map(({ group, title, weightPercent, blockFactor, coverageStatus, coverageAmount, coverageNote, sourceExcerpt }, index) => ({
       order: index + 1,
       group,
       title,
-      weightPercent: group === "requirement" ? null : normalizeWeightPercentValue(weightPercent),
+      weightPercent: group === "price" ? normalizeWeightPercentValue(weightPercent) : null,
+      blockFactor: group === "price" ? "" : blockFactor,
       coverageStatus,
+      coverageAmount,
       coverageNote,
       sourceExcerpt
     }))
@@ -302,6 +313,10 @@ export function getRecordEditorOptions(record) {
       getRowSchemaFieldOptions(editorSchema.selectionCriteriaRowSchema, "coverageStatus"),
       SELECTION_CRITERIA_COVERAGE_OPTIONS
     ),
+    selectionCriteriaBlockFactorOptions: normalizeSelectOptions(
+      getRowSchemaFieldOptions(editorSchema.selectionCriteriaRowSchema, "blockFactor"),
+      SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS
+    ),
     preassessmentCriticalityOptions: normalizeSelectOptions(
       getRowSchemaFieldOptions(editorSchema.preassessmentRiskRowSchema, "criticality"),
       PREASSESSMENT_CRITICALITY_OPTIONS
@@ -313,6 +328,8 @@ export function getRecordEditorOptions(record) {
 export function isMeaningfulSelectionCriteriaRow(row) {
   return Boolean(
     String(row?.title || "").trim() ||
+    String(row?.blockFactor || "").trim() ||
+    String(row?.coverageAmount || "").trim() ||
     String(row?.coverageNote || "").trim() ||
     String(row?.sourceExcerpt || "").trim() ||
     String(row?.weightPercent || "").trim()
@@ -480,6 +497,25 @@ function normalizeSelectionCriteriaGroupValue(value) {
 function normalizeSelectionCriteriaCoverageValue(value) {
   const normalized = String(value || "").trim();
   return SELECTION_CRITERIA_COVERAGE_OPTIONS.some((option) => option.value === normalized) ? normalized : "";
+}
+
+function normalizeSelectionCriteriaBlockFactorValue(value) {
+  const normalized = String(value || "").trim();
+  const lowered = normalized.toLocaleLowerCase("ru-RU").replace(/[-_\s]+/g, "");
+
+  if (SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS.some((option) => option.value === normalized)) {
+    return normalized;
+  }
+
+  if (["blockfactor", "блокфактор", "да", "yes", "true", "1"].includes(lowered)) {
+    return "blockFactor";
+  }
+
+  if (["no", "false", "0", "нет", "неблокфактор"].includes(lowered)) {
+    return "no";
+  }
+
+  return "";
 }
 
 function normalizePreassessmentCriticalityValue(value) {

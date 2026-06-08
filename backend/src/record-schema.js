@@ -12,13 +12,18 @@ const CRITERIA_GROUP_OPTIONS = [
 const SELECTION_CRITERIA_GROUP_OPTIONS = [
   { value: "price", label: "Ценовой критерий" },
   { value: "nonPrice", label: "Неценовой критерий" },
-  { value: "requirement", label: "Дополнительное требование" }
+  { value: "requirement", label: "Требования без веса" }
 ];
 
 const SELECTION_CRITERIA_COVERAGE_OPTIONS = [
   { value: "full", label: "Полностью закрываем" },
   { value: "partial", label: "Частично закрываем" },
   { value: "none", label: "Не закрываем" }
+];
+
+const SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS = [
+  { value: "blockFactor", label: "Блок-фактор" },
+  { value: "no", label: "Нет" }
 ];
 
 const PREASSESSMENT_CRITICALITY_OPTIONS = [
@@ -151,7 +156,9 @@ export function buildSelectionCriteriaRowSchema() {
     field("group", "Группа", "select", { options: SELECTION_CRITERIA_GROUP_OPTIONS }),
     field("title", "Критерий / требование", "text"),
     field("weightPercent", "Вес, %", "number"),
+    field("blockFactor", "Блок-фактор / нет", "select", { options: SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS }),
     field("coverageStatus", "Закрытие", "select", { options: SELECTION_CRITERIA_COVERAGE_OPTIONS }),
+    field("coverageAmount", "На сколько закрываем", "textarea"),
     field("coverageNote", "Как закрываем", "textarea"),
     field("sourceExcerpt", "Источник / выдержка", "textarea")
   ];
@@ -212,7 +219,11 @@ export function normalizeShortTitle(value) {
     return "Аутсорс";
   }
 
-  return normalized;
+  if (/оказани[ея]\s+услуг|выполнени[ея]\s+работ|техническ[а-я]+\s+поддержк|ведени[ея]\s+сайт/u.test(lowered)) {
+    return "Аутсорс";
+  }
+
+  return "";
 }
 
 export function normalizeProcurementStage(value) {
@@ -459,9 +470,11 @@ function normalizeSelectionCriteriaRow(row, index, options) {
 
   const title = String(row.title ?? row.name ?? row.label ?? "").trim();
   const coverageNote = String(row.coverageNote ?? row.note ?? row.description ?? "").trim();
+  const coverageAmount = String(row.coverageAmount ?? row.coverageScope ?? row.coverageLevel ?? "").trim();
   const sourceExcerpt = String(row.sourceExcerpt ?? row.source ?? row.sourceText ?? "").trim();
   const weightPercent = normalizeWeightPercent(row.weightPercent ?? row.weight ?? row.weightPct);
-  const hasContent = Boolean(title || coverageNote || sourceExcerpt || weightPercent !== null);
+  const blockFactor = normalizeSelectionCriteriaBlockFactor(row.blockFactor ?? row.isBlockFactor ?? row.blockingFactor);
+  const hasContent = Boolean(title || coverageNote || coverageAmount || sourceExcerpt || weightPercent !== null || blockFactor);
 
   if (!hasContent) {
     return null;
@@ -470,18 +483,14 @@ function normalizeSelectionCriteriaRow(row, index, options) {
   const coverageStatus = normalizeCoverageStatus(row.coverageStatus ?? row.coverage ?? row.status);
   const group = normalizeSelectionCriteriaGroup(row.group ?? row.type ?? row.kind);
 
-  if (options.requireCoverage && !coverageStatus) {
-    const error = new Error("selection_criteria_coverage_required");
-    error.code = "selection_criteria_coverage_required";
-    throw error;
-  }
-
   return {
     order: normalizeOrder(row.order, index),
     group,
     title,
-    weightPercent: group === "requirement" ? null : weightPercent,
-    coverageStatus: coverageStatus || "partial",
+    weightPercent: group === "price" || group === "nonPrice" ? weightPercent : null,
+    blockFactor: group === "requirement" ? blockFactor : "",
+    coverageStatus,
+    coverageAmount,
     coverageNote,
     sourceExcerpt
   };
@@ -565,6 +574,25 @@ function normalizeCoverageStatus(value) {
 
   if (["none", "no", "notcovered", "незакрываем", "незакрыто", "нет"].includes(lowered)) {
     return "none";
+  }
+
+  return "";
+}
+
+function normalizeSelectionCriteriaBlockFactor(value) {
+  const normalized = String(value ?? "").trim();
+  const lowered = normalized.toLocaleLowerCase("ru-RU").replace(/[-_\s]+/g, "");
+
+  if (!lowered) {
+    return "";
+  }
+
+  if (["blockfactor", "блокфактор", "блок-фактор", "да", "yes", "true", "1"].includes(lowered)) {
+    return "blockFactor";
+  }
+
+  if (["no", "false", "0", "нет", "неблокфактор"].includes(lowered)) {
+    return "no";
   }
 
   return "";

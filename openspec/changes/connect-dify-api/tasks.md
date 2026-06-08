@@ -23,7 +23,7 @@
 
 - [x] 4.1 Реализовать parser/validator Dify response contract: `recordPatch`, `selectionCriteriaRows`, `documentFindings`, `warnings`, `metadata`.
 - [x] 4.2 Ввести allowlist полей `recordPatch` и запретить document link fields, `workflow`, `documents`, `documentWiki`, `documentArtifacts` и unknown fields.
-- [x] 4.3 Нормализовать `selectionCriteriaRows` через существующую модель с обязательным `coverageStatus`.
+- [x] 4.3 Нормализовать `selectionCriteriaRows` через существующую модель без обязательного AI-заполнения экспертных полей закрытия.
 - [x] 4.4 Сохранять evidence/findings отдельно от patch, чтобы пользователь видел документ и выдержку, на которые опирается AI-pass.
 - [x] 4.5 Обработать невалидный JSON/prose response как failed или invalid draft без применения patch к записи.
 - [x] 4.6 Применять validated patch автоматически без отдельного human-review шага, сохранив возможность ручной правки полей в UI.

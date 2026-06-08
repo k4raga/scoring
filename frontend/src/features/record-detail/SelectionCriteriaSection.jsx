@@ -1,10 +1,12 @@
 import {
+  SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS,
   SELECTION_CRITERIA_COVERAGE_OPTIONS,
   SELECTION_CRITERIA_GROUP_OPTIONS
 } from "./recordFormModel.js";
 import { CustomSelect } from "./RecordControls.jsx";
 
 export function SelectionCriteriaSection({
+  blockFactorOptions = SELECTION_CRITERIA_BLOCK_FACTOR_OPTIONS,
   coverageOptions = SELECTION_CRITERIA_COVERAGE_OPTIONS,
   groupOptions = SELECTION_CRITERIA_GROUP_OPTIONS,
   onAdd,
@@ -38,6 +40,7 @@ export function SelectionCriteriaSection({
               <div className="detail-selection-criteria-list">
                 {group.rows.map((row) => (
                   <SelectionCriteriaRow
+                    blockFactorOptions={blockFactorOptions}
                     coverageOptions={coverageOptions}
                     groupOptions={groupOptions}
                     key={row.rowId}
@@ -59,8 +62,8 @@ export function SelectionCriteriaSection({
   );
 }
 
-function SelectionCriteriaRow({ coverageOptions, groupOptions, onRemove, onUpdate, row }) {
-  const showWeight = row.group !== "requirement";
+function SelectionCriteriaRow({ blockFactorOptions, coverageOptions, groupOptions, onRemove, onUpdate, row }) {
+  const showWeight = row.group === "price";
 
   return (
     <article className="detail-selection-criteria-row">
@@ -82,19 +85,30 @@ function SelectionCriteriaRow({ coverageOptions, groupOptions, onRemove, onUpdat
             />
           </div>
 
-          <label className="detail-selection-criteria-control">
-            <span className="detail-field-label">Вес, %</span>
-            <input
-              className="detail-control"
-              disabled={!showWeight}
-              max="100"
-              min="0"
-              onChange={(event) => onUpdate(row.rowId, "weightPercent", event.target.value)}
-              placeholder={showWeight ? "40" : "Без веса"}
-              type="number"
-              value={showWeight ? row.weightPercent : ""}
-            />
-          </label>
+          {showWeight ? (
+            <label className="detail-selection-criteria-control">
+              <span className="detail-field-label">Вес, %</span>
+              <input
+                className="detail-control"
+                max="100"
+                min="0"
+                onChange={(event) => onUpdate(row.rowId, "weightPercent", event.target.value)}
+                placeholder="40"
+                type="number"
+                value={row.weightPercent}
+              />
+            </label>
+          ) : (
+            <div className="detail-selection-criteria-control">
+              <span className="detail-field-label">Блок-фактор / нет</span>
+              <CustomSelect
+                onChange={(value) => onUpdate(row.rowId, "blockFactor", value)}
+                options={blockFactorOptions}
+                placeholder="Выберите"
+                value={row.blockFactor}
+              />
+            </div>
+          )}
 
           <div className="detail-selection-criteria-control">
             <span className="detail-field-label">Закрытие</span>
@@ -124,9 +138,20 @@ function SelectionCriteriaRow({ coverageOptions, groupOptions, onRemove, onUpdat
             <textarea
               className="detail-control detail-control-textarea"
               onChange={(event) => onUpdate(row.rowId, "coverageNote", event.target.value)}
-              placeholder="Что именно в нашем предложении закрывает критерий или почему не закрывает"
+              placeholder="Задача из документов: что нужно подтвердить, подготовить или проверить"
               rows="3"
               value={row.coverageNote}
+            />
+          </label>
+
+          <label className="detail-selection-criteria-control detail-selection-criteria-control-wide">
+            <span className="detail-field-label">На сколько закрываем</span>
+            <textarea
+              className="detail-control detail-control-textarea"
+              onChange={(event) => onUpdate(row.rowId, "coverageAmount", event.target.value)}
+              placeholder="Оценка тендерного специалиста: полностью, частично, процент или комментарий"
+              rows="2"
+              value={row.coverageAmount}
             />
           </label>
         </div>

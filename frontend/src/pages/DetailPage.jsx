@@ -157,7 +157,14 @@ export default function DetailPage() {
         }
 
         const nextRow = { ...row, [key]: value };
-        return key === "group" && value === "requirement" ? { ...nextRow, weightPercent: "" } : nextRow;
+
+        if (key !== "group") {
+          return nextRow;
+        }
+
+        return value === "price"
+          ? { ...nextRow, blockFactor: "" }
+          : { ...nextRow, weightPercent: "" };
       })
     }));
     markDirtyIdle();
@@ -757,6 +764,7 @@ export default function DetailPage() {
             </section>
 
             <SelectionCriteriaSection
+              blockFactorOptions={editorOptions.selectionCriteriaBlockFactorOptions}
               coverageOptions={editorOptions.selectionCriteriaCoverageOptions}
               groupOptions={editorOptions.selectionCriteriaGroupOptions}
               onAdd={addSelectionCriteriaRow}
@@ -1471,7 +1479,7 @@ function DetailDateField({ fieldId, label, mode = "date", onChange, placeholder 
 function buildSearchTargets(record, form) {
   const wikiBlocks = buildEditableDocumentBlocks(record, form.documentWiki).blocks;
   const criteriaText = form.selectionCriteriaRows
-    .map((row) => [row.title, row.coverageNote, row.sourceExcerpt, row.coverageStatus, row.weightPercent].join(" "))
+    .map((row) => [row.title, row.coverageNote, row.coverageAmount, row.sourceExcerpt, row.coverageStatus, row.weightPercent, row.blockFactor].join(" "))
     .join(" ");
   const preassessmentText = [
     RISK_BASE_URL,

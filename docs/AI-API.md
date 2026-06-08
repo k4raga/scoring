@@ -141,16 +141,26 @@ Backend не отправляет в Dify как primary input:
 ```json
 {
   "recordPatch": {
-    "customer": "ООО Пример"
+    "customer": "ООО Пример",
+    "projectTitle": "Пример техподдержка",
+    "title": "Полный предмет закупки из документации"
   },
   "selectionCriteriaRows": [
     {
       "group": "price",
       "title": "Цена договора",
       "weightPercent": 60,
-      "coverageStatus": "full",
-      "coverageNote": "Закрываем ценовым предложением",
+      "blockFactor": "",
+      "coverageNote": "Подготовить ценовое предложение по критерию цены договора",
       "sourceExcerpt": "Цена - 60%"
+    },
+    {
+      "group": "requirement",
+      "title": "Опыт",
+      "weightPercent": null,
+      "blockFactor": "blockFactor",
+      "coverageNote": "Подтвердить опыт выполнения сопоставимых работ",
+      "sourceExcerpt": "Наличие не менее 2 лет опыта..."
     }
   ],
   "documentFindings": [
@@ -245,9 +255,9 @@ SCORING_DIFY_PAYLOAD_INPUT_KEY=scoring_payload
 SCORING_DIFY_RESPONSE_MODE=blocking
 SCORING_DIFY_TIMEOUT_MS=95000
 SCORING_DIFY_MAX_DOCUMENTS=40
-SCORING_DIFY_MAX_DOCUMENT_CHARS=120000
-SCORING_DIFY_MAX_JSON_ARTIFACT_CHARS=80000
-SCORING_DIFY_MAX_PAYLOAD_CHARS=650000
+SCORING_DIFY_MAX_DOCUMENT_CHARS=30000
+SCORING_DIFY_MAX_JSON_ARTIFACT_CHARS=10000
+SCORING_DIFY_MAX_PAYLOAD_CHARS=220000
 ```
 
 `SCORING_DIFY_DEBUG_PAYLOAD=1` разрешен только для локальной диагностики. Он сохраняет sanitized payload в runtime/debug каталог и не должен включаться в production по умолчанию.

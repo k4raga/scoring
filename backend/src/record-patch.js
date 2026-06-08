@@ -18,7 +18,7 @@ export function applyRecordPatch(existingRecord, patch) {
       ? patch.selectionCriteriaRows ?? patch.selectionCriteria
       : undefined;
   const selectionCriteriaRows = selectionCriteriaSource !== undefined
-    ? normalizeSelectionCriteriaRows(selectionCriteriaSource, { requireCoverage: true })
+    ? normalizeSelectionCriteriaRows(selectionCriteriaSource, { requireCoverage: false })
     : undefined;
   const preassessment = hasOwn("preassessment") ? normalizePreassessment(patch.preassessment) : undefined;
   const nextRecord = {

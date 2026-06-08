@@ -4,7 +4,6 @@ import {
   buildFormState,
   buildSavePayload,
   createEmptyForm,
-  isMeaningfulSelectionCriteriaRow,
   serializeForm
 } from "./recordFormModel.js";
 
@@ -85,14 +84,6 @@ export function useRecordDetail(recordId) {
   }
 
   async function handleSave() {
-    const missingCoverage = form.selectionCriteriaRows.some((row) => isMeaningfulSelectionCriteriaRow(row) && !row.coverageStatus);
-
-    if (missingCoverage) {
-      setSaveStatus("error");
-      setSaveMessage("У каждой строки критериев должен быть статус закрытия.");
-      return;
-    }
-
     setSaveStatus("saving");
     setSaveMessage("");
 

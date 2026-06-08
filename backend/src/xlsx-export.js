@@ -70,7 +70,9 @@ export async function createDayWorkbook(dayView, records) {
     { header: "Группа", key: "group", width: 20 },
     { header: "Наименование", key: "title", width: 30 },
     { header: "Вес, %", key: "weightPercent", width: 12 },
+    { header: "Блок-фактор / нет", key: "blockFactor", width: 20 },
     { header: "Статус закрытия", key: "coverageStatus", width: 24 },
+    { header: "На сколько закрываем", key: "coverageAmount", width: 28 },
     { header: "Пояснение", key: "coverageNote", width: 42 },
     { header: "Источник", key: "sourceExcerpt", width: 42 }
   ];
@@ -86,7 +88,9 @@ export async function createDayWorkbook(dayView, records) {
             group: "",
             title: "Критерии не заполнены",
             weightPercent: "",
+            blockFactor: "",
             coverageStatus: "",
+            coverageAmount: "",
             coverageNote: "",
             sourceExcerpt: ""
           }
@@ -98,7 +102,9 @@ export async function createDayWorkbook(dayView, records) {
         group: formatCriteriaGroup(criteriaRow.group),
         title: criteriaRow.title,
         weightPercent: criteriaRow.weightPercent ?? "",
+        blockFactor: formatCriteriaBlockFactor(criteriaRow.blockFactor),
         coverageStatus: formatCoverageStatus(criteriaRow.coverageStatus),
+        coverageAmount: criteriaRow.coverageAmount,
         coverageNote: criteriaRow.coverageNote,
         sourceExcerpt: criteriaRow.sourceExcerpt
       }));
@@ -151,7 +157,16 @@ function formatCriteriaGroup(value) {
   const labels = {
     price: "Ценовой критерий",
     nonPrice: "Неценовой критерий",
-    requirement: "Дополнительное требование"
+    requirement: "Требования без веса"
+  };
+
+  return labels[value] || value || "";
+}
+
+function formatCriteriaBlockFactor(value) {
+  const labels = {
+    blockFactor: "Блок-фактор",
+    no: "Нет"
   };
 
   return labels[value] || value || "";
